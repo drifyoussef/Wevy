@@ -1,0 +1,7 @@
+{
+  "name": "wevy",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

@@ -1,0 +1,52 @@
+<ion-content [fullscreen]="true" class="welcome-content">
+  <div class="welcome-container">
+    <div class="hero-section">
+      <div class="logo-animation">
+        <h1 class="app-logo">🍽️</h1>
+      </div>
+      <h1 class="app-name">Wevy</h1>
+      <p class="tagline">Décidez ensemble quoi manger ce soir</p>
+    </div>
+
+    <div class="features-section">
+      <div class="feature">
+        <span class="feature-icon">👨‍👩‍👧‍👦</span>
+        <h3>En famille ou entre amis</h3>
+        <p>Créez votre foyer et invitez vos proches</p>
+      </div>
+      
+      <div class="feature">
+        <span class="feature-icon">❤️</span>
+        <h3>Swipez vos préférences</h3>
+        <p>Chaque membre vote pour ses plats préférés</p>
+      </div>
+      
+      <div class="feature">
+        <span class="feature-icon">🎯</span>
+        <h3>Match parfait</h3>
+        <p>L'app trouve le plat qui plaît à tout le monde</p>
+      </div>
+    </div>
+
+    <div class="action-section">
+      <ion-button 
+        expand="block" 
+        size="large"
+        (click)="goToRegister()"
+        class="primary-button"
+      >
+        Commencer
+      </ion-button>
+      
+      <ion-button 
+        expand="block" 
+        fill="clear"
+        size="large"
+        (click)="goToLogin()"
+        class="secondary-button"
+      >
+        J'ai déjà un compte
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

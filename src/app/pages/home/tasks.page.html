@@ -1,0 +1,98 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar class="transparent-toolbars">
+    <ion-title class="text-2xl">Tâches</ion-title>
+    <ion-button slot="end" fill="clear" class="rounded-full">
+      <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Aujourd'hui Section -->
+  <div class="mb-6">
+    <h2 class="text-xl mb-4">Aujourd'hui</h2>
+    
+    @if (todayTasks.length > 0) {
+      <div class="flex flex-col gap-3">
+        @for (task of todayTasks; track task.id) {
+          <div class="bg-white rounded-xl p-4 flex items-center gap-3 shadow-sm">
+            <div 
+              class="w-8 h-8 rounded-full flex items-center justify-center"
+              [style.background-color]="getAvatarColor(task.assignedToName)"
+            >
+              <span class="text-sm text-white font-semibold">{{ task.assignedToName.charAt(0) }}</span>
+            </div>
+            
+            <div class="flex-1">
+              <h3 class="text-base font-semibold mb-1">{{ task.title }}</h3>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">{{ task.assignedToName }}</span>
+              </div>
+            </div>
+            
+            <ion-button 
+              fill="clear" 
+              size="small"
+              (click)="toggleTask(task.id)"
+            >
+              <ion-icon 
+                slot="icon-only" 
+                [name]="task.isCompleted ? 'checkmark-circle' : 'ellipse-outline'"
+                [color]="task.isCompleted ? 'success' : 'medium'"
+                size="large"
+              ></ion-icon>
+            </ion-button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="bg-muted rounded-xl p-6 text-center">
+        <p class="text-sm text-gray-500">Aucune tâche pour aujourd'hui</p>
+      </div>
+    }
+  </div>
+
+  <!-- Terminées Section -->
+  <div class="mb-6">
+    <h2 class="text-xl mb-4">Terminées</h2>
+    
+    @if (completedTasks.length > 0) {
+      <div class="flex flex-col gap-3">
+        @for (task of completedTasks; track task.id) {
+          <div class="bg-white rounded-xl p-4 flex items-center gap-3 shadow-sm opacity-60">
+            <div 
+              class="w-8 h-8 rounded-full flex items-center justify-center"
+              [style.background-color]="getAvatarColor(task.assignedToName)"
+            >
+              <span class="text-sm text-white font-semibold">{{ task.assignedToName.charAt(0) }}</span>
+            </div>
+            
+            <div class="flex-1">
+              <h3 class="text-base font-semibold mb-1 line-through">{{ task.title }}</h3>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">{{ task.assignedToName }}</span>
+              </div>
+            </div>
+            
+            <ion-button 
+              fill="clear" 
+              size="small"
+              (click)="toggleTask(task.id)"
+            >
+              <ion-icon 
+                slot="icon-only" 
+                name="checkmark-circle"
+                color="success"
+                size="large"
+              ></ion-icon>
+            </ion-button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="bg-muted rounded-xl p-6 text-center">
+        <p class="text-sm text-gray-500">Aucune tâche terminée</p>
+      </div>
+    }
+  </div>
+</ion-content>

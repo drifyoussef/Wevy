@@ -1,0 +1,77 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-button slot="start" fill="clear" (click)="close()">
+      <ion-icon slot="icon-only" name="close" color="dark"></ion-icon>
+    </ion-button>
+    <ion-title>Choisissez un repas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="swipe-container">
+    @if (loading) {
+      <div class="loading-state">
+        <ion-spinner></ion-spinner>
+        <h3>Chargement...</h3>
+      </div>
+    } @else if (currentRecipes.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="restaurant-outline"></ion-icon>
+        <h3>Session terminée!</h3>
+        <p>Vous avez swiped toutes les recettes</p>
+      </div>
+    } @else {
+      <!-- Recipe Cards -->
+      <div class="cards-stack">
+        @for (recipe of currentRecipes.slice(0, 3); track recipe.id; let i = $index) {
+          <div class="recipe-card" [style.z-index]="currentRecipes.length - i">
+            <ion-card>
+              @if (recipe.imageUrl) {
+                <img [src]="recipe.imageUrl" [alt]="recipe.title" />
+              } @else {
+                <div class="placeholder-image">
+                  <ion-icon name="restaurant" size="large"></ion-icon>
+                </div>
+              }
+              
+              <ion-card-header>
+                <h2>{{ recipe.title }}</h2>
+              </ion-card-header>
+              
+              <ion-card-content>
+                @if (recipe.description) {
+                  <p>{{ recipe.description }}</p>
+                }
+                
+                <div class="recipe-info">
+                  @if (recipe.prepTime) {
+                    <div class="info-badge">
+                      <ion-icon name="time-outline"></ion-icon>
+                      <span>{{ recipe.prepTime }} min</span>
+                    </div>
+                  }
+                  @if (recipe.difficulty) {
+                    <div class="info-badge">
+                      <ion-icon name="bar-chart-outline"></ion-icon>
+                      <span>{{ recipe.difficulty }}</span>
+                    </div>
+                  }
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </div>
+        }
+      </div>
+
+      <!-- Swipe Actions -->
+      <div class="swipe-actions">
+        <button class="action-btn dislike" (click)="swipe('left')">
+          <ion-icon name="close" size="large"></ion-icon>
+        </button>
+        <button class="action-btn like" (click)="swipe('right')">
+          <ion-icon name="heart" size="large"></ion-icon>
+        </button>
+      </div>
+    }
+  </div>
+</ion-content>

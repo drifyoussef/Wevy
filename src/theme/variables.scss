@@ -1,0 +1,192 @@
+:root {
+  /* ========================================
+     WEVY DESIGN SYSTEM - COLOR PALETTE
+     ======================================== */
+  
+  /** primary - Orange clair (CTA) **/
+  --ion-color-primary: #FFB088;
+  --ion-color-primary-rgb: 255, 176, 136;
+  --ion-color-primary-contrast: #FFFFFF;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #e09b78;
+  --ion-color-primary-tint: #ffc09e;
+
+  /** secondary - Orange pastel secondaire **/
+  --ion-color-secondary: #FFE4D6;
+  --ion-color-secondary-rgb: 255, 228, 214;
+  --ion-color-secondary-contrast: #2D2D2D;
+  --ion-color-secondary-contrast-rgb: 45, 45, 45;
+  --ion-color-secondary-shade: #e0c9bc;
+  --ion-color-secondary-tint: #ffe7da;
+
+  /** tertiary - Coral rose **/
+  --ion-color-tertiary: #f9af9f;
+  --ion-color-tertiary-rgb: 249, 175, 159;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #db9a8c;
+  --ion-color-tertiary-tint: #fab7a9;
+
+  /** success - Vert doux **/
+  --ion-color-success: #a8d5ba;
+  --ion-color-success-rgb: 168, 213, 186;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #94bba4;
+  --ion-color-success-tint: #b1d9c1;
+
+  /** warning - Orange chaud **/
+  --ion-color-warning: #ffb347;
+  --ion-color-warning-rgb: 255, 179, 71;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-contrast-rgb: 255, 255, 255;
+  --ion-color-warning-shade: #e09d3e;
+  --ion-color-warning-tint: #ffbb5a;
+
+  /** danger - Rose doux **/
+  --ion-color-danger: #ff8b94;
+  --ion-color-danger-rgb: 255, 139, 148;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #e07a82;
+  --ion-color-danger-tint: #ff979f;
+
+  /** dark - Brun chaud **/
+  --ion-color-dark: #7d5a50;
+  --ion-color-dark-rgb: 125, 90, 80;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #6e4f46;
+  --ion-color-dark-tint: #8a6a62;
+
+  /** medium - Taupe clair **/
+  --ion-color-medium: #c4a89f;
+  --ion-color-medium-rgb: 196, 168, 159;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #ac948c;
+  --ion-color-medium-tint: #cab1a9;
+
+  /** light - Crème chaleureux **/
+  --ion-color-light: #fff8f3;
+  --ion-color-light-rgb: 255, 248, 243;
+  --ion-color-light-contrast: #7d5a50;
+  --ion-color-light-contrast-rgb: 125, 90, 80;
+  --ion-color-light-shade: #e0dad6;
+  --ion-color-light-tint: #fff9f4;
+
+  /* ========================================
+     WEVY DESIGN SYSTEM - SEMANTIC COLORS
+     ======================================== */
+  
+  /** Background - Fond orange pastel très clair **/
+  --ion-background-color: #FFF4ED;
+  --ion-background-color-rgb: 255, 244, 237;
+  
+  /** Foreground - Texte principal (gris foncé) **/
+  --ion-text-color: #2D2D2D;
+  --ion-text-color-rgb: 45, 45, 45;
+
+  /** Muted - Gris très clair **/
+  --ion-color-muted: #F5F5F5;
+  --ion-color-muted-rgb: 245, 245, 245;
+
+  /** Border - Bordures orange pastel **/
+  --ion-border-color: #FFD4BA;
+  --ion-border-subtle: #E5E5E5;
+
+  /** Card - Cartes/conteneurs (blanc) **/
+  --ion-card-background: #FFFFFF;
+
+  /** Toolbar **/
+  --ion-toolbar-background: #FFF4ED;
+  --ion-toolbar-border-color: #FFD4BA;
+  
+  /** Tab bar **/
+  --ion-tab-bar-background: #FFFFFF;
+  --ion-tab-bar-border-color: #FFD4BA;
+  
+  /* ========================================
+     WEVY DESIGN SYSTEM - GRAYSCALE
+     ======================================== */
+  
+  --gray-50: #F5F5F5;
+  --gray-100: #E5E5E5;
+  --color-gray-100: #F3F4F6;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  
+  /* ========================================
+     WEVY DESIGN SYSTEM - BORDER RADIUS
+     ======================================== */
+  
+  --radius-xl: 12px;    /* Cartes, inputs, petits conteneurs */
+  --radius-2xl: 16px;   /* Cards principales, sections */
+  --radius-3xl: 24px;   /* Grandes cartes (swipe, modales) */
+  --radius-full: 9999px; /* Boutons ronds, avatars, badges */
+  
+  /* Legacy - Pour compatibilité Ionic */
+  --ion-border-radius: 16px;
+  
+  /* ========================================
+     WEVY DESIGN SYSTEM - SPACING
+     ======================================== */
+  
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  
+  /* ========================================
+     WEVY DESIGN SYSTEM - TYPOGRAPHY
+     ======================================== */
+  
+  --text-3xl: 30px;  /* Titres principaux (H1) */
+  --text-2xl: 24px;  /* Sous-titres (H2) */
+  --text-xl: 20px;   /* Titres de section (H3) */
+  --text-lg: 18px;   /* Texte accentué */
+  --text-base: 16px; /* Texte standard */
+  --text-sm: 14px;   /* Texte secondaire */
+  --text-xs: 12px;   /* Petits labels */
+  
+  /* ========================================
+     WEVY DESIGN SYSTEM - SHADOWS
+     ======================================== */
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(255, 176, 136, 0.1), 0 4px 6px -4px rgba(255, 176, 136, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(255, 176, 136, 0.15), 0 8px 10px -6px rgba(255, 176, 136, 0.1);
+}
+
+/* Dark theme disabled - Wevy uses a warm, light color palette only */
+/*
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-color-primary: #818cf8;
+    --ion-color-primary-rgb: 129, 140, 248;
+    --ion-color-primary-contrast: #000000;
+    --ion-color-primary-contrast-rgb: 0, 0, 0;
+    --ion-color-primary-shade: #727bda;
+    --ion-color-primary-tint: #8e98f9;
+
+    --ion-color-light: #1f2937;
+    --ion-color-light-rgb: 31, 41, 55;
+    --ion-color-light-contrast: #ffffff;
+    --ion-color-light-contrast-rgb: 255, 255, 255;
+    --ion-color-light-shade: #1b2430;
+    --ion-color-light-tint: #35404b;
+
+    --ion-color-dark: #f9fafb;
+    --ion-color-dark-rgb: 249, 250, 251;
+    --ion-color-dark-contrast: #000000;
+    --ion-color-dark-contrast-rgb: 0, 0, 0;
+    --ion-color-dark-shade: #dbdcdd;
+    --ion-color-dark-tint: #fafbfb;
+  }
+}
+*/

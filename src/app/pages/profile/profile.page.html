@@ -1,0 +1,93 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="text-2xl">Profil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Membres Section -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl">Membres</h2>
+  </div>
+    
+    <div class="flex flex-col gap-3">
+      @for (member of members; track member.userId) {
+        <div class="card-primary rounded-xl p-4 flex items-center gap-3 shadow-sm">
+          <div 
+            class="w-12 h-12 rounded-full flex items-center justify-center circle-icons"
+            [style.background-color]="getAvatarColor(member.displayName)"
+          >
+            <span class="text-lg text-white font-semibold">{{ member.displayName.charAt(0) }}</span>
+          </div>
+          
+          <div class="flex-1">
+            <h3 class="text-base font-semibold">{{ member.displayName }}</h3>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="flex flex-col gap-3">
+      @for (member of members; track member.userId) {
+        <div class="add-profile gap-3">
+          <div 
+            class="new-profile"
+          >
+            <ion-icon class="add-icon" name="add" size="large" color="primary"></ion-icon>
+          </div>
+          
+          <div class="flex-1">
+            <p class="text-primary font-semibold">Ajouter un membre</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Settings Sections -->
+  <div class="flex flex-col gap-3 mb-6">
+     <div>
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl">Paramètres</h2>
+    </div>
+  </div>
+    <!-- Notifications -->
+    <div class="card-primary rounded-xl p-4 flex items-center gap-3 shadow-sm">
+      <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center circle-icons">
+        <ion-icon name="notifications" size="large" color="primary"></ion-icon>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold top-text">Notifications</h3>
+        <p class="text-sm text-gray-700 bottom-text">Gérer vos notifications</p>
+      </div>
+    </div>
+
+    <!-- Gestion de la famille -->
+    <div class="card-primary rounded-xl p-4 flex items-center gap-3 shadow-sm">
+      <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center circle-icons">
+        <ion-icon name="people" size="large" color="primary"></ion-icon>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold top-text">Gestion de la famille</h3>
+        <p class="text-sm text-gray-700 bottom-text">Inviter et gérer les membres</p>
+      </div>
+    </div>
+
+    <!-- Paramètres -->
+    <div class="card-primary rounded-xl p-4 flex items-center gap-3 shadow-sm">
+      <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center circle-icons">
+        <ion-icon name="settings" size="large" color="primary"></ion-icon>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold top-text">Paramètres</h3>
+        <p class="text-sm text-gray-700 bottom-text">Préférences de l'application</p>
+      </div>
+    </div>
+  </div>
+
+</ion-content>
+
+<!-- Version -->
+<div class="version-info">
+  <p class="text-sm text-gray-500">Wevy v1.0 - Gestion familiale simplifiée</p>
+</div>

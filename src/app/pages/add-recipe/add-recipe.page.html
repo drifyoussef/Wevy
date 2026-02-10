@@ -1,0 +1,221 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Ajouter une recette</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment [value]="addMethod" (ionChange)="onMethodChange($event)">
+      <ion-segment-button value="url">
+        <ion-label>Depuis URL</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="manual">
+        <ion-label>Manuel</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-padding">
+    @if (addMethod === 'url') {
+      <ion-card>
+        <ion-card-content>
+          <h3>Coller le lien de la recette</h3>
+          <p>TikTok, Instagram, site de recettes...</p>
+          
+          <ion-item>
+            <ion-input
+              (ionInput)="onRecipeUrlChange($event)"
+              type="url"
+              placeholder="https://..."
+              label="URL de la recette"
+              labelPlacement="floating"
+            ></ion-input>
+          </ion-item>
+
+          <ion-button
+            expand="block"
+            (click)="extractFromUrl()"
+            [disabled]="!recipeUrl || extracting"
+          >
+            @if (extracting) {
+              Extraction en cours...
+            } @else {
+              <ion-icon slot="start" name="link"></ion-icon>
+              Extraire la recette
+            }
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    }
+
+    @if (addMethod === 'manual') {
+      <form>
+        <ion-list>
+          <ion-item>
+            <ion-input
+              (ionInput)="onTitleChange($event)"
+              name="title"
+              type="text"
+              placeholder="Ex: Pâtes à la carbonara"
+              label="Titre de la recette"
+              labelPlacement="floating"
+              required
+            ></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-textarea
+              (ionInput)="onDescriptionChange($event)"
+              name="description"
+              rows="3"
+              placeholder="Description courte..."
+              label="Description"
+              labelPlacement="floating"
+            ></ion-textarea>
+          </ion-item>
+
+          <ion-item>
+            <ion-select
+              [value]="recipe.mealType"
+              (ionChange)="recipe.mealType = $event.detail.value"
+              name="mealType"
+              label="Type de repas"
+              labelPlacement="floating"
+            >
+              <ion-select-option value="breakfast">Petit-déjeuner</ion-select-option>
+              <ion-select-option value="lunch">Déjeuner</ion-select-option>
+              <ion-select-option value="dinner">Dîner</ion-select-option>
+              <ion-select-option value="snack">Collation</ion-select-option>
+              <ion-select-option value="dessert">Dessert</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-select
+              [value]="recipe.difficulty"
+              (ionChange)="recipe.difficulty = $event.detail.value"
+              name="difficulty"
+              label="Difficulté"
+              labelPlacement="floating"
+            >
+              <ion-select-option value="easy">Facile</ion-select-option>
+              <ion-select-option value="medium">Moyen</ion-select-option>
+              <ion-select-option value="hard">Difficile</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-input
+              (ionInput)="onPrepTimeChange($event)"
+              name="prepTime"
+              type="number"
+              placeholder="20"
+              label="Temps de préparation (min)"
+              labelPlacement="floating"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-input
+              (ionInput)="onCookTimeChange($event)"
+              name="cookTime"
+              type="number"
+              placeholder="30"
+              label="Temps de cuisson (min)"
+              labelPlacement="floating"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-input
+              (ionInput)="onServingsChange($event)"
+              name="servings"
+              type="number"
+              placeholder="4"
+              label="Nombre de personnes"
+              labelPlacement="floating"
+            ></ion-input>
+          </ion-item>
+        </ion-list>
+
+        <div class="ingredients-section">
+          <h3>Ingrédients</h3>
+          
+          @if (recipe.ingredients && recipe.ingredients.length > 0) {
+            <ion-list>
+              @for (ingredient of recipe.ingredients; track $index) {
+                <ion-item>
+                  <ion-label>
+                    <h2>{{ ingredient.name }}</h2>
+                    @if (ingredient.quantity && ingredient.unit) {
+                      <p>{{ ingredient.quantity }} {{ ingredient.unit }}</p>
+                    }
+                  </ion-label>
+                  <ion-button
+                    slot="end"
+                    fill="clear"
+                    color="danger"
+                    (click)="removeIngredient($index)"
+                  >
+                    <ion-icon slot="icon-only" name="close"></ion-icon>
+                  </ion-button>
+                </ion-item>
+              }
+            </ion-list>
+          }
+
+          <div class="add-ingredient-form">
+            <ion-item>
+              <ion-input
+                (ionInput)="onIngredientNameChange($event)"
+                name="ingredientName"
+                type="text"
+                placeholder="Ex: Tomates"
+                label="Nom"
+                labelPlacement="floating"
+              ></ion-input>
+            </ion-item>
+            <div class="ingredient-quantity">
+              <ion-item>
+                <ion-input
+                  (ionInput)="onIngredientQuantityChange($event)"
+                  name="ingredientQuantity"
+                  type="number"
+                  placeholder="250"
+                  label="Quantité"
+                  labelPlacement="floating"
+                ></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-input
+                  (ionInput)="onIngredientUnitChange($event)"
+                  name="ingredientUnit"
+                  type="text"
+                  placeholder="g"
+                  label="Unité"
+                  labelPlacement="floating"
+                ></ion-input>
+              </ion-item>
+            </div>
+            <ion-button expand="block" fill="outline" (click)="addIngredient()">
+              <ion-icon slot="start" name="add"></ion-icon>
+              Ajouter l'ingrédient
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <ion-button
+            expand="block"
+            color="primary"
+            size="large"
+            (click)="saveRecipe()"
+            [disabled]="!recipe.title || !recipe.ingredients || recipe.ingredients.length === 0"
+          >
+            Enregistrer la recette
+          </ion-button>
+        </div>
+      </form>
+    }
+  </div>
+</ion-content>

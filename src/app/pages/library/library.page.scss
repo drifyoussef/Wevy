@@ -1,0 +1,78 @@
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-3);
+  margin-bottom: 80px; // Space for FAB
+}
+
+.recipe-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.recipe-image {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--gray-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.recipe-placeholder {
+  background: linear-gradient(135deg, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
+  
+  ion-icon {
+    color: white;
+    opacity: 0.5;
+  }
+}
+
+.swipe-mode-btn {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ion-color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-base);
+  font-weight: 600;
+  z-index: 999;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: translateX(-50%) scale(0.95);
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+  padding: var(--spacing-6);
+}

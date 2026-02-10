@@ -1,0 +1,400 @@
+/* You can add global styles to this file, and also import other style files */
+@use "./theme/variables.scss";
+@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Styles cozy globaux */
+ion-content {
+  --background: var(--ion-background-color);
+}
+
+ion-toolbar {
+  --background: transparent;
+  --border-width: 0;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+ion-header {
+  background: transparent;
+}
+
+ion-title {
+  font-weight: 600;
+  font-size: var(--text-xl);
+  color: var(--ion-text-color);
+}
+
+ion-card {
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-base);
+  margin: var(--spacing-3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--ion-card-background);
+  
+  &:hover {
+    box-shadow: var(--shadow-lg);
+  }
+  
+  &:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+ion-button {
+  --border-radius: var(--radius-xl);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  height: 48px;
+  font-size: var(--text-base);
+  
+  &::part(native) {
+    transition: all 0.2s ease;
+  }
+  
+  &.button-large {
+    --border-radius: var(--radius-2xl);
+    height: 56px;
+    font-size: var(--text-lg);
+  }
+  
+  &.button-round {
+    --border-radius: var(--radius-full);
+  }
+}
+
+ion-input, ion-textarea, ion-select {
+  --background: var(--ion-card-background);
+  --border-radius: var(--radius-xl);
+  --padding-start: var(--spacing-4);
+  --padding-end: var(--spacing-4);
+  --padding-top: var(--spacing-3);
+  --padding-bottom: var(--spacing-3);
+  border: 1px solid var(--ion-border-color);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-3);
+  transition: border-color 0.2s ease;
+  font-size: var(--text-base);
+  
+  &:focus-within {
+    border-color: var(--ion-color-primary);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+ion-item {
+  --background: transparent;
+  --border-color: var(--ion-border-color);
+  --padding-start: var(--spacing-4);
+  --inner-padding-end: var(--spacing-4);
+  --min-height: 56px;
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-2);
+}
+
+ion-tab-bar {
+  --background: var(--ion-tab-bar-background);
+  --border: 1px solid var(--ion-tab-bar-border-color);
+  height: 60px;
+  padding-bottom: 4px;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  box-shadow: 0 -4px 12px rgba(255, 176, 136, 0.08);
+}
+
+ion-tab-button {
+  --color: var(--gray-500);
+  --color-selected: var(--ion-color-primary);
+  font-weight: 500;
+  
+  ion-icon {
+    font-size: 24px;
+    margin-bottom: 2px;
+  }
+  
+  ion-label {
+    font-size: var(--text-xs);
+    margin-top: 2px;
+    font-weight: 600;
+  }
+}
+
+/* Animation douce */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Scrollbar cozy */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ion-background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ion-color-secondary);
+  border-radius: 4px;
+  
+  &:hover {
+    background: var(--ion-color-primary);
+  }
+}
+
+/* ========================================
+   WEVY DESIGN SYSTEM - TYPOGRAPHY CLASSES
+   ======================================== */
+
+h1, .text-3xl {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--ion-text-color);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+h2, .text-2xl {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--ion-text-color);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+h3, .text-xl {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--ion-text-color);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.text-lg {
+  font-size: var(--text-lg);
+}
+
+.text-base {
+  font-size: var(--text-base);
+}
+
+.text-sm {
+  font-size: var(--text-sm);
+  color: var(--gray-500);
+}
+
+.text-xs {
+  font-size: var(--text-xs);
+  color: var(--gray-400);
+}
+
+/* ========================================
+   WEVY DESIGN SYSTEM - UTILITY CLASSES
+   ======================================== */
+
+/* Spacing */
+.p-2 { padding: var(--spacing-2) !important; }
+.p-3 { padding: var(--spacing-3) !important; }
+.p-4 { padding: var(--spacing-4) !important; }
+.p-6 { padding: var(--spacing-6) !important; }
+
+.px-4 { 
+  padding-left: var(--spacing-4) !important; 
+  padding-right: var(--spacing-4) !important; 
+}
+
+.py-6 { 
+  padding-top: var(--spacing-6) !important; 
+  padding-bottom: var(--spacing-6) !important; 
+}
+
+.gap-2 { gap: var(--spacing-2) !important; }
+.gap-3 { gap: var(--spacing-3) !important; }
+.gap-6 { gap: var(--spacing-6) !important; }
+
+.mb-2 { margin-bottom: var(--spacing-2) !important; }
+.mb-3 { margin-bottom: var(--spacing-3) !important; }
+.mb-4 { margin-bottom: var(--spacing-4) !important; }
+.mb-6 { margin-bottom: var(--spacing-6) !important; }
+
+/* Border Radius */
+.rounded-xl { border-radius: var(--radius-xl) !important; }
+.rounded-2xl { border-radius: var(--radius-2xl) !important; }
+.rounded-3xl { border-radius: var(--radius-3xl) !important; }
+.rounded-full { border-radius: var(--radius-full) !important; }
+.rounded-t-3xl { 
+  border-top-left-radius: var(--radius-3xl) !important; 
+  border-top-right-radius: var(--radius-3xl) !important; 
+}
+
+/* Shadows */
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.shadow { box-shadow: var(--shadow-base) !important; }
+.shadow-lg { box-shadow: var(--shadow-lg) !important; }
+.shadow-xl { box-shadow: var(--shadow-xl) !important; }
+
+/* Colors */
+.bg-white { background-color: #FFFFFF !important; }
+.bg-muted { background-color: var(--ion-color-muted) !important; }
+.bg-secondary { background-color: var(--ion-color-secondary) !important; }
+
+.text-primary { color: var(--ion-color-primary) !important; }
+.text-white { color: #FFFFFF !important; }
+.text-gray-400 { color: var(--gray-400) !important; }
+.text-gray-500 { color: var(--gray-500) !important; }
+.text-gray-600 { color: var(--gray-600) !important; }
+.text-gray-700 { color: var(--gray-700) !important; }
+.text-gray-800 { color: var(--gray-800) !important; }
+
+/* Layout */
+.flex { display: flex !important; }
+.flex-col { flex-direction: column !important; }
+.items-center { align-items: center !important; }
+.justify-between { justify-content: space-between !important; }
+.justify-center { justify-content: center !important; }
+
+/* Dividers */
+.divide-y > * + * {
+  border-top: 1px solid var(--color-gray-100) !important;
+}
+
+/* Width & Height */
+.w-8 { width: 32px !important; }
+.h-8 { height: 32px !important; }
+.w-10 { width: 40px !important; }
+.h-10 { height: 40px !important; }
+.w-12 { width: 48px !important; }
+.h-12 { height: 48px !important; }
+.flex-1 { flex: 1 !important; }
+
+/* Text */
+.font-semibold { font-weight: 600 !important; }
+.line-through { text-decoration: line-through !important; }
+.opacity-60 { opacity: 0.6 !important; }
+.overflow-hidden { overflow: hidden !important; }
+
+/* Cards & Containers */
+.card {
+  background: var(--ion-card-background);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow-base);
+}
+
+.card-swipe {
+  background: var(--ion-card-background);
+  border-radius: var(--radius-3xl);
+  padding: var(--spacing-6);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Badges & Tags */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.badge-primary {
+  background-color: var(--ion-color-secondary);
+  color: var(--ion-text-color);
+}
+
+.badge-outline {
+  background-color: transparent;
+  border: 1px solid var(--ion-border-color);
+  color: var(--gray-600);
+}
+
+/* Bottom Sheet Modal */
+.modal-bottom-sheet {
+  --border-radius: var(--radius-3xl) var(--radius-3xl) 0 0 !important;
+  --box-shadow: var(--shadow-xl);
+}
+
+.card-primary {
+  background-color: #ffd3b9 !important;
+}
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  z-index: 999;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Quick Action Buttons */
+.quick-action-btn {
+  border: none !important;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.bg-primary {
+  background-color: var(--ion-color-primary) !important;
+}
+
+/* Fullscreen Modal */
+.fullscreen-modal {
+  --width: 100%;
+  --height: 100%;
+  --border-radius: 0;
+  
+  ion-modal {
+    --width: 100%;
+    --height: 100%;
+  }
+}

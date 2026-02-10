@@ -1,0 +1,50 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="text-2xl">Courses</ion-title>
+    <ion-button slot="end" fill="clear">
+      <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="mb-4">
+    <h2 class="text-xl mb-3">À acheter</h2>
+    
+    @if (uncheckedItems.length > 0) {
+      <div class="flex flex-col gap-3">
+        @for (item of uncheckedItems; track item.id) {
+          <div class="bg-white rounded-xl p-4 flex items-center gap-3 shadow-sm">
+            <ion-checkbox 
+              [checked]="item.isChecked"
+              (ionChange)="toggleItem(item.id)"
+            ></ion-checkbox>
+            
+            <div class="flex-1">
+              <h3 class="text-base font-semibold">{{ item.ingredient.name }}</h3>
+              @if (item.ingredient.quantity && item.ingredient.unit) {
+                <p class="text-sm text-gray-500">{{ item.ingredient.quantity }}{{ item.ingredient.unit }}</p>
+              }
+            </div>
+            
+            <ion-button 
+              fill="clear" 
+              size="small"
+              (click)="deleteItem(item.id)"
+            >
+              <ion-icon 
+                slot="icon-only" 
+                name="trash-outline"
+                color="danger"
+              ></ion-icon>
+            </ion-button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="bg-muted rounded-xl p-6 text-center">
+        <p class="text-sm text-gray-500">Aucun produit à acheter</p>
+      </div>
+    }
+  </div>
+</ion-content>
