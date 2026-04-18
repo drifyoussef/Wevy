@@ -23,8 +23,16 @@ export const routes: Routes = [
         loadComponent: () => import('../library/library.page').then(m => m.LibraryPage)
       },
       {
+        path: 'library/recipe/:id',
+        loadComponent: () => import('../recipe-detail/recipe-detail.page').then(m => m.RecipeDetailPage)
+      },
+      {
         path: 'profile',
         loadComponent: () => import('../profile/profile.page').then(m => m.ProfilePage)
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('../settings/settings.page').then(m => m.SettingsPage)
       },
       {
         path: 'add-recipe',

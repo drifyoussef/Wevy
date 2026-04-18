@@ -19,6 +19,7 @@
         <ion-item>
           <ion-input
             #nameInput
+            id="register-name"
             type="text"
             placeholder="Prénom"
             label="Prénom"
@@ -29,6 +30,7 @@
         <ion-item>
           <ion-input
             #emailInput
+            id="register-email"
             type="email"
             placeholder="Email"
             label="Email"
@@ -39,6 +41,7 @@
         <ion-item class="password-item">
           <ion-input
             #passwordInput
+            id="register-password"
             [type]="showPassword ? 'text' : 'password'"
             placeholder="Mot de passe"
             label="Mot de passe"
@@ -55,6 +58,7 @@
         <ion-item class="password-item">
           <ion-input
             #confirmPasswordInput
+            id="register-confirm-password"
             [type]="showConfirmPassword ? 'text' : 'password'"
             placeholder="Confirmer le mot de passe"
             label="Confirmer le mot de passe"

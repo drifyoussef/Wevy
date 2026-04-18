@@ -8,6 +8,7 @@ export interface Task {
   householdId: string;
   createdAt: Date;
   updatedAt: Date;
+  avatarColor?: string;
 }
 
 export interface CreateTaskInput {

@@ -25,6 +25,7 @@
           <ion-item>
             <ion-input
               (ionInput)="onRecipeUrlChange($event)"
+              id="recipe-url"
               type="url"
               placeholder="https://..."
               label="URL de la recette"
@@ -54,6 +55,7 @@
           <ion-item>
             <ion-input
               (ionInput)="onTitleChange($event)"
+              id="recipe-title"
               name="title"
               type="text"
               placeholder="Ex: Pâtes à la carbonara"
@@ -66,6 +68,7 @@
           <ion-item>
             <ion-textarea
               (ionInput)="onDescriptionChange($event)"
+              id="recipe-description"
               name="description"
               rows="3"
               placeholder="Description courte..."
@@ -78,6 +81,7 @@
             <ion-select
               [value]="recipe.mealType"
               (ionChange)="recipe.mealType = $event.detail.value"
+              id="recipe-mealtype"
               name="mealType"
               label="Type de repas"
               labelPlacement="floating"
@@ -94,6 +98,7 @@
             <ion-select
               [value]="recipe.difficulty"
               (ionChange)="recipe.difficulty = $event.detail.value"
+              id="recipe-difficulty"
               name="difficulty"
               label="Difficulté"
               labelPlacement="floating"
@@ -107,6 +112,7 @@
           <ion-item>
             <ion-input
               (ionInput)="onPrepTimeChange($event)"
+              id="recipe-preptime"
               name="prepTime"
               type="number"
               placeholder="20"
@@ -118,6 +124,7 @@
           <ion-item>
             <ion-input
               (ionInput)="onCookTimeChange($event)"
+              id="recipe-cooktime"
               name="cookTime"
               type="number"
               placeholder="30"
@@ -129,6 +136,7 @@
           <ion-item>
             <ion-input
               (ionInput)="onServingsChange($event)"
+              id="recipe-servings"
               name="servings"
               type="number"
               placeholder="4"
@@ -167,7 +175,8 @@
           <div class="add-ingredient-form">
             <ion-item>
               <ion-input
-                (ionInput)="onIngredientNameChange($event)"
+                [(ngModel)]="newIngredient.name"
+                id="recipe-ingredient-name"
                 name="ingredientName"
                 type="text"
                 placeholder="Ex: Tomates"
@@ -178,7 +187,8 @@
             <div class="ingredient-quantity">
               <ion-item>
                 <ion-input
-                  (ionInput)="onIngredientQuantityChange($event)"
+                  [(ngModel)]="newIngredient.quantity"
+                  id="recipe-ingredient-quantity"
                   name="ingredientQuantity"
                   type="number"
                   placeholder="250"
@@ -188,7 +198,8 @@
               </ion-item>
               <ion-item>
                 <ion-input
-                  (ionInput)="onIngredientUnitChange($event)"
+                  [(ngModel)]="newIngredient.unit"
+                  id="recipe-ingredient-unit"
                   name="ingredientUnit"
                   type="text"
                   placeholder="g"

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonList,
@@ -19,6 +20,7 @@ import { Recipe, Ingredient } from '../../models/recipe.model';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonList,
     IonItem, IonLabel, IonInput, IonTextarea, IonButton,
     IonIcon, IonSelect, IonSelectOption, IonSegment,
@@ -55,40 +57,58 @@ export class AddRecipePage {
     addIcons({ link, camera, close, add });
   }
 
-  onRecipeUrlChange(event: any) {
-    this.recipeUrl = event.detail.value || '';
+  onRecipeUrlChange(event: Event | InputEvent) {
+    if (event instanceof CustomEvent || 'detail' in event) {
+      this.recipeUrl = (event as CustomEvent).detail?.value || '';
+    } else {
+      this.recipeUrl = (event.target as HTMLInputElement).value || '';
+    }
   }
 
-  onTitleChange(event: any) {
-    this.recipe.title = event.detail.value || '';
+  onTitleChange(event: Event | InputEvent) {
+    if (event instanceof CustomEvent || 'detail' in event) {
+      this.recipe.title = (event as CustomEvent).detail?.value || '';
+    } else {
+      this.recipe.title = (event.target as HTMLInputElement).value || '';
+    }
   }
 
-  onDescriptionChange(event: any) {
-    this.recipe.description = event.detail.value || '';
+  onDescriptionChange(event: Event | InputEvent) {
+    if (event instanceof CustomEvent || 'detail' in event) {
+      this.recipe.description = (event as CustomEvent).detail?.value || '';
+    } else {
+      this.recipe.description = (event.target as HTMLTextAreaElement).value || '';
+    }
   }
 
-  onPrepTimeChange(event: any) {
-    this.recipe.prepTime = Number(event.detail.value) || 0;
+  onPrepTimeChange(event: Event | InputEvent) {
+    let value = 0;
+    if (event instanceof CustomEvent || 'detail' in event) {
+      value = Number((event as CustomEvent).detail?.value) || 0;
+    } else {
+      value = Number((event.target as HTMLInputElement).value) || 0;
+    }
+    this.recipe.prepTime = value;
   }
 
-  onCookTimeChange(event: any) {
-    this.recipe.cookTime = Number(event.detail.value) || 0;
+  onCookTimeChange(event: Event | InputEvent) {
+    let value = 0;
+    if (event instanceof CustomEvent || 'detail' in event) {
+      value = Number((event as CustomEvent).detail?.value) || 0;
+    } else {
+      value = Number((event.target as HTMLInputElement).value) || 0;
+    }
+    this.recipe.cookTime = value;
   }
 
-  onServingsChange(event: any) {
-    this.recipe.servings = Number(event.detail.value) || 0;
-  }
-
-  onIngredientNameChange(event: any) {
-    this.newIngredient.name = event.detail.value || '';
-  }
-
-  onIngredientQuantityChange(event: any) {
-    this.newIngredient.quantity = Number(event.detail.value) || 0;
-  }
-
-  onIngredientUnitChange(event: any) {
-    this.newIngredient.unit = event.detail.value || '';
+  onServingsChange(event: Event | InputEvent) {
+    let value = 0;
+    if (event instanceof CustomEvent || 'detail' in event) {
+      value = Number((event as CustomEvent).detail?.value) || 0;
+    } else {
+      value = Number((event.target as HTMLInputElement).value) || 0;
+    }
+    this.recipe.servings = value;
   }
 
   onMethodChange(event: CustomEvent) {

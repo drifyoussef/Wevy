@@ -25,7 +25,9 @@ export interface Household {
   createdAt: Date;
   updatedAt: Date;
   members: HouseholdMember[];
-  inviteCode?: string;
+  inviteCode: string;
+  inviteLink: string; // URL unique pour partager
+  inviteLinkExpiry?: Date; // Expiration du lien
 }
 
 export interface HouseholdMember {

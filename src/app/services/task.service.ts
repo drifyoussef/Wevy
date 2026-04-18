@@ -9,6 +9,7 @@ import { Task } from '../models/task.model';
 export class TaskService {
   private readonly STORAGE_KEY = 'wevy_tasks';
   private tasksSubject: BehaviorSubject<Task[]>;
+  private readonly colors = ['#FFB088', '#FF8B94', '#FFC75F', '#A8D5BA', '#F9AF9F'];
   
   // Mock data initial pour le MVP
   private defaultTasks: Task[] = [
@@ -47,6 +48,7 @@ export class TaskService {
 
   constructor() {
     const storedTasks = this.loadFromStorage();
+    // loadFromStorage() retourne déjà les tâches enrichies
     this.tasksSubject = new BehaviorSubject<Task[]>(storedTasks);
     
     // Si pas de données en storage, sauvegarder les données par défaut
@@ -60,8 +62,8 @@ export class TaskService {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const tasks = JSON.parse(stored) as Task[];
-        // Convert date strings back to Date objects
-        return tasks.map((task) => ({
+        // Convert date strings back to Date objects and add colors
+        return tasks.map((task) => this.enrichTask({
           ...task,
           createdAt: new Date(task.createdAt),
           updatedAt: new Date(task.updatedAt),
@@ -72,7 +74,22 @@ export class TaskService {
       console.error('Error loading tasks from storage:', error);
     }
     // Retourner une copie des données par défaut
-    return [...this.defaultTasks];
+    return this.defaultTasks.map(task => this.enrichTask(task));
+  }
+
+  private enrichTask(task: Task): Task {
+    // Créer une copie pour éviter les mutations
+    const enrichedTask: Task = { ...task };
+    
+    // Toujours calculer et assigner la couleur
+    if (task.assignedToName && task.assignedToName.trim()) {
+      const index = task.assignedToName.charCodeAt(0) % this.colors.length;
+      enrichedTask.avatarColor = this.colors[index];
+    } else {
+      enrichedTask.avatarColor = this.colors[0];
+    }
+    
+    return enrichedTask;
   }
 
   private saveToStorage(tasks: Task[]): void {
@@ -84,8 +101,9 @@ export class TaskService {
   }
 
   private updateTasks(tasks: Task[]): void {
-    this.saveToStorage(tasks);
-    this.tasksSubject.next(tasks);
+    const enrichedTasks = tasks.map(task => this.enrichTask(task));
+    this.saveToStorage(enrichedTasks);
+    this.tasksSubject.next(enrichedTasks);
   }
 
   /**
@@ -149,30 +167,65 @@ export class TaskService {
   }
 
   /**
-   * Crée une nouvelle tâche
+   * Créer une nouvelle tâche
    */
-  createTask(
-    title: string, 
-    assignedTo: string, 
-    assignedToName: string, 
-  ): Task {
-    const newTask: Task = {
-      id: `task_${Date.now()}`,
-      title,
-      assignedTo,
-      assignedToName,
+  createTask(input: { title: string; assignedTo: string; assignedToName: string; householdId: string }): Task {
+    const task: Task = {
+      id: `task-${Date.now()}`,
+      title: input.title,
+      assignedTo: input.assignedTo,
+      assignedToName: input.assignedToName,
       isCompleted: false,
-      householdId: 'household1',
+      householdId: input.householdId,
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    const tasks = [...this.tasksSubject.value, newTask];
+
+    // Enrichir la tâche avec la couleur
+    const enrichedTask = this.enrichTask(task);
+    
+    const tasks = [...this.tasksSubject.value, enrichedTask];
     this.updateTasks(tasks);
-    return newTask;
+    return enrichedTask;
   }
 
   /**
-   * Supprime une tâche
+   * Mettre à jour une tâche
+   */
+  updateTask(taskId: string, updates: Partial<Task>): void {
+    const tasks = [...this.tasksSubject.value];
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      Object.assign(task, updates, { updatedAt: new Date() });
+      this.updateTasks(tasks);
+    }
+  }
+
+  /**
+   * Réassigner une tâche à quelqu'un d'autre
+   */
+  reassignTask(taskId: string, assignedTo: string, assignedToName: string): void {
+    this.updateTask(taskId, { assignedTo, assignedToName });
+  }
+
+  /**
+   * Récupérer les tâches assignées à un utilisateur
+   */
+  getTasksForUser(userId: string): Task[] {
+    return this.tasksSubject.value.filter(task => task.assignedTo === userId);
+  }
+
+  /**
+   * Récupérer les tâches assignées à un utilisateur (observable)
+   */
+  getTasksForUser$(userId: string): Observable<Task[]> {
+    return this.tasks$.pipe(
+      map(tasks => tasks.filter(task => task.assignedTo === userId))
+    );
+  }
+
+  /**
+   * Supprimer une tâche
    */
   deleteTask(taskId: string): void {
     const tasks = this.tasksSubject.value.filter(t => t.id !== taskId);
@@ -180,19 +233,19 @@ export class TaskService {
   }
 
   /**
-   * Met à jour une tâche existante
+   * Récupérer les tâches pour un foyer
    */
-  updateTask(taskId: string, updates: Partial<Task>): void {
-    const tasks = [...this.tasksSubject.value];
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
-    if (taskIndex !== -1) {
-      tasks[taskIndex] = {
-        ...tasks[taskIndex],
-        ...updates,
-        updatedAt: new Date()
-      };
-      this.updateTasks(tasks);
-    }
+  getTasksForHousehold(householdId: string): Task[] {
+    return this.tasksSubject.value.filter(task => task.householdId === householdId);
+  }
+
+  /**
+   * Récupérer les tâches pour un foyer (observable)
+   */
+  getTasksForHousehold$(householdId: string): Observable<Task[]> {
+    return this.tasks$.pipe(
+      map(tasks => tasks.filter(task => task.householdId === householdId))
+    );
   }
 
   /**

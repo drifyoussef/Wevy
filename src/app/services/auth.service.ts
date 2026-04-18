@@ -1,15 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { ApiService } from './api.service';
-
-interface User {
-  _id: string;
-  email: string;
-  displayName: string;
-  avatar?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { User } from '../models/user.model';
 
 interface AuthResponse {
   user: User;
@@ -121,6 +113,11 @@ export class AuthService {
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  getHouseholdId(): string | null {
+    const user = this.currentUserSubject.value;
+    return user?.householdId || null;
   }
 
   isAuthenticated(): boolean {

@@ -21,17 +21,47 @@ router.post('/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Create user
+    // Create a default household for the user
+    const household = {
+      name: `${displayName}'s Household`,
+      createdBy: null, // Will be updated after user creation
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      members: []
+    };
+    
+    const householdResult = await db.collection('households').insertOne(household);
+    const householdId = householdResult.insertedId;
+    
+    // Create user with householdId
     const user = {
       email,
       password: hashedPassword,
       displayName,
+      householdId,
+      role: 'admin',
       createdAt: new Date(),
       updatedAt: new Date()
     };
     
     const result = await db.collection('users').insertOne(user);
     user._id = result.insertedId;
+    
+    // Update household with user info
+    await db.collection('households').updateOne(
+      { _id: householdId },
+      { 
+        $set: { 
+          createdBy: user._id,
+          members: [{
+            userId: user._id,
+            displayName: user.displayName,
+            role: 'admin',
+            joinedAt: new Date()
+          }]
+        }
+      }
+    );
     
     // Generate JWT token
     const token = jwt.sign(
@@ -40,10 +70,16 @@ router.post('/register', async (req, res) => {
       { expiresIn: '30d' }
     );
     
-    // Remove password from response
+    // Remove password from response and map _id to id
     delete user.password;
+    const userResponse = {
+      ...user,
+      id: user._id.toString(),
+      householdId: user.householdId.toString()
+    };
+    delete userResponse._id;
     
-    res.status(201).json({ user, token });
+    res.status(201).json({ user: userResponse, token });
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ error: error.message });
@@ -75,10 +111,16 @@ router.post('/login', async (req, res) => {
       { expiresIn: '30d' }
     );
     
-    // Remove password from response
+    // Remove password from response and map _id to id
     delete user.password;
+    const userResponse = {
+      ...user,
+      id: user._id.toString(),
+      householdId: user.householdId ? user.householdId.toString() : null
+    };
+    delete userResponse._id;
     
-    res.json({ user, token });
+    res.json({ user: userResponse, token });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: error.message });
@@ -98,7 +140,15 @@ router.get('/me', authenticateUser, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    res.json({ user });
+    // Map _id to id
+    const userResponse = {
+      ...user,
+      id: user._id.toString(),
+      householdId: user.householdId ? user.householdId.toString() : null
+    };
+    delete userResponse._id;
+    
+    res.json({ user: userResponse });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: error.message });
@@ -124,7 +174,15 @@ router.put('/profile', authenticateUser, async (req, res) => {
       { returnDocument: 'after', projection: { password: 0 } }
     );
     
-    res.json({ user: result.value });
+    // Map _id to id
+    const userResponse = {
+      ...result.value,
+      id: result.value._id.toString(),
+      householdId: result.value.householdId ? result.value.householdId.toString() : null
+    };
+    delete userResponse._id;
+    
+    res.json({ user: userResponse });
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ error: error.message });

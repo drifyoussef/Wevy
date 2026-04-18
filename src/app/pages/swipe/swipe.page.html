@@ -9,30 +9,42 @@
 
 <ion-content [fullscreen]="true">
   <div class="swipe-container">
+    <!-- LOADING STATE -->
     @if (loading) {
       <div class="loading-state">
         <ion-spinner></ion-spinner>
         <h3>Chargement...</h3>
       </div>
-    } @else if (currentRecipes.length === 0) {
+    }
+
+    <!-- ERROR STATE -->
+    @if (!loading && errorMessage) {
+      <div class="empty-state">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <h3>{{ errorMessage }}</h3>
+        <ion-button (click)="close()">Retour</ion-button>
+      </div>
+    }
+
+    <!-- NO RECIPES STATE -->
+    @if (!loading && !errorMessage && currentRecipes.length === 0) {
       <div class="empty-state">
         <ion-icon name="restaurant-outline"></ion-icon>
         <h3>Session terminée!</h3>
         <p>Vous avez swiped toutes les recettes</p>
       </div>
-    } @else {
+    }
+
+    <!-- RECIPES STATE -->
+    @if (!loading && !errorMessage && currentRecipes.length > 0) {
       <!-- Recipe Cards -->
       <div class="cards-stack">
         @for (recipe of currentRecipes.slice(0, 3); track recipe.id; let i = $index) {
           <div class="recipe-card" [style.z-index]="currentRecipes.length - i">
             <ion-card>
-              @if (recipe.imageUrl) {
-                <img [src]="recipe.imageUrl" [alt]="recipe.title" />
-              } @else {
-                <div class="placeholder-image">
-                  <ion-icon name="restaurant" size="large"></ion-icon>
-                </div>
-              }
+              <div class="placeholder-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 200px; display: flex; align-items: center; justify-content: center;">
+                <ion-icon name="restaurant" size="large" color="light"></ion-icon>
+              </div>
               
               <ion-card-header>
                 <h2>{{ recipe.title }}</h2>

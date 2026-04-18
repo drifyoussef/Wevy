@@ -13,13 +13,13 @@ router.get('/:householdId', async (req, res) => {
     const db = getDB();
     
     let list = await db.collection('shopping_lists').findOne({
-      householdId: new ObjectId(req.params.householdId),
+      householdId: req.params.householdId,
       status: 'active'
     });
     
     if (!list) {
       list = {
-        householdId: new ObjectId(req.params.householdId),
+        householdId: req.params.householdId,
         items: [],
         recipeIds: [],
         status: 'active',
@@ -65,16 +65,29 @@ router.post('/:householdId/add-recipe', async (req, res) => {
     
     const result = await db.collection('shopping_lists').findOneAndUpdate(
       { 
-        householdId: new ObjectId(req.params.householdId),
+        householdId: req.params.householdId,
         status: 'active'
       },
       { 
         $push: { items: { $each: newItems } },
         $addToSet: { recipeIds: recipeId },
-        $set: { updatedAt: new Date() }
+        $set: { updatedAt: new Date() },
+        $setOnInsert: {
+          householdId: req.params.householdId,
+          status: 'active',
+          recipeIds: [recipeId],
+          createdAt: new Date()
+        }
       },
       { returnDocument: 'after', upsert: true }
     );
+    
+    console.log('Add recipe result:', result);
+    
+    if (!result?.value) {
+      console.error('No value in result:', result);
+      return res.status(500).json({ error: 'Failed to add recipe to list' });
+    }
     
     res.json({ shoppingList: result.value });
   } catch (error) {
@@ -91,7 +104,7 @@ router.put('/:householdId', async (req, res) => {
     
     const result = await db.collection('shopping_lists').findOneAndUpdate(
       { 
-        householdId: new ObjectId(req.params.householdId),
+        householdId: req.params.householdId,
         status: 'active'
       },
       { 
@@ -117,7 +130,7 @@ router.post('/:householdId/complete', async (req, res) => {
     
     const result = await db.collection('shopping_lists').findOneAndUpdate(
       { 
-        householdId: new ObjectId(req.params.householdId),
+        householdId: req.params.householdId,
         status: 'active'
       },
       { 
@@ -144,7 +157,7 @@ router.delete('/:householdId/clear', async (req, res) => {
     
     const result = await db.collection('shopping_lists').findOneAndUpdate(
       { 
-        householdId: new ObjectId(req.params.householdId),
+        householdId: req.params.householdId,
         status: 'active'
       },
       { 
@@ -160,6 +173,150 @@ router.delete('/:householdId/clear', async (req, res) => {
     res.json({ shoppingList: result.value });
   } catch (error) {
     console.error('Clear shopping list error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add manual item to shopping list
+router.post('/:householdId/add-item', async (req, res) => {
+  try {
+    const { name, quantity, unit, category } = req.body;
+    
+    if (!name || !quantity) {
+      return res.status(400).json({ error: 'Name and quantity are required' });
+    }
+    
+    const db = getDB();
+    
+    const newItem = {
+      id: new ObjectId().toString(),
+      name,
+      quantity: parseFloat(quantity),
+      unit: unit || 'pcs',
+      category: category || 'other',
+      isChecked: false,
+      addedManually: true,
+      createdAt: new Date()
+    };
+    
+    const result = await db.collection('shopping_lists').findOneAndUpdate(
+      { 
+        householdId: req.params.householdId,
+        status: 'active'
+      },
+      { 
+        $push: { items: newItem },
+        $set: { updatedAt: new Date() },
+        $setOnInsert: {
+          householdId: req.params.householdId,
+          status: 'active',
+          recipeIds: [],
+          createdAt: new Date()
+        }
+      },
+      { returnDocument: 'after', upsert: true }
+    );
+    
+    console.log('Add item result:', result);
+    
+    // Get the updated shopping list
+    const shoppingList = await db.collection('shopping_lists').findOne({
+      householdId: req.params.householdId,
+      status: 'active'
+    });
+    
+    if (!shoppingList) {
+      console.error('Failed to retrieve shopping list after add');
+      return res.status(500).json({ error: 'Failed to add item' });
+    }
+    
+    res.json({ shoppingList });
+  } catch (error) {
+    console.error('Add item error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete item from shopping list
+router.delete('/:householdId/item/:itemId', async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const db = getDB();
+    
+    console.log('Delete item request:', { itemId, householdId: req.params.householdId });
+    
+    const result = await db.collection('shopping_lists').findOneAndUpdate(
+      { 
+        householdId: req.params.householdId,
+        status: 'active'
+      },
+      { 
+        $pull: { items: { id: itemId } },
+        $set: { updatedAt: new Date() }
+      },
+      { returnDocument: 'after' }
+    );
+    
+    console.log('Delete item result:', result);
+    
+    // Get the updated shopping list
+    const shoppingList = await db.collection('shopping_lists').findOne({
+      householdId: req.params.householdId,
+      status: 'active'
+    });
+    
+    if (!shoppingList) {
+      console.error('Failed to retrieve shopping list after delete');
+      return res.status(500).json({ error: 'Failed to delete item' });
+    }
+    
+    res.json({ shoppingList });
+  } catch (error) {
+    console.error('Delete item error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle item checked status
+router.patch('/:householdId/item/:itemId', async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const { isChecked } = req.body;
+    const db = getDB();
+    
+    console.log('Toggle item request:', { itemId, isChecked, householdId: req.params.householdId });
+    
+    const result = await db.collection('shopping_lists').findOneAndUpdate(
+      { 
+        householdId: req.params.householdId,
+        status: 'active',
+        'items.id': itemId
+      },
+      { 
+        $set: { 
+          'items.$.isChecked': isChecked,
+          updatedAt: new Date()
+        }
+      },
+      { returnDocument: 'after' }
+    );
+    
+    console.log('Toggle item result:', result);
+    
+    // Get the updated shopping list
+    const shoppingList = await db.collection('shopping_lists').findOne({
+      householdId: req.params.householdId,
+      status: 'active'
+    });
+    
+    if (!shoppingList) {
+      console.error('Failed to retrieve shopping list after toggle');
+      return res.status(500).json({ error: 'Failed to toggle item' });
+    }
+    
+    res.json({ shoppingList });
+  } catch (error) {
+    console.error('Toggle item error:', error);
     res.status(500).json({ error: error.message });
   }
 });

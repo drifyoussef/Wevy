@@ -399,3 +399,12 @@ h3, .text-xl {
     --height: 100%;
   }
 }
+
+/* Auto Height Modal */
+.auto-height-modal {
+  --border-radius: 16px 16px 0 0;
+  
+  ion-modal {
+    --border-radius: 16px 16px 0 0;
+  }
+}

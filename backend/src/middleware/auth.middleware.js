@@ -2,16 +2,6 @@ const jwt = require('jsonwebtoken');
 
 const authenticateUser = async (req, res, next) => {
   try {
-    // Skip authentication in development if no token
-    if (process.env.NODE_ENV === 'development') {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        console.warn('⚠️ Auth disabled in development mode (no token)');
-        req.user = { uid: 'dev-user-id', email: 'dev@example.com' };
-        return next();
-      }
-    }
-
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

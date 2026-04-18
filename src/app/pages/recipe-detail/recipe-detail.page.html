@@ -1,0 +1,196 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-button slot="start" fill="clear" (click)="goBack()">
+      <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+    </ion-button>
+    <ion-title>Recette</ion-title>
+    <ion-button slot="end" fill="clear" (click)="toggleFavorite()">
+      <ion-icon slot="icon-only" [name]="isFavorite ? 'heart' : 'heart-outline'" color="danger"></ion-icon>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" *ngIf="recipe">
+  <!-- Image Hero -->
+  <div class="recipe-hero">
+    <img *ngIf="recipe.imageUrl" [src]="recipe.imageUrl" alt="{{ recipe.title }}" class="hero-image">
+    <div class="hero-overlay"></div>
+  </div>
+
+  <div class="ion-padding">
+    <!-- Titre et description -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold mb-2">{{ recipe.title }}</h1>
+      <p class="text-gray-600" *ngIf="recipe.description">{{ recipe.description }}</p>
+    </div>
+
+    <!-- Stats principales -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <!-- Temps total -->
+      <div class="stat-card">
+        <div class="stat-icon">
+          <ion-icon name="time" color="primary"></ion-icon>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Temps</p>
+          <p class="stat-value">{{ recipe.totalTime || '?' }}min</p>
+        </div>
+      </div>
+
+      <!-- Difficulté -->
+      <div class="stat-card">
+        <div class="stat-icon">
+          <ion-icon name="flame" color="warning"></ion-icon>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Difficulté</p>
+          <p class="stat-value">{{ getDifficultyLabel(recipe.difficulty) }}</p>
+        </div>
+      </div>
+
+      <!-- Portions -->
+      <div class="stat-card">
+        <div class="stat-icon">
+          <ion-icon name="people" color="secondary"></ion-icon>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Portions</p>
+          <p class="stat-value">{{ servings }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Segmented Control -->
+    <ion-segment [value]="selectedSegment" (ionChange)="selectedSegment = $any($event).detail.value" class="mb-6">
+      <ion-segment-button value="overview">
+        <ion-label>Aperçu</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="ingredients">
+        <ion-label>Ingrédients</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="instructions">
+        <ion-label>Préparation</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <!-- Aperçu -->
+    <div *ngIf="selectedSegment === 'overview'" class="section-content">
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <div class="info-grid">
+            <div class="info-item">
+              <p class="label">Temps de préparation</p>
+              <p class="value">{{ recipe.prepTime || '?' }} min</p>
+            </div>
+            <div class="info-item">
+              <p class="label">Temps de cuisson</p>
+              <p class="value">{{ recipe.cookTime || '?' }} min</p>
+            </div>
+            <div class="info-item">
+              <p class="label">Portions</p>
+              <p class="value">{{ recipe.servings || '?' }}</p>
+            </div>
+            <div class="info-item">
+              <p class="label">Type de repas</p>
+              <p class="value">{{ recipe.mealType || 'Non spécifié' }}</p>
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <div class="mt-4" *ngIf="recipe.tags && recipe.tags.length > 0">
+            <p class="label mb-2">Tags</p>
+            <div class="flex flex-wrap gap-2">
+              <ion-chip *ngFor="let tag of recipe.tags" outline color="primary">
+                <ion-label>{{ tag }}</ion-label>
+              </ion-chip>
+            </div>
+          </div>
+
+          <!-- Outils nécessaires -->
+          <div class="mt-4" *ngIf="recipe.toolsNeeded && recipe.toolsNeeded.length > 0">
+            <p class="label mb-2">Outils nécessaires</p>
+            <div class="flex flex-wrap gap-2">
+              <ion-chip *ngFor="let tool of recipe.toolsNeeded" outline>
+                <ion-label>{{ tool }}</ion-label>
+              </ion-chip>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Ingrédients -->
+    <div *ngIf="selectedSegment === 'ingredients'" class="section-content">
+      <!-- Ajustement portions -->
+      <div class="portion-control mb-4">
+        <p class="label mb-2">Portions</p>
+        <div class="flex items-center gap-3">
+          <ion-button fill="outline" size="small" (click)="decreaseServings()">-</ion-button>
+          <span class="text-lg font-semibold flex-1">{{ servings }} portions</span>
+          <ion-button fill="outline" size="small" (click)="increaseServings()">+</ion-button>
+        </div>
+      </div>
+
+      <!-- Liste des ingrédients par catégorie -->
+      <ion-card class="card-primary" *ngIf="ingredients.length > 0">
+        <ion-card-content>
+          <div *ngFor="let category of ['produce', 'meat', 'dairy', 'pantry', 'spices', 'other']">
+            <div *ngIf="getIngredientsForCategory(category).length > 0">
+              <h3 class="font-semibold text-base mb-3">{{ getCategoryBadge(category) }}</h3>
+              <div class="ingredient-list mb-4">
+                <div 
+                  class="ingredient-item" 
+                  *ngFor="let ingredient of getIngredientsForCategory(category)"
+                  [class.optional]="ingredient.optional"
+                >
+                  <div class="flex items-start gap-3">
+                    <ion-icon name="checkmark-circle-outline" class="mt-1" color="primary"></ion-icon>
+                    <div class="flex-1">
+                      <p class="ingredient-name">
+                        {{ ingredient.quantity }} {{ ingredient.unit }} 
+                        <span class="font-semibold">{{ ingredient.name }}</span>
+                      </p>
+                      <p *ngIf="ingredient.optional" class="text-xs text-gray-500">Optionnel</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Préparation -->
+    <div *ngIf="selectedSegment === 'instructions'" class="section-content">
+      <ion-card class="card-primary" *ngIf="recipe.instructions && recipe.instructions.length > 0">
+        <ion-card-content>
+          <div class="instructions-list">
+            <div class="instruction-item" *ngFor="let instruction of recipe.instructions; let i = index">
+              <div class="step-number">{{ i + 1 }}</div>
+              <div class="step-content">
+                <p>{{ instruction }}</p>
+              </div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div *ngIf="!recipe.instructions || recipe.instructions.length === 0" class="text-center py-8">
+        <p class="text-gray-500">Aucune instruction disponible</p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-buttons mt-6 mb-6">
+      <ion-button expand="block" color="primary" fill="solid" (click)="shareRecipe()">
+        <ion-icon slot="start" name="share-social"></ion-icon>
+        Partager la recette
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
+
+<ion-content *ngIf="!recipe" class="ion-padding flex items-center justify-center">
+  <p class="text-gray-500">Recette non trouvée</p>
+</ion-content>

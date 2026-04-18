@@ -1,0 +1,188 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button (click)="goBack()"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Paramètres</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Segmented Control -->
+  <ion-segment [value]="selectedTab" (ionChange)="selectedTab = $any($event).detail.value" class="mb-6">
+    <ion-segment-button value="notifications">
+      <ion-label>Notifications</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="family">
+      <ion-label>Famille</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- TAB: NOTIFICATIONS -->
+  <div *ngIf="selectedTab === 'notifications'">
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold mb-4">Canaux de notification</h3>
+
+      <!-- Email -->
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <ion-icon name="mail" color="primary"></ion-icon>
+              </div>
+              <div>
+                <h4 class="font-semibold">Email</h4>
+                <p class="text-xs text-gray-600">Recevoir des notifications par email</p>
+              </div>
+            </div>
+            <ion-toggle [(ngModel)]="preferences.emailNotifications"></ion-toggle>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Push Notifications -->
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <ion-icon name="phone-portrait" color="success"></ion-icon>
+              </div>
+              <div>
+                <h4 class="font-semibold">Notifications Push</h4>
+                <p class="text-xs text-gray-600">Alertes sur votre appareil</p>
+              </div>
+            </div>
+            <ion-toggle [(ngModel)]="preferences.pushNotifications"></ion-toggle>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Types de notifications -->
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold mb-4">Types de notifications</h3>
+
+      <!-- Rappels Swipe -->
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-semibold">Rappels de swipe</h4>
+              <p class="text-xs text-gray-600">Vous êtes invité à faire un swipe</p>
+            </div>
+            <ion-toggle [(ngModel)]="preferences.swipeReminders"></ion-toggle>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Rappels repas -->
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-semibold">Rappels de repas</h4>
+              <p class="text-xs text-gray-600">C'est l'heure de manger</p>
+            </div>
+            <ion-toggle [(ngModel)]="preferences.mealReminders"></ion-toggle>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Rappels tâches -->
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-semibold">Rappels de tâches</h4>
+              <p class="text-xs text-gray-600">Vous avez une tâche à faire</p>
+            </div>
+            <ion-toggle [(ngModel)]="preferences.taskReminders"></ion-toggle>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Mises à jour famille -->
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-semibold">Mises à jour de la famille</h4>
+              <p class="text-xs text-gray-600">Nouvelles de votre foyer</p>
+            </div>
+            <ion-toggle [(ngModel)]="preferences.familyUpdates"></ion-toggle>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Fréquence -->
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold mb-4">Fréquence</h3>
+
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <div>
+            <h4 class="font-semibold mb-3">À quelle fréquence les recevoir?</h4>
+            <ion-select [(ngModel)]="preferences.notificationFrequency" class="w-full">
+              <ion-select-option *ngFor="let option of frequencyOptions" [value]="option.value">
+                {{ option.label }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Save Button -->
+    <ion-button expand="block" color="primary" (click)="savePreferences()" class="mb-4">
+      Sauvegarder les paramètres
+    </ion-button>
+  </div>
+
+  <!-- TAB: FAMILLE -->
+  <div *ngIf="selectedTab === 'family'">
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold mb-4">Gestion de la famille</h3>
+
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <p class="text-gray-600 mb-4">
+            Depuis l'onglet "Profil", vous pouvez:
+          </p>
+          <ul class="text-sm space-y-2">
+            <li class="flex items-start gap-2">
+              <span class="text-primary font-bold">✓</span>
+              <span>Créer un nouveau foyer</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-primary font-bold">✓</span>
+              <span>Rejoindre un foyer existant via code ami</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-primary font-bold">✓</span>
+              <span>Partager un lien d'invitation unique</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-primary font-bold">✓</span>
+              <span>Gérer les membres du foyer</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-primary font-bold">✓</span>
+              <span>Promouvoir/rétrograder les rôles</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-primary font-bold">✓</span>
+              <span>Quitter le foyer</span>
+            </li>
+          </ul>
+        </ion-card-content>
+      </ion-card>
+
+      <p class="text-xs text-gray-500 text-center mt-4">
+        Besoin d'aide? Consultez l'onglet Profil pour plus de détails
+      </p>
+    </div>
+  </div>
+</ion-content>

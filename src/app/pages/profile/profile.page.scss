@@ -120,25 +120,6 @@ ion-card {
   }
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 60px 20px;
-
-  h2 {
-    font-size: 24px;
-    margin-bottom: 12px;
-  }
-
-  p {
-    color: var(--ion-color-medium);
-    margin-bottom: 24px;
-  }
-}
-
 ion-list {
   margin-top: 24px;
 }

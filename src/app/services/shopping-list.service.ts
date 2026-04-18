@@ -1,245 +1,305 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
+import { tap, distinctUntilChanged, map } from 'rxjs/operators';
 import { ShoppingList, ShoppingListItem, ShoppingListGroup } from '../models/shopping-list.model';
-import { Recipe, Ingredient } from '../models/recipe.model';
-import { BehaviorSubject } from 'rxjs';
+import { Recipe } from '../models/recipe.model';
+import { environment } from '../../environments/environment';
+
+// Interfaces pour les réponses du backend
+interface BackendShoppingList {
+  _id?: string;
+  id?: string;
+  householdId: string;
+  items: BackendShoppingListItem[];
+  recipeIds: string[];
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  completedAt?: string | Date;
+  status: 'active' | 'completed';
+}
+
+interface BackendShoppingListItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  category?: 'produce' | 'meat' | 'dairy' | 'pantry' | 'spices' | 'other';
+  isChecked?: boolean;
+  checked?: boolean;
+  addedManually?: boolean;
+  recipeId?: string;
+  recipeName?: string;
+  createdAt: string | Date;
+}
+
+interface ApiResponse<T> {
+  shoppingList?: T;
+  [key: string]: unknown;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ShoppingListService {
   private currentListSubject = new BehaviorSubject<ShoppingList | null>(null);
-  public currentList$ = this.currentListSubject.asObservable();
+  public currentList$ = this.currentListSubject.asObservable().pipe(
+    distinctUntilChanged()
+  );
 
-  constructor() {
-    // Supabase disabled for local development
+  private apiUrl = `${environment.apiUrl}/shopping`;
+  private householdId = 'household1'; // TODO: Get from household service
+
+  constructor(private http: HttpClient) {
+    this.loadCurrentList();
   }
 
-  async getCurrentList(_householdId?: string): Promise<ShoppingList | null> {
-
-    console.log(_householdId);
-    // Mock data for development
-    const mockList: ShoppingList = {
-      id: '1',
-      householdId: 'household1',
-      recipeIds: ['1'],
-      items: [
-        {
-          id: '1',
-          ingredient: {
-            name: 'Lait',
-            quantity: 2,
-            unit: 'L',
-            category: 'dairy'
-          },
-          isChecked: false,
-          addedManually: false,
-          createdAt: new Date()
-        },
-        {
-          id: '2',
-          ingredient: {
-            name: 'Pain',
-            quantity: 1,
-            unit: '',
-            category: 'pantry'
-          },
-          isChecked: false,
-          addedManually: false,
-          createdAt: new Date()
-        },
-        {
-          id: '3',
-          ingredient: {
-            name: 'Tomates',
-            quantity: 1,
-            unit: 'kg',
-            category: 'produce'
-          },
-          isChecked: false,
-          addedManually: false,
-          createdAt: new Date()
-        }
-      ],
-      status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    this.currentListSubject.next(mockList);
-    return mockList;
-
-    /* Production code with Supabase:
-    const { data, error } = await this.supabase
-      .from('shopping_lists')
-      .select('*')
-      .eq('household_id', householdId)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-    
-    this.currentListSubject.next(data);
-    return data;
-    */
+  /**
+   * Charge la liste de course actuelle depuis le backend
+   */
+  private loadCurrentList() {
+    this.getCurrentList(this.householdId).subscribe();
   }
 
-  async createListFromRecipe(householdId: string, recipe: Recipe): Promise<ShoppingList> {
-    const items: ShoppingListItem[] = recipe.ingredients.map((ingredient, index) => ({
-      id: `${Date.now()}-${index}`,
-      ingredient,
-      recipeId: recipe.id,
-      recipeName: recipe.title,
-      isChecked: false,
-      addedManually: false,
-      createdAt: new Date()
-    }));
-
-    const list: ShoppingList = {
-      id: '1',
-      householdId,
-      items,
-      recipeIds: [recipe.id],
-      status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    this.currentListSubject.next(list);
-    return list;
-  }
-
-  async addRecipeToList(listId: string, recipe: Recipe): Promise<ShoppingList> {
-    const currentList = this.currentListSubject.value;
-    if (!currentList) {
-      return this.createListFromRecipe('household1', recipe);
-    }
-
-    const newItems: ShoppingListItem[] = recipe.ingredients.map((ingredient, index) => ({
-      id: `${Date.now()}-${index}`,
-      ingredient,
-      recipeId: recipe.id,
-      recipeName: recipe.title,
-      isChecked: false,
-      addedManually: false,
-      createdAt: new Date()
-    }));
-
-    const updatedItems = [...currentList.items, ...newItems];
-    const updatedRecipeIds = [...new Set([...currentList.recipeIds, recipe.id])];
-
-    const updatedList = {
-      ...currentList,
-      items: updatedItems,
-      recipeIds: updatedRecipeIds,
-      updatedAt: new Date()
-    };
-    
-    this.currentListSubject.next(updatedList);
-    return updatedList;
-  }
-
-  async addManualItem(listId: string, ingredient: Ingredient): Promise<ShoppingList> {
-    const currentList = this.currentListSubject.value;
-    if (!currentList) {
-      throw new Error('No shopping list found');
-    }
-
-    const newItem: ShoppingListItem = {
-      id: `${Date.now()}`,
-      ingredient,
-      isChecked: false,
-      addedManually: true,
-      createdAt: new Date()
-    };
-
-    const updatedItems = [...currentList.items, newItem];
-
-    const updatedList = {
-      ...currentList,
-      items: updatedItems,
-      updatedAt: new Date()
-    };
-    
-    this.currentListSubject.next(updatedList);
-    return updatedList;
-  }
-
-  async toggleItemChecked(listId: string, itemId: string): Promise<void> {
-    // Mock implementation for development
-    const currentList = this.currentListSubject.value;
-    if (currentList) {
-      const updatedItems = currentList.items.map((item: ShoppingListItem) =>
-        item.id === itemId ? { ...item, isChecked: !item.isChecked } : item
-      );
-      this.currentListSubject.next({ ...currentList, items: updatedItems });
-    }
-    
-    /* Production code with Supabase:
-    const { data: currentList, error: fetchError } = await this.supabase
-      .from('shopping_lists')
-      .select('*')
-      .eq('id', listId)
-      .single();
-
-    if (fetchError) throw fetchError;
-
-    const updatedItems = currentList.items.map((item: ShoppingListItem) =>
-      item.id === itemId ? { ...item, isChecked: !item.isChecked } : item
+  /**
+   * Récupère la liste de course active
+   */
+  getCurrentList(householdId?: string): Observable<ShoppingList> {
+    const hId = householdId || this.householdId;
+    return this.http.get<ApiResponse<BackendShoppingList>>(`${this.apiUrl}/${hId}`).pipe(
+      map(response => this.normalizeList(response.shoppingList!)),
+      tap(list => this.currentListSubject.next(list))
     );
-
-    const { data, error } = await this.supabase
-      .from('shopping_lists')
-      .update({ items: updatedItems })
-      .eq('id', listId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    
-    this.currentListSubject.next(data);
-    */
   }
-  
+
+  /**
+   * Snapshot de la liste actuelle
+   */
+  getCurrentListSnapshot(): ShoppingList | null {
+    return this.currentListSubject.value;
+  }
+
+  /**
+   * Ajouter un article manuel à la liste
+   */
+  async addManualItem(
+    name: string, 
+    quantity: number, 
+    unit: string,
+    category?: 'produce' | 'meat' | 'dairy' | 'pantry' | 'spices' | 'other'
+  ): Promise<ShoppingList> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<ApiResponse<BackendShoppingList>>(
+          `${this.apiUrl}/${this.householdId}/add-item`,
+          { name, quantity, unit, category }
+        )
+      );
+
+      if (response?.shoppingList) {
+        const normalized = this.normalizeList(response.shoppingList);
+        this.currentListSubject.next(normalized);
+        return normalized;
+      }
+      throw new Error('Invalid response');
+    } catch (error) {
+      console.error('Error adding item:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cocher/décocher un article
+   */
   async toggleItem(itemId: string): Promise<void> {
-    await this.toggleItemChecked('1', itemId);
-  }
-
-  async removeItem(listId: string, itemId: string): Promise<void> {
     const currentList = this.currentListSubject.value;
     if (!currentList) return;
 
-    const updatedItems = currentList.items.filter((item: ShoppingListItem) => item.id !== itemId);
+    const item = currentList.items.find(i => i.id === itemId);
+    if (!item) return;
 
-    const updatedList = {
-      ...currentList,
-      items: updatedItems,
-      updatedAt: new Date()
+    try {
+      const response = await firstValueFrom(
+        this.http.patch<ApiResponse<BackendShoppingList>>(
+          `${this.apiUrl}/${this.householdId}/item/${itemId}`,
+          { isChecked: !item.isChecked }
+        )
+      );
+
+      if (response?.shoppingList) {
+        const normalized = this.normalizeList(response.shoppingList);
+        this.currentListSubject.next(normalized);
+      }
+    } catch (error) {
+      console.error('Error toggling item:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Supprimer un article
+   */
+  async removeItem(itemId: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(
+        this.http.delete<ApiResponse<BackendShoppingList>>(
+          `${this.apiUrl}/${this.householdId}/item/${itemId}`
+        )
+      );
+
+      if (response?.shoppingList) {
+        const normalized = this.normalizeList(response.shoppingList);
+        this.currentListSubject.next(normalized);
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Ajouter une recette à la liste de course
+   */
+  async addRecipeToList(recipe: Recipe): Promise<ShoppingList> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<ApiResponse<BackendShoppingList>>(
+          `${this.apiUrl}/${this.householdId}/add-recipe`,
+          { recipeId: recipe.id }
+        )
+      );
+
+      if (response?.shoppingList) {
+        const normalized = this.normalizeList(response.shoppingList);
+        this.currentListSubject.next(normalized);
+        return normalized;
+      }
+      throw new Error('Invalid response');
+    } catch (error) {
+      console.error('Error adding recipe:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Compléter la liste de course
+   */
+  async completeList(): Promise<ShoppingList> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<ApiResponse<BackendShoppingList>>(
+          `${this.apiUrl}/${this.householdId}/complete`,
+          {}
+        )
+      );
+
+      if (response?.shoppingList) {
+        const normalized = this.normalizeList(response.shoppingList);
+        this.currentListSubject.next(normalized);
+        return normalized;
+      }
+      throw new Error('Invalid response');
+    } catch (error) {
+      console.error('Error completing list:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Vider complètement la liste
+   */
+  async clearList(): Promise<ShoppingList> {
+    try {
+      const response = await firstValueFrom(
+        this.http.delete<ApiResponse<BackendShoppingList>>(
+          `${this.apiUrl}/${this.householdId}/clear`
+        )
+      );
+
+      if (response?.shoppingList) {
+        const normalized = this.normalizeList(response.shoppingList);
+        this.currentListSubject.next(normalized);
+        return normalized;
+      }
+      throw new Error('Invalid response');
+    } catch (error) {
+      console.error('Error clearing list:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Normalise la réponse du backend au format attendu
+   */
+  private normalizeList(backendList: BackendShoppingList): ShoppingList {
+    return {
+      id: (backendList._id || backendList.id) as string | undefined,
+      _id: backendList._id as string | undefined,
+      householdId: backendList.householdId as string,
+      items: (Array.isArray(backendList.items) ? backendList.items : []).map(this.normalizeItem.bind(this)),
+      recipeIds: (Array.isArray(backendList.recipeIds) ? backendList.recipeIds : []) as string[],
+      createdAt: new Date(backendList.createdAt),
+      updatedAt: new Date(backendList.updatedAt),
+      completedAt: backendList.completedAt ? new Date(backendList.completedAt) : undefined,
+      status: backendList.status as 'active' | 'completed'
     };
-    
-    this.currentListSubject.next(updatedList);
   }
 
-  async completeList(): Promise<void> {
-    // Local mode - clear the list
-    this.currentListSubject.next(null);
+  /**
+   * Normalise un article au format attendu
+   */
+  private normalizeItem(item: BackendShoppingListItem): ShoppingListItem {
+    return {
+      id: item.id as string,
+      name: item.name as string,
+      quantity: item.quantity as number,
+      unit: (item.unit || 'pcs') as string,
+      category: item.category as 'produce' | 'meat' | 'dairy' | 'pantry' | 'spices' | 'other' | undefined,
+      isChecked: (item.isChecked || item.checked || false) as boolean,
+      addedManually: item.addedManually as boolean | undefined,
+      recipeId: item.recipeId as string | undefined,
+      recipeName: item.recipeName as string | undefined,
+      createdAt: new Date(item.createdAt)
+    };
   }
 
+  /**
+   * Les unités disponibles
+   */
+  getAvailableUnits(): string[] {
+    return [
+      'pcs',    // pieces
+      'g',      // grammes
+      'kg',     // kilogrammes
+      'ml',     // millilitres
+      'L',      // litres
+      'cup',    // tasse
+      'tbsp',   // cuillère à soupe
+      'tsp',    // cuillère à café
+      'oz',     // ounces
+      'lb',     // livres
+      'bunch',  // bottes
+      'clove',  // gousses
+    ];
+  }
+
+  /**
+   * Groupe les articles par catégorie
+   */
   groupItemsByCategory(items: ShoppingListItem[]): ShoppingListGroup[] {
     const groups: { [key: string]: ShoppingListItem[] } = {};
 
     items.forEach(item => {
-      const category = item.ingredient.category || 'other';
+      const category = item.category || 'other';
       if (!groups[category]) {
         groups[category] = [];
       }
       groups[category].push(item);
     });
 
-    return Object.entries(groups).map(([category, items]) => ({
+    return Object.entries(groups).map(([category, categoryItems]) => ({
       category,
-      items
+      items: categoryItems
     }));
   }
 }

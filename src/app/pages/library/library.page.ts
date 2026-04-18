@@ -49,15 +49,21 @@ export class LibraryPage implements OnInit {
   }
 
   openRecipeDetails(recipe: Recipe) {
-    // TODO: Navigate to recipe details
-    console.log('Opening recipe:', recipe.title);
+    this.router.navigate(['/tabs/library/recipe', recipe.id]);
   }
 
   async openSwipeMode() {
+    console.log('Opening swipe modal...');
     const modal = await this.modalController.create({
       component: SwipePage,
-      cssClass: 'fullscreen-modal'
+      cssClass: 'fullscreen-modal',
+      backdropDismiss: false
     });
+    console.log('Modal created and presenting...');
     await modal.present();
+    console.log('Modal presented');
+
+    const { data, role } = await modal.onWillDismiss();
+    console.log('Modal dismissed with data:', data, 'role:', role);
   }
 }
