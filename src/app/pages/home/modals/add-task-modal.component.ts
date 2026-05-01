@@ -1,4 +1,4 @@
-import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -80,9 +80,9 @@ import { HouseholdMember } from '../../../models/user.model';
   `]
 })
 export class AddTaskModalComponent implements OnInit {
+  @Input() householdMembers: HouseholdMember[] = [];
   taskTitle: string = '';
   assignedTo: string = '';
-  householdMembers: HouseholdMember[] = [];
 
   constructor(
     private modalController: ModalController,
@@ -92,7 +92,14 @@ export class AddTaskModalComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadHouseholdMembers();
+    this.initializeComponent();
+  }
+
+  private async initializeComponent() {
+    // Si pas de members reçus via @Input, les charger
+    if (!this.householdMembers || this.householdMembers.length === 0) {
+      await this.loadHouseholdMembers();
+    }
   }
 
   async loadHouseholdMembers() {
@@ -107,13 +114,17 @@ export class AddTaskModalComponent implements OnInit {
   }
 
   async addTask() {
-    if (!this.taskTitle.trim() || !this.assignedTo) return;
+    if (!this.taskTitle.trim() || !this.assignedTo) {
+      console.error('Validation failed - title or assignedTo empty');
+      return;
+    }
 
+    console.log('Adding task - title:', this.taskTitle, 'assignedTo:', this.assignedTo);
+    
     const selectedMember = this.householdMembers.find(m => m.userId === this.assignedTo);
     const household = await this.householdService.getCurrentHousehold();
 
-    // Juste retourner les données, laisser la page les créer
-    this.modalController.dismiss({
+    const taskData = {
       added: true,
       task: {
         title: this.taskTitle.trim(),
@@ -121,6 +132,9 @@ export class AddTaskModalComponent implements OnInit {
         assignedToName: selectedMember?.displayName || 'Unknown',
         householdId: household?.id || 'household1'
       }
-    });
+    };
+    
+    console.log('Modal dismissing with data:', taskData);
+    await this.modalController.dismiss(taskData);
   }
 }

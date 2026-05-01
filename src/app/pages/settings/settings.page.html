@@ -13,6 +13,9 @@
     <ion-segment-button value="notifications">
       <ion-label>Notifications</ion-label>
     </ion-segment-button>
+    <ion-segment-button value="security">
+      <ion-label>Sécurité</ion-label>
+    </ion-segment-button>
     <ion-segment-button value="family">
       <ion-label>Famille</ion-label>
     </ion-segment-button>
@@ -139,6 +142,81 @@
     <ion-button expand="block" color="primary" (click)="savePreferences()" class="mb-4">
       Sauvegarder les paramètres
     </ion-button>
+  </div>
+
+  <!-- TAB: SÉCURITÉ -->
+  <div *ngIf="selectedTab === 'security'">
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold mb-4">Changer le mot de passe</h3>
+
+      <ion-card class="card-primary">
+        <ion-card-content>
+          <div class="space-y-4">
+            <!-- Current Password -->
+            <div>
+              <ion-label class="text-sm font-semibold">Mot de passe actuel</ion-label>
+              <ion-input 
+                type="password" 
+                placeholder="Entrez votre mot de passe actuel"
+                [(ngModel)]="passwordForm.currentPassword"
+                class="mt-2">
+              </ion-input>
+            </div>
+
+            <!-- New Password -->
+            <div>
+              <ion-label class="text-sm font-semibold">Nouveau mot de passe</ion-label>
+              <ion-input 
+                type="password" 
+                placeholder="Entrez le nouveau mot de passe"
+                [(ngModel)]="passwordForm.newPassword"
+                class="mt-2">
+              </ion-input>
+            </div>
+
+            <!-- Confirm Password -->
+            <div>
+              <ion-label class="text-sm font-semibold">Confirmer le mot de passe</ion-label>
+              <ion-input 
+                type="password" 
+                placeholder="Confirmez le nouveau mot de passe"
+                [(ngModel)]="passwordForm.confirmPassword"
+                class="mt-2">
+              </ion-input>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="passwordError" class="p-3 rounded bg-red-100 text-red-700 text-sm">
+              {{ passwordError }}
+            </div>
+
+            <!-- Success Message -->
+            <div *ngIf="passwordSuccess" class="p-3 rounded bg-green-100 text-green-700 text-sm">
+              {{ passwordSuccess }}
+            </div>
+
+            <!-- Change Password Button -->
+            <ion-button 
+              expand="block" 
+              color="primary"
+              (click)="changePassword()"
+              [disabled]="isChangingPassword">
+              <ion-spinner *ngIf="isChangingPassword" name="crescent" class="mr-2"></ion-spinner>
+              {{ isChangingPassword ? 'Changement en cours...' : 'Changer le mot de passe' }}
+            </ion-button>
+
+            <!-- Password Requirements -->
+            <div class="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600">
+              <p class="font-semibold mb-2">Critères:</p>
+              <ul class="space-y-1">
+                <li>• Au minimum 6 caractères</li>
+                <li>• Confirmation du mot de passe requise</li>
+              </ul>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
   </div>
 
   <!-- TAB: FAMILLE -->

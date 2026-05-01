@@ -1,11 +1,15 @@
 <ion-header [translucent]="true" class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Connexion</ion-title>
+    <ion-title>{{ showForgotPassword ? 'Réinitialiser le mot de passe' : 'Connexion' }}</ion-title>
+    <ion-buttons slot="start" *ngIf="showForgotPassword">
+      <ion-back-button (click)="goBackToLogin()"></ion-back-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="login-container">
+  <!-- LOGIN FORM -->
+  <div *ngIf="!showForgotPassword" class="login-container">
     <div class="logo-section">
       <h1>🍽️</h1>
       <p>Décidez ensemble quoi manger ce soir</p>
@@ -62,6 +66,14 @@
         }
       </ion-button>
 
+      <div class="forgot-password-link">
+        <ion-text>
+          <p>
+            <button type="button" class="forgot-password-btn" (click)="showForgotPassword = true" (keydown.enter)="showForgotPassword = true">Mot de passe oublié?</button>
+          </p>
+        </ion-text>
+      </div>
+
       <div class="register-link">
         <ion-text>
           <p>
@@ -69,6 +81,151 @@
             <a routerLink="/auth/register">S'inscrire</a>
           </p>
         </ion-text>
+      </div>
+    </form>
+  </div>
+
+  <!-- FORGOT PASSWORD FORM -->
+  <div *ngIf="showForgotPassword" class="login-container">
+    <div class="logo-section">
+      <h1>🔐</h1>
+      <p>Réinitialiser votre mot de passe</p>
+    </div>
+
+    <form>
+      <!-- Step 1: Email -->
+      <div *ngIf="forgotPasswordStep === 1">
+        <ion-list>
+          <ion-item>
+            <ion-input
+              #forgotEmailInput
+              id="forgot-email"
+              type="email"
+              placeholder="votre@email.com"
+              label="Email"
+              labelPlacement="floating"
+              [(ngModel)]="forgotPasswordForm.email"
+              name="email"
+            ></ion-input>
+          </ion-item>
+        </ion-list>
+
+        @if (forgotPasswordError) {
+          <ion-text color="danger">
+            <p class="error-message">{{ forgotPasswordError }}</p>
+          </ion-text>
+        }
+
+        <ion-button
+          expand="block"
+          color="primary"
+          (click)="requestResetCode()"
+          [disabled]="forgotPasswordLoading"
+          class="login-button"
+        >
+          @if (forgotPasswordLoading) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            Envoyer le code
+          }
+        </ion-button>
+      </div>
+
+      <!-- Step 2: Code + New Password -->
+      <div *ngIf="forgotPasswordStep === 2">
+        <ion-card class="info-card">
+          <ion-card-content>
+            <p class="text-sm text-gray-600">
+              ℹ️ Un code a été envoyé à <strong>{{ forgotPasswordForm.email }}</strong>
+              <br>
+              <small class="text-gray-500">(Pour le développement, vérifiez les logs du serveur backend)</small>
+            </p>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-list>
+          <ion-item>
+            <ion-input
+              id="reset-code"
+              type="text"
+              placeholder="000000"
+              label="Code de réinitialisation"
+              labelPlacement="floating"
+              [(ngModel)]="forgotPasswordForm.code"
+              name="code"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-input
+              id="new-password"
+              [type]="showNewPassword ? 'text' : 'password'"
+              placeholder="••••••••"
+              label="Nouveau mot de passe"
+              labelPlacement="floating"
+              [(ngModel)]="forgotPasswordForm.newPassword"
+              name="newPassword"
+            ></ion-input>
+            <ion-icon 
+              [name]="showNewPassword ? 'eye-off' : 'eye'"
+              (click)="showNewPassword = !showNewPassword"
+              class="password-toggle"
+            ></ion-icon>
+          </ion-item>
+
+          <ion-item>
+            <ion-input
+              id="confirm-password"
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              placeholder="••••••••"
+              label="Confirmer le mot de passe"
+              labelPlacement="floating"
+              [(ngModel)]="forgotPasswordForm.confirmPassword"
+              name="confirmPassword"
+            ></ion-input>
+            <ion-icon 
+              [name]="showConfirmPassword ? 'eye-off' : 'eye'"
+              (click)="showConfirmPassword = !showConfirmPassword"
+              class="password-toggle"
+            ></ion-icon>
+          </ion-item>
+        </ion-list>
+
+        @if (forgotPasswordError) {
+          <ion-text color="danger">
+            <p class="error-message">{{ forgotPasswordError }}</p>
+          </ion-text>
+        }
+
+        @if (forgotPasswordSuccess) {
+          <ion-text color="success">
+            <p class="success-message">{{ forgotPasswordSuccess }}</p>
+          </ion-text>
+        }
+
+        <ion-button
+          expand="block"
+          color="primary"
+          (click)="resetPassword()"
+          [disabled]="forgotPasswordLoading"
+          class="login-button"
+        >
+          @if (forgotPasswordLoading) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            Réinitialiser le mot de passe
+          }
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="medium"
+          (click)="forgotPasswordStep = 1; forgotPasswordForm.code = ''; forgotPasswordForm.newPassword = ''; forgotPasswordForm.confirmPassword = '';"
+          class="mt-2"
+        >
+          Retour
+        </ion-button>
       </div>
     </form>
   </div>

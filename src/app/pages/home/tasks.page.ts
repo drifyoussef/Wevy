@@ -44,22 +44,29 @@ export class TasksPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.loadHouseholdMembers();
+    this.initializeComponent();
     
     // Subscribe to reactive task streams - this will emit immediately with BehaviorSubject
     this.todayTasksSubscription = this.taskService.todayTasks$.subscribe(
       tasks => {
+        console.log('todayTasks$ emitted:', tasks);
         this.todayTasks = tasks;
+        console.log('this.todayTasks set to:', this.todayTasks);
         this.cdr.markForCheck();
       }
     );
 
     this.completedTasksSubscription = this.taskService.completedTasks$.subscribe(
       tasks => {
+        console.log('completedTasks$ emitted:', tasks);
         this.completedTasks = tasks;
         this.cdr.markForCheck();
       }
     );
+  }
+
+  private async initializeComponent() {
+    await this.loadHouseholdMembers();
   }
 
   ngOnDestroy() {
@@ -79,6 +86,8 @@ export class TasksPage implements OnInit, OnDestroy {
   }
 
   async openNewTaskModal() {
+    console.log('Opening task modal, householdMembers:', this.householdMembers);
+    
     const modal = await this.modalController.create({
       component: AddTaskModalComponent,
       componentProps: {
@@ -88,9 +97,20 @@ export class TasksPage implements OnInit, OnDestroy {
 
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
+    const result = await modal.onDidDismiss();
+    console.log('Full onDidDismiss result:', result);
+    console.log('result.data:', result.data);
+    console.log('result.role:', result.role);
+    
+    // Ionic retourne {data, role} - les données peuvent être dans result directement ou dans result.data
+    const data = result.data || result;
+    console.log('Extracted data:', data);
+    
     if (data?.added && data?.task) {
+      console.log('Creating task:', data.task);
       this.taskService.createTask(data.task);
+    } else {
+      console.error('Invalid data received from modal. Full result:', result);
     }
   }
 

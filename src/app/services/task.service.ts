@@ -101,8 +101,10 @@ export class TaskService {
   }
 
   private updateTasks(tasks: Task[]): void {
+    console.log('updateTasks() called with', tasks.length, 'tasks');
     const enrichedTasks = tasks.map(task => this.enrichTask(task));
     this.saveToStorage(enrichedTasks);
+    console.log('Emitting new tasks via BehaviorSubject:', enrichedTasks);
     this.tasksSubject.next(enrichedTasks);
   }
 
@@ -170,6 +172,8 @@ export class TaskService {
    * Créer une nouvelle tâche
    */
   createTask(input: { title: string; assignedTo: string; assignedToName: string; householdId: string }): Task {
+    console.log('TaskService.createTask() called with:', input);
+    
     const task: Task = {
       id: `task-${Date.now()}`,
       title: input.title,
@@ -185,6 +189,8 @@ export class TaskService {
     const enrichedTask = this.enrichTask(task);
     
     const tasks = [...this.tasksSubject.value, enrichedTask];
+    console.log('Updated tasks array:', tasks);
+    
     this.updateTasks(tasks);
     return enrichedTask;
   }

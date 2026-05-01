@@ -102,6 +102,87 @@ ion-item {
   }
 }
 
+.forgot-password-link {
+  text-align: center;
+  margin-top: 12px;
+  animation: fadeIn 1s ease-in;
+
+  p {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    margin: 0;
+
+    .forgot-password-btn {
+      background: none;
+      border: none;
+      color: var(--ion-color-primary);
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+
+      &:focus {
+        outline: 2px solid var(--ion-color-primary);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+    }
+  }
+}
+
+.info-card {
+  --background: rgba(var(--ion-color-primary-rgb), 0.1);
+  --border-color: var(--ion-color-primary);
+  margin-bottom: 20px;
+  border: 1px solid var(--ion-color-primary);
+  border-radius: 12px;
+
+  ion-card-content {
+    padding: 12px;
+
+    .text-sm {
+      font-size: 14px;
+    }
+
+    .text-gray-600 {
+      color: var(--ion-color-medium);
+    }
+
+    .text-gray-500 {
+      color: var(--ion-color-medium-shade);
+    }
+
+    small {
+      display: block;
+      margin-top: 4px;
+    }
+
+    strong {
+      font-weight: 600;
+      color: var(--ion-color-dark);
+    }
+  }
+}
+
+.success-message {
+  text-align: center;
+  padding: 12px 16px;
+  margin: 16px 16px 0;
+  background: rgba(var(--ion-color-success-rgb), 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--ion-color-success);
+}
+
+.mt-2 {
+  margin-top: 8px;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

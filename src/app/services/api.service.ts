@@ -33,6 +33,7 @@ export class ApiService {
 
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'An error occurred';
+    let errorData: unknown = null;
     
     if (error.error instanceof ErrorEvent) {
       // Client-side error
@@ -40,10 +41,18 @@ export class ApiService {
     } else {
       // Server-side error
       errorMessage = error.error?.error || error.message;
+      errorData = error.error;
     }
     
     console.error('API Error:', errorMessage, error);
-    return throwError(() => new Error(errorMessage));
+    
+    // Create error with additional context
+    const apiError = new Error(errorMessage) as any;
+    apiError.statusCode = error.status;
+    apiError.errorResponse = errorData;
+    apiError.error = error.error;
+    
+    return throwError(() => apiError);
   }
 
   get<T>(endpoint: string, params?: HttpParamsType): Observable<T> {

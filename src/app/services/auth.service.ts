@@ -111,6 +111,49 @@ export class AuthService {
     return response.user;
   }
 
+  async changePassword(currentPassword: string, newPassword: string): Promise<User> {
+    try {
+      const response = await this.apiService.postAsync<{ user: User }>('auth/change-password', {
+        currentPassword,
+        newPassword
+      });
+      
+      this.currentUserSubject.next(response.user);
+      return response.user;
+    } catch (error: unknown) {
+      console.error('Change password error:', error);
+      throw error;
+    }
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    try {
+      await this.apiService.postAsync<{ message: string }>('auth/forgot-password', {
+        email
+      });
+    } catch (error: unknown) {
+      console.error('Request password reset error:', error);
+      throw error;
+    }
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string): Promise<User> {
+    try {
+      console.log('Auth service: Resetting password for', email);
+      const response = await this.apiService.postAsync<{ user: User }>('auth/reset-password', {
+        email,
+        code,
+        newPassword
+      });
+      console.log('Auth service: Password reset response received:', response);
+      
+      return response.user;
+    } catch (error: unknown) {
+      console.error('Reset password error in auth service:', error);
+      throw error;
+    }
+  }
+
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }

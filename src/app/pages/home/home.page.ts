@@ -8,8 +8,10 @@ import { addIcons } from 'ionicons';
 import { add, checkmarkCircle } from 'ionicons/icons';
 import { TaskService } from '../../services/task.service';
 import { ShoppingListService } from '../../services/shopping-list.service';
+import { HouseholdService } from '../../services/household.service';
 import { Task } from '../../models/task.model';
 import { ShoppingListItem } from '../../models/shopping-list.model';
+import { HouseholdMember } from '../../models/user.model';
 import { Subscription, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { AddTaskModalComponent } from './modals/add-task-modal.component';
@@ -29,6 +31,7 @@ import { AddProductModalComponent } from './modals/add-product-modal.component';
 export class HomePage implements OnInit, OnDestroy {
   todayTasks: Task[] = [];
   shoppingItems: ShoppingListItem[] = [];
+  householdMembers: HouseholdMember[] = [];
   private tasksSubscription?: Subscription;
   private shoppingSubscription?: Subscription;
   displayName: string = '';
@@ -36,6 +39,7 @@ export class HomePage implements OnInit, OnDestroy {
   constructor(
     private taskService: TaskService,
     private shoppingService: ShoppingListService,
+    private householdService: HouseholdService,
     private router: Router,
     private authService: AuthService,
     private modalController: ModalController,
@@ -65,6 +69,7 @@ export class HomePage implements OnInit, OnDestroy {
     
     // Load data - shopping items will be loaded via subscription
     await this.loadData();
+    await this.loadHouseholdMembers();
     this.displayName = await this.authService.getDisplayName();
   }
 
@@ -86,6 +91,17 @@ export class HomePage implements OnInit, OnDestroy {
     // Shopping items are loaded via subscription to currentList$
   }
 
+  async loadHouseholdMembers() {
+    try {
+      const household = await this.householdService.getCurrentHousehold();
+      if (household) {
+        this.householdMembers = household.members;
+      }
+    } catch (error) {
+      console.error('Error loading household members:', error);
+    }
+  }
+
   loadShoppingItems() {
     const shoppingList = this.shoppingService.getCurrentListSnapshot();
     // Only show unchecked items - slice to ensure new array instance
@@ -99,6 +115,9 @@ export class HomePage implements OnInit, OnDestroy {
   async openAddTask() {
     const modal = await this.modalController.create({
       component: AddTaskModalComponent,
+      componentProps: {
+        householdMembers: this.householdMembers
+      },
       breakpoints: [0, 0.5, 0.75],
       initialBreakpoint: 0.5,
       cssClass: 'auto-height-modal'
@@ -106,8 +125,13 @@ export class HomePage implements OnInit, OnDestroy {
 
     await modal.present();
 
-    // La souscription à tasks$ gérera la mise à jour automatiquement
-    await modal.onDidDismiss();
+    const result = await modal.onDidDismiss();
+    const data = result.data || result;
+    
+    if (data?.added && data?.task) {
+      console.log('Creating task from home:', data.task);
+      this.taskService.createTask(data.task);
+    }
   }
 
   async openAddProduct() {
