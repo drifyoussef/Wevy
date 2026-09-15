@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError, TimeoutError } from 'rxjs';
+import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 type HttpParamsType = HttpParams | Record<string, string | number | boolean | readonly (string | number | boolean)[]>;
@@ -12,6 +12,7 @@ type HttpParamsType = HttpParams | Record<string, string | number | boolean | re
 export class ApiService {
   private baseUrl = environment.apiUrl;
   private authToken: string | null = null;
+  private requestTimeout = 15000;
 
   constructor(private http: HttpClient) {}
 
@@ -31,10 +32,17 @@ export class ApiService {
     return headers;
   }
 
-  private handleError(error: HttpErrorResponse) {
+  private handleError(error: HttpErrorResponse | TimeoutError) {
+    if (error instanceof TimeoutError) {
+      const timeoutError = new Error('La requête a expiré. Vérifiez que le serveur backend est démarré.') as any;
+      timeoutError.statusCode = 0;
+      console.error('API Timeout:', error);
+      return throwError(() => timeoutError);
+    }
+
     let errorMessage = 'An error occurred';
     let errorData: unknown = null;
-    
+
     if (error.error instanceof ErrorEvent) {
       // Client-side error
       errorMessage = error.error.message;
@@ -59,25 +67,25 @@ export class ApiService {
     return this.http.get<T>(`${this.baseUrl}/${endpoint}`, {
       headers: this.getHeaders(),
       params
-    }).pipe(catchError(this.handleError));
+    }).pipe(timeout(this.requestTimeout), catchError(this.handleError));
   }
 
   post<T>(endpoint: string, data: unknown): Observable<T> {
     return this.http.post<T>(`${this.baseUrl}/${endpoint}`, data, {
       headers: this.getHeaders()
-    }).pipe(catchError(this.handleError));
+    }).pipe(timeout(this.requestTimeout), catchError(this.handleError));
   }
 
   put<T>(endpoint: string, data: unknown): Observable<T> {
     return this.http.put<T>(`${this.baseUrl}/${endpoint}`, data, {
       headers: this.getHeaders()
-    }).pipe(catchError(this.handleError));
+    }).pipe(timeout(this.requestTimeout), catchError(this.handleError));
   }
 
   delete<T>(endpoint: string): Observable<T> {
     return this.http.delete<T>(`${this.baseUrl}/${endpoint}`, {
       headers: this.getHeaders()
-    }).pipe(catchError(this.handleError));
+    }).pipe(timeout(this.requestTimeout), catchError(this.handleError));
   }
 
   // Convert Observable to Promise for easier use in services

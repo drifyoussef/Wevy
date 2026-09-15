@@ -1,45 +1,69 @@
 import { Injectable } from '@angular/core';
 import { Household, HouseholdMember } from '../models/user.model';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { ApiService } from './api.service';
+import { AuthService } from './auth.service';
+
+// Représentation d'un foyer telle que renvoyée par le backend
+interface BackendHouseholdMember {
+  userId: string;
+  displayName?: string;
+  email?: string;
+  avatarUrl?: string;
+  role: 'admin' | 'member';
+  joinedAt: string | Date;
+}
+
+interface BackendHousehold {
+  _id?: string;
+  id?: string;
+  name: string;
+  createdBy: string;
+  inviteCode: string;
+  members: BackendHouseholdMember[];
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class HouseholdService {
-  private readonly STORAGE_KEY = 'wevy_households';
   private currentHouseholdSubject = new BehaviorSubject<Household | null>(null);
   public currentHousehold$ = this.currentHouseholdSubject.asObservable();
 
-  constructor() {
-    this.loadCurrentHousehold();
+  constructor(private api: ApiService, private authService: AuthService) {
+    // Le foyer courant suit l'utilisateur connecté (aucune donnée locale partagée)
+    this.authService.currentUser$.subscribe(user => {
+      if (user?.householdId) {
+        this.loadHouseholdById(user.householdId);
+      } else {
+        this.currentHouseholdSubject.next(null);
+      }
+    });
+  }
+
+  /**
+   * Charge un foyer depuis le backend et le définit comme foyer courant
+   */
+  private async loadHouseholdById(householdId: string): Promise<void> {
+    try {
+      const response = await this.api.getAsync<{ household: BackendHousehold }>(`households/${householdId}`);
+      this.currentHouseholdSubject.next(this.normalize(response.household));
+    } catch (error) {
+      console.error('Error loading household:', error);
+      // Foyer introuvable / plus membre : on nettoie l'état
+      this.currentHouseholdSubject.next(null);
+    }
   }
 
   /**
    * Créer un nouveau foyer
    */
-  async createHousehold(name: string, userId: string, displayName: string): Promise<Household> {
-    const inviteCode = this.generateInviteCode();
-    const inviteLink = this.generateInviteLink(inviteCode);
-
-    const household: Household = {
-      id: `household-${Date.now()}`,
-      name,
-      createdBy: userId,
-      inviteCode,
-      inviteLink,
-      members: [
-        {
-          userId,
-          displayName,
-          role: 'admin',
-          joinedAt: new Date()
-        }
-      ],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    this.saveHousehold(household);
+  async createHousehold(name: string, _userId?: string, _displayName?: string): Promise<Household> {
+    const response = await this.api.postAsync<{ household: BackendHousehold }>('households', { name });
+    const household = this.normalize(response.household);
+    this.authService.setHouseholdId(household.id);
     this.currentHouseholdSubject.next(household);
     return household;
   }
@@ -47,66 +71,25 @@ export class HouseholdService {
   /**
    * Rejoindre un foyer via code ami
    */
-  async joinHouseholdByCode(inviteCode: string, userId: string, displayName: string): Promise<Household | null> {
-    const households = this.loadHouseholdsFromStorage();
-    const household = households.find(h => h.inviteCode === inviteCode);
-
-    if (!household) {
-      throw new Error('Code ami invalide');
-    }
-
-    // Vérifier que l'utilisateur n'est pas déjà membre
-    if (household.members.some(m => m.userId === userId)) {
-      throw new Error('Vous êtes déjà membre de ce foyer');
-    }
-
-    // Ajouter l'utilisateur comme membre
-    household.members.push({
-      userId,
-      displayName,
-      role: 'member',
-      joinedAt: new Date()
+  async joinHouseholdByCode(inviteCode: string, _userId?: string, _displayName?: string): Promise<Household | null> {
+    const response = await this.api.postAsync<{ household: BackendHousehold }>('households/join', {
+      inviteCode: inviteCode.trim().toUpperCase()
     });
-
-    household.updatedAt = new Date();
-    this.saveHousehold(household);
+    const household = this.normalize(response.household);
+    this.authService.setHouseholdId(household.id);
     this.currentHouseholdSubject.next(household);
     return household;
   }
 
   /**
-   * Rejoindre un foyer via lien d'invitation unique
+   * Rejoindre un foyer via lien d'invitation (wevy://join/CODE)
    */
-  async joinHouseholdByLink(inviteLink: string, userId: string, displayName: string): Promise<Household | null> {
-    const households = this.loadHouseholdsFromStorage();
-    const household = households.find(h => h.inviteLink === inviteLink);
-
-    if (!household) {
-      throw new Error('Lien d\'invitation invalide ou expiré');
+  async joinHouseholdByLink(inviteLink: string, userId?: string, displayName?: string): Promise<Household | null> {
+    const code = this.extractCodeFromLink(inviteLink);
+    if (!code) {
+      throw new Error('Lien d\'invitation invalide');
     }
-
-    // Vérifier l'expiration si définie
-    if (household.inviteLinkExpiry && new Date() > new Date(household.inviteLinkExpiry)) {
-      throw new Error('Lien d\'invitation expiré');
-    }
-
-    // Vérifier que l'utilisateur n'est pas déjà membre
-    if (household.members.some(m => m.userId === userId)) {
-      throw new Error('Vous êtes déjà membre de ce foyer');
-    }
-
-    // Ajouter l'utilisateur comme membre
-    household.members.push({
-      userId,
-      displayName,
-      role: 'member',
-      joinedAt: new Date()
-    });
-
-    household.updatedAt = new Date();
-    this.saveHousehold(household);
-    this.currentHouseholdSubject.next(household);
-    return household;
+    return this.joinHouseholdByCode(code, userId, displayName);
   }
 
   /**
@@ -124,56 +107,37 @@ export class HouseholdService {
   }
 
   /**
-   * Obtenir tous les foyers
+   * Obtenir tous les foyers de l'utilisateur
    */
   async getHouseholds(): Promise<Household[]> {
-    return this.loadHouseholdsFromStorage();
+    const response = await this.api.getAsync<{ households: BackendHousehold[] }>('households');
+    return (response.households || []).map(h => this.normalize(h));
   }
 
   /**
-   * Inviter un nouveau lien
+   * Régénérer le code / lien d'invitation
    */
   async regenerateInviteLink(householdId: string): Promise<{ link: string; code: string }> {
-    const households = this.loadHouseholdsFromStorage();
-    const household = households.find(h => h.id === householdId);
-
-    if (!household) {
-      throw new Error('Foyer non trouvé');
-    }
-
-    const newCode = this.generateInviteCode();
-    const newLink = this.generateInviteLink(newCode);
-
-    household.inviteCode = newCode;
-    household.inviteLink = newLink;
-    household.inviteLinkExpiry = this.generateExpiryDate();
-    household.updatedAt = new Date();
-
-    this.saveHousehold(household);
+    const response = await this.api.postAsync<{ household: BackendHousehold }>(
+      `households/${householdId}/regenerate-invite`,
+      {}
+    );
+    const household = this.normalize(response.household);
     if (this.currentHouseholdSubject.value?.id === householdId) {
       this.currentHouseholdSubject.next(household);
     }
-
-    return { link: newLink, code: newCode };
+    return { link: household.inviteLink, code: household.inviteCode };
   }
 
   /**
    * Retirer un membre du foyer
    */
   async removeMember(householdId: string, userId: string): Promise<void> {
-    const households = this.loadHouseholdsFromStorage();
-    const household = households.find(h => h.id === householdId);
-
-    if (!household) {
-      throw new Error('Foyer non trouvé');
-    }
-
-    household.members = household.members.filter(m => m.userId !== userId);
-    household.updatedAt = new Date();
-
-    this.saveHousehold(household);
+    const response = await this.api.deleteAsync<{ household: BackendHousehold }>(
+      `households/${householdId}/members/${userId}`
+    );
     if (this.currentHouseholdSubject.value?.id === householdId) {
-      this.currentHouseholdSubject.next(household);
+      this.currentHouseholdSubject.next(this.normalize(response.household));
     }
   }
 
@@ -181,120 +145,72 @@ export class HouseholdService {
    * Mettre à jour le rôle d'un membre
    */
   async updateMemberRole(householdId: string, userId: string, role: 'admin' | 'member'): Promise<void> {
-    const households = this.loadHouseholdsFromStorage();
-    const household = households.find(h => h.id === householdId);
-
-    if (!household) {
-      throw new Error('Foyer non trouvé');
-    }
-
-    const member = household.members.find(m => m.userId === userId);
-    if (member) {
-      member.role = role;
-      household.updatedAt = new Date();
-      this.saveHousehold(household);
-
-      if (this.currentHouseholdSubject.value?.id === householdId) {
-        this.currentHouseholdSubject.next(household);
-      }
+    const response = await this.api.putAsync<{ household: BackendHousehold }>(
+      `households/${householdId}/members/${userId}`,
+      { role }
+    );
+    if (this.currentHouseholdSubject.value?.id === householdId) {
+      this.currentHouseholdSubject.next(this.normalize(response.household));
     }
   }
 
   /**
    * Quitter un foyer
    */
-  async leaveHousehold(householdId: string, userId: string): Promise<void> {
-    await this.removeMember(householdId, userId);
+  async leaveHousehold(householdId: string, _userId?: string): Promise<void> {
+    await this.api.deleteAsync(`households/${householdId}/leave`);
+    if (this.authService.getHouseholdId() === householdId) {
+      this.authService.setHouseholdId(null);
+    }
     this.currentHouseholdSubject.next(null);
   }
 
   /**
-   * Charger le foyer actuel depuis le localStorage
-   */
-  private loadCurrentHousehold(): void {
-    try {
-      const storedHouseholdId = localStorage.getItem('wevy_current_household_id');
-      if (storedHouseholdId) {
-        const households = this.loadHouseholdsFromStorage();
-        const household = households.find(h => h.id === storedHouseholdId);
-        if (household) {
-          this.currentHouseholdSubject.next(household);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading current household:', error);
-    }
-  }
-
-  /**
-   * Sauvegarder les données du foyer
-   */
-  private saveHousehold(household: Household): void {
-    try {
-      const households = this.loadHouseholdsFromStorage();
-      const index = households.findIndex(h => h.id === household.id);
-
-      if (index >= 0) {
-        households[index] = household;
-      } else {
-        households.push(household);
-      }
-
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(households));
-    } catch (error) {
-      console.error('Error saving household:', error);
-    }
-  }
-
-  /**
-   * Charger tous les foyers
-   */
-  private loadHouseholdsFromStorage(): Household[] {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (error) {
-      console.error('Error loading households from storage:', error);
-    }
-    return [];
-  }
-
-  /**
-   * Générer un code ami unique
-   */
-  private generateInviteCode(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i < 8; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
-  }
-
-  /**
-   * Générer un lien d'invitation unique (style YouTube)
-   */
-  private generateInviteLink(code: string): string {
-    // Format: wevy://join/CODE ou https://wevy.app/join/CODE
-    return `wevy://join/${code}`;
-  }
-
-  /**
-   * Générer une date d'expiration (30 jours par défaut)
-   */
-  private generateExpiryDate(days: number = 30): Date {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date;
-  }
-
-  /**
-   * Définir le foyer actuel
+   * Définir le foyer actuel (et le household actif de l'utilisateur)
    */
   setCurrentHousehold(household: Household): void {
+    this.authService.setHouseholdId(household.id);
     this.currentHouseholdSubject.next(household);
-    localStorage.setItem('wevy_current_household_id', household.id);
+  }
+
+  /**
+   * Normalise un foyer backend vers le modèle frontend
+   */
+  private normalize(h: BackendHousehold): Household {
+    const inviteCode = h.inviteCode || '';
+    return {
+      id: (h._id || h.id) as string,
+      name: h.name,
+      createdBy: h.createdBy,
+      createdAt: new Date(h.createdAt),
+      updatedAt: new Date(h.updatedAt),
+      inviteCode,
+      inviteLink: this.buildInviteLink(inviteCode),
+      members: (Array.isArray(h.members) ? h.members : []).map(m => this.normalizeMember(m))
+    };
+  }
+
+  private normalizeMember(m: BackendHouseholdMember): HouseholdMember {
+    return {
+      userId: m.userId,
+      displayName: m.displayName || m.email || 'Membre',
+      avatarUrl: m.avatarUrl,
+      role: m.role || 'member',
+      joinedAt: new Date(m.joinedAt)
+    };
+  }
+
+  private buildInviteLink(code: string): string {
+    return code ? `wevy://join/${code}` : '';
+  }
+
+  private extractCodeFromLink(link: string): string | null {
+    if (!link) return null;
+    const trimmed = link.trim();
+    // Accepte "wevy://join/CODE", ".../join/CODE" ou un code brut
+    const match = trimmed.match(/join\/([A-Za-z0-9]+)/);
+    if (match) return match[1].toUpperCase();
+    if (/^[A-Za-z0-9]+$/.test(trimmed)) return trimmed.toUpperCase();
+    return null;
   }
 }

@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import {
   notifications, people, settings, add, close, copy, checkmark,
-  trash, shieldHalf, linkOutline, key, shareSocial, exit, refresh, chevronForward
+  trash, shieldHalf, linkOutline, key, shareSocial, exit, refresh, chevronForward, logOut
 } from 'ionicons/icons';
 import { HouseholdService } from '../../services/household.service';
 import { AuthService } from '../../services/auth.service';
@@ -48,7 +48,7 @@ export class ProfilePage implements OnInit, OnDestroy {
   ) {
     addIcons({
       notifications, people, settings, add, close, copy, checkmark,
-      trash, shieldHalf, linkOutline, key, shareSocial, exit, refresh, chevronForward
+      trash, shieldHalf, linkOutline, key, shareSocial, exit, refresh, chevronForward, logOut
     });
   }
 
@@ -223,8 +223,15 @@ export class ProfilePage implements OnInit, OnDestroy {
     this.router.navigate(['/tabs/settings']);
   }
 
+  async logout() {
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+      await this.authService.signOut();
+      this.router.navigate(['/auth/login'], { replaceUrl: true });
+    }
+  }
+
   getAvatarColor(name: string): string {
-    const colors = ['#FFB088', '#FF8B94', '#FFC75F', '#A8D5BA', '#F9AF9F'];
+    const colors = ['#74B39D', '#4F8A76', '#6FA8DC', '#9FB5AC', '#5C9EA6'];
     const index = name.charCodeAt(0) % colors.length;
     return colors[index];
   }

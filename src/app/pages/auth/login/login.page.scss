@@ -26,38 +26,56 @@
   }
 }
 
-ion-list {
-  background: transparent;
-  margin-bottom: 0;
+.form-field {
+  margin-bottom: 20px;
+
+  .field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    margin: 0 0 8px 4px;
+  }
 }
 
-ion-item {
-  --background: transparent;
-  --border-color: var(--ion-color-light);
-  --padding-start: 0;
-  --inner-padding-end: 0;
-  margin-bottom: 16px;
-  --border-radius: 12px;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
+.custom-input {
+  --background: var(--ion-color-light);
+  --border-radius: 18px;
+  --border-color: transparent;
+  --border-width: 1.5px;
+  --highlight-color-focused: var(--ion-color-primary);
+  --padding-start: 18px;
+  --padding-end: 18px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  font-size: 16px;
 
-  &.password-item {
-    position: relative;
+  &.ion-focused {
+    --border-color: var(--ion-color-primary);
+    --background: var(--ion-color-light-shade, #eef0f4);
+  }
 
-    .password-toggle {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 22px;
-      color: var(--ion-color-medium);
-      cursor: pointer;
-      z-index: 10;
-      transition: color 0.2s ease;
+  &.has-toggle {
+    --padding-end: 48px;
+  }
+}
 
-      &:hover {
-        color: var(--ion-color-primary);
-      }
+.input-wrapper {
+  position: relative;
+
+  .password-toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    z-index: 10;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--ion-color-primary);
     }
   }
 }
@@ -65,9 +83,9 @@ ion-item {
 .error-message {
   text-align: center;
   padding: 12px 16px;
-  margin: 16px 16px 0;
+  margin: 4px 0 0;
   background: rgba(var(--ion-color-danger-rgb), 0.1);
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
 }
 
@@ -76,7 +94,17 @@ ion-item {
   height: 52px;
   font-weight: 600;
   font-size: 16px;
-  --border-radius: 12px;
+  --border-radius: 18px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.back-button {
+  margin-top: 8px;
+  height: 52px;
+  font-weight: 600;
+  font-size: 16px;
+  --border-radius: 18px;
   text-transform: none;
   letter-spacing: 0;
 }
@@ -172,15 +200,11 @@ ion-item {
 .success-message {
   text-align: center;
   padding: 12px 16px;
-  margin: 16px 16px 0;
+  margin: 4px 0 0;
   background: rgba(var(--ion-color-success-rgb), 0.1);
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
   color: var(--ion-color-success);
-}
-
-.mt-2 {
-  margin-top: 8px;
 }
 
 @keyframes fadeIn {

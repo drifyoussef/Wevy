@@ -16,35 +16,36 @@
     </div>
 
     <form>
-      <ion-list>
-        <ion-item>
-          <ion-input
-            #emailInput
-            id="login-email"
-            type="email"
-            placeholder="votre@email.com"
-            label="Email"
-            labelPlacement="floating"
-          ></ion-input>
-        </ion-item>
+      <div class="form-field">
+        <label class="field-label" for="login-email">Email</label>
+        <ion-input
+          #emailInput
+          id="login-email"
+          type="email"
+          placeholder="votre@email.com"
+          fill="outline"
+          class="custom-input"
+        ></ion-input>
+      </div>
 
-        <ion-item class="password-item">
+      <div class="form-field">
+        <label class="field-label" for="login-password">Mot de passe</label>
+        <div class="input-wrapper">
           <ion-input
             #passwordInput
             id="login-password"
             [type]="showPassword ? 'text' : 'password'"
             placeholder="••••••••"
-            label="Mot de passe"
-            labelPlacement="floating"
-          >
-          </ion-input>
-          <ion-icon 
+            fill="outline"
+            class="custom-input has-toggle"
+          ></ion-input>
+          <ion-icon
             [name]="showPassword ? 'eye-off' : 'eye'"
             (click)="togglePasswordVisibility()"
             class="password-toggle"
           ></ion-icon>
-        </ion-item>
-      </ion-list>
+        </div>
+      </div>
 
       @if (error) {
         <ion-text color="danger">
@@ -53,6 +54,7 @@
       }
 
       <ion-button
+        type="button"
         expand="block"
         color="primary"
         (click)="login(emailInput, passwordInput)"
@@ -95,20 +97,19 @@
     <form>
       <!-- Step 1: Email -->
       <div *ngIf="forgotPasswordStep === 1">
-        <ion-list>
-          <ion-item>
-            <ion-input
-              #forgotEmailInput
-              id="forgot-email"
-              type="email"
-              placeholder="votre@email.com"
-              label="Email"
-              labelPlacement="floating"
-              [(ngModel)]="forgotPasswordForm.email"
-              name="email"
-            ></ion-input>
-          </ion-item>
-        </ion-list>
+        <div class="form-field">
+          <label class="field-label" for="forgot-email">Email</label>
+          <ion-input
+            #forgotEmailInput
+            id="forgot-email"
+            type="email"
+            placeholder="votre@email.com"
+            fill="outline"
+            class="custom-input"
+            [(ngModel)]="forgotPasswordForm.email"
+            name="email"
+          ></ion-input>
+        </div>
 
         @if (forgotPasswordError) {
           <ion-text color="danger">
@@ -117,6 +118,7 @@
         }
 
         <ion-button
+          type="button"
           expand="block"
           color="primary"
           (click)="requestResetCode()"
@@ -137,59 +139,62 @@
           <ion-card-content>
             <p class="text-sm text-gray-600">
               ℹ️ Un code a été envoyé à <strong>{{ forgotPasswordForm.email }}</strong>
-              <br>
-              <small class="text-gray-500">(Pour le développement, vérifiez les logs du serveur backend)</small>
             </p>
           </ion-card-content>
         </ion-card>
 
-        <ion-list>
-          <ion-item>
-            <ion-input
-              id="reset-code"
-              type="text"
-              placeholder="000000"
-              label="Code de réinitialisation"
-              labelPlacement="floating"
-              [(ngModel)]="forgotPasswordForm.code"
-              name="code"
-            ></ion-input>
-          </ion-item>
+        <div class="form-field">
+          <label class="field-label" for="reset-code">Code de réinitialisation</label>
+          <ion-input
+            id="reset-code"
+            type="text"
+            placeholder="000000"
+            fill="outline"
+            class="custom-input"
+            [(ngModel)]="forgotPasswordForm.code"
+            name="code"
+          ></ion-input>
+        </div>
 
-          <ion-item>
+        <div class="form-field">
+          <label class="field-label" for="new-password">Nouveau mot de passe</label>
+          <div class="input-wrapper">
             <ion-input
               id="new-password"
               [type]="showNewPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              label="Nouveau mot de passe"
-              labelPlacement="floating"
+              fill="outline"
+              class="custom-input has-toggle"
               [(ngModel)]="forgotPasswordForm.newPassword"
               name="newPassword"
             ></ion-input>
-            <ion-icon 
+            <ion-icon
               [name]="showNewPassword ? 'eye-off' : 'eye'"
               (click)="showNewPassword = !showNewPassword"
               class="password-toggle"
             ></ion-icon>
-          </ion-item>
+          </div>
+        </div>
 
-          <ion-item>
+        <div class="form-field">
+          <label class="field-label" for="confirm-password">Confirmer le mot de passe</label>
+          <div class="input-wrapper">
             <ion-input
               id="confirm-password"
               [type]="showConfirmPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              label="Confirmer le mot de passe"
-              labelPlacement="floating"
+              fill="outline"
+              class="custom-input has-toggle"
               [(ngModel)]="forgotPasswordForm.confirmPassword"
               name="confirmPassword"
             ></ion-input>
-            <ion-icon 
+            <ion-icon
               [name]="showConfirmPassword ? 'eye-off' : 'eye'"
               (click)="showConfirmPassword = !showConfirmPassword"
               class="password-toggle"
             ></ion-icon>
-          </ion-item>
-        </ion-list>
+          </div>
+        </div>
 
         @if (forgotPasswordError) {
           <ion-text color="danger">
@@ -204,6 +209,7 @@
         }
 
         <ion-button
+          type="button"
           expand="block"
           color="primary"
           (click)="resetPassword()"
@@ -218,11 +224,12 @@
         </ion-button>
 
         <ion-button
+          type="button"
           expand="block"
           fill="outline"
           color="medium"
           (click)="forgotPasswordStep = 1; forgotPasswordForm.code = ''; forgotPasswordForm.newPassword = ''; forgotPasswordForm.confirmPassword = '';"
-          class="mt-2"
+          class="back-button"
         >
           Retour
         </ion-button>

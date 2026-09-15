@@ -3,9 +3,27 @@ const router = express.Router();
 const { getDB } = require('../config/database');
 const { ObjectId } = require('mongodb');
 const { authenticateUser } = require('../middleware/auth.middleware');
+const { extractRecipeFromUrl } = require('../services/recipe-extractor');
 
 // All routes require authentication
 router.use(authenticateUser);
+
+// Extract a recipe from a social media / web URL (TikTok, Instagram, ...)
+router.post('/extract', async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+
+    console.log('[extract] Extracting recipe from:', url);
+    const recipe = await extractRecipeFromUrl(url);
+    res.json({ recipe });
+  } catch (error) {
+    console.error('[extract] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Create recipe
 router.post('/', async (req, res) => {
@@ -105,11 +123,11 @@ router.put('/:id', async (req, res) => {
       { returnDocument: 'after' }
     );
     
-    if (!result.value) {
+    if (!result) {
       return res.status(404).json({ error: 'Recipe not found' });
     }
-    
-    res.json({ recipe: result.value });
+
+    res.json({ recipe: result });
   } catch (error) {
     console.error('Update recipe error:', error);
     res.status(500).json({ error: error.message });
@@ -148,7 +166,7 @@ router.post('/:id/cooked', async (req, res) => {
       { returnDocument: 'after' }
     );
     
-    res.json({ recipe: result.value });
+    res.json({ recipe: result });
   } catch (error) {
     console.error('Mark as cooked error:', error);
     res.status(500).json({ error: error.message });
@@ -169,7 +187,7 @@ router.post('/:id/favorite', async (req, res) => {
       { returnDocument: 'after' }
     );
     
-    res.json({ recipe: result.value });
+    res.json({ recipe: result });
   } catch (error) {
     console.error('Toggle favorite error:', error);
     res.status(500).json({ error: error.message });

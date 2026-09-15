@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
-  IonInput, IonButtons, ModalController, IonItem, IonLabel, IonSelect, IonSelectOption
+  IonInput, IonButtons, ModalController, IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { TaskService } from '../../../services/task.service';
 import { AuthService } from '../../../services/auth.service';
@@ -18,7 +18,7 @@ import { HouseholdMember } from '../../../models/user.model';
     CommonModule,
     FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
-    IonInput, IonButtons, IonItem, IonLabel, IonSelect, IonSelectOption
+    IonInput, IonButtons, IonSelect, IonSelectOption
   ],
   template: `
     <ion-header>
@@ -31,30 +31,39 @@ import { HouseholdMember } from '../../../models/user.model';
     </ion-header>
 
     <ion-content class="ion-padding">
-      <ion-item class="mb-4">
-        <ion-label position="stacked">Titre de la tâche</ion-label>
+      <div class="form-field">
+        <label class="field-label">Titre de la tâche</label>
         <ion-input
           #taskTitleInput
           [(ngModel)]="taskTitle"
           name="taskTitle"
           placeholder="Ex: Sortir les poubelles"
           type="text"
+          fill="outline"
+          class="custom-input"
         ></ion-input>
-      </ion-item>
+      </div>
 
-      <ion-item class="mb-4">
-        <ion-label position="stacked">Assignée à</ion-label>
-        <ion-select #taskAssigneeSelect [(ngModel)]="assignedTo" name="assignedTo" placeholder="Sélectionnez un membre">
+      <div class="form-field">
+        <label class="field-label">Assignée à</label>
+        <ion-select
+          #taskAssigneeSelect
+          [(ngModel)]="assignedTo"
+          name="assignedTo"
+          placeholder="Sélectionnez un membre"
+          fill="outline"
+          class="custom-input"
+        >
           @for (member of householdMembers; track member.userId) {
             <ion-select-option [value]="member.userId">
               {{ member.displayName }}
             </ion-select-option>
           }
         </ion-select>
-      </ion-item>
+      </div>
 
-      <ion-button 
-        expand="block" 
+      <ion-button
+        expand="block"
         (click)="addTask()"
         [disabled]="!taskTitle.trim() || !assignedTo"
         class="mt-6"
@@ -64,18 +73,33 @@ import { HouseholdMember } from '../../../models/user.model';
     </ion-content>
   `,
   styles: [`
-    ion-item {
-      --background: transparent;
-      --padding-start: 0;
-      --inner-padding-end: 0;
+    .form-field {
+      margin-bottom: 16px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ion-color-dark);
+      margin: 0 0 8px 4px;
+    }
+
+    .custom-input {
+      --background: var(--ion-color-light);
+      --border-radius: 16px;
+      --border-color: transparent;
+      --border-width: 1.5px;
+      --highlight-color-focused: var(--ion-color-primary);
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      font-size: 16px;
     }
 
     .mt-6 {
       margin-top: 24px;
-    }
-
-    .mb-4 {
-      margin-bottom: 16px;
     }
   `]
 })

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Recipe, RecipeFilter } from '../models/recipe.model';
 import { BehaviorSubject } from 'rxjs';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ export class RecipeService {
   private recipesSubject = new BehaviorSubject<Recipe[]>([]);
   public recipes$ = this.recipesSubject.asObservable();
 
-  constructor() {
+  constructor(private apiService: ApiService) {
     // Supabase disabled for local development
   }
 
@@ -281,17 +282,11 @@ export class RecipeService {
   }
 
   async extractRecipeFromUrl(url: string): Promise<Partial<Recipe>> {
-    // This would call a cloud function or API to scrape recipe data
-    // For now, returning a placeholder
-    const sourcePlatform = this.detectSourcePlatform(url);
-    
-    return {
-      sourceUrl: url,
-      sourcePlatform,
-      title: 'Recipe from ' + sourcePlatform,
-      description: 'Imported recipe',
-      ingredients: []
-    };
+    const response = await this.apiService.postAsync<{ recipe: Partial<Recipe> }>(
+      'recipes/extract',
+      { url }
+    );
+    return response.recipe;
   }
 
   private detectSourcePlatform(url: string): 'tiktok' | 'instagram' | 'url' | 'manual' {

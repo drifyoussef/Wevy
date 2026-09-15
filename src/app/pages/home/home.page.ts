@@ -1,21 +1,24 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, ModalController
+import {
+  IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, ModalController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, checkmarkCircle } from 'ionicons/icons';
+import { checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane } from 'ionicons/icons';
 import { TaskService } from '../../services/task.service';
 import { ShoppingListService } from '../../services/shopping-list.service';
-import { HouseholdService } from '../../services/household.service';
-import { Task } from '../../models/task.model';
-import { ShoppingListItem } from '../../models/shopping-list.model';
-import { HouseholdMember } from '../../models/user.model';
 import { Subscription, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
-import { AddTaskModalComponent } from './modals/add-task-modal.component';
-import { AddProductModalComponent } from './modals/add-product-modal.component';
+import { SwipePage } from '../swipe/swipe.page';
+
+interface AppTile {
+  label: string;
+  icon: string;
+  route?: string;
+  action?: 'swipe' | 'comingSoon';
+  badge?: number;
+}
 
 @Component({
   selector: 'app-home',
@@ -29,47 +32,62 @@ import { AddProductModalComponent } from './modals/add-product-modal.component';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomePage implements OnInit, OnDestroy {
-  todayTasks: Task[] = [];
-  shoppingItems: ShoppingListItem[] = [];
-  householdMembers: HouseholdMember[] = [];
   private tasksSubscription?: Subscription;
   private shoppingSubscription?: Subscription;
   displayName: string = '';
-  
+  todayLabel: string = '';
+
+  appTiles: AppTile[] = [];
+
+  private static readonly TILE_DEFS: Omit<AppTile, 'badge'>[] = [
+    { label: 'Tâches', icon: 'checkmark-done', route: '/tabs/tasks' },
+    { label: 'Courses', icon: 'cart', route: '/tabs/shopping' },
+    { label: 'Recettes', icon: 'restaurant', route: '/tabs/library' },
+    { label: 'Découvrir', icon: 'sparkles', action: 'swipe' },
+    { label: 'Ajouter', icon: 'add-circle', route: '/tabs/add-recipe' },
+    { label: 'Calendrier', icon: 'calendar', action: 'comingSoon' },
+    { label: 'Voyage', icon: 'airplane', action: 'comingSoon' },
+    { label: 'Profil', icon: 'person', route: '/tabs/profile' },
+  ];
+
   constructor(
     private taskService: TaskService,
     private shoppingService: ShoppingListService,
-    private householdService: HouseholdService,
     private router: Router,
     private authService: AuthService,
     private modalController: ModalController,
+    private toastController: ToastController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, checkmarkCircle });
+    addIcons({ checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane });
+    this.appTiles = HomePage.TILE_DEFS.map(tile => ({ ...tile }));
+    this.todayLabel = this.formatToday();
+  }
+
+  private formatToday(): string {
+    const formatted = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   }
 
   async ngOnInit() {
-    // Subscribe to shopping list updates FIRST with distinctUntilChanged to prevent duplicate emissions
     this.shoppingSubscription = this.shoppingService.currentList$
       .pipe(
-        distinctUntilChanged((prev, curr) => 
+        distinctUntilChanged((prev, curr) =>
           JSON.stringify(prev?.items) === JSON.stringify(curr?.items)
         )
       )
       .subscribe(() => {
-        this.loadShoppingItems();
+        this.updateShoppingBadge();
         this.cdr.markForCheck();
       });
-    
-    // Subscribe to tasks for reactive updates
+
     this.tasksSubscription = this.taskService.tasks$.subscribe(() => {
-      this.loadTasks();
+      this.updateTasksBadge();
       this.cdr.markForCheck();
     });
-    
-    // Load data - shopping items will be loaded via subscription
-    await this.loadData();
-    await this.loadHouseholdMembers();
+
+    this.updateTasksBadge();
+    this.updateShoppingBadge();
     this.displayName = await this.authService.getDisplayName();
   }
 
@@ -78,77 +96,49 @@ export class HomePage implements OnInit, OnDestroy {
     this.shoppingSubscription?.unsubscribe();
   }
 
-  loadTasks() {
-    // Get all today's tasks (both completed and not completed)
-    const uncompletedTasks = this.taskService.getTodayTasks();
-    const completedTasks = this.taskService.getCompletedTasks();
-    // Combine and limit to 2 most recent
-    this.todayTasks = [...uncompletedTasks, ...completedTasks].slice(0, 2);
+  private updateTasksBadge() {
+    this.setTileBadge('Tâches', this.taskService.getTodayTasks().length);
   }
 
-  async loadData() {
-    this.loadTasks();
-    // Shopping items are loaded via subscription to currentList$
-  }
-
-  async loadHouseholdMembers() {
-    try {
-      const household = await this.householdService.getCurrentHousehold();
-      if (household) {
-        this.householdMembers = household.members;
-      }
-    } catch (error) {
-      console.error('Error loading household members:', error);
-    }
-  }
-
-  loadShoppingItems() {
+  private updateShoppingBadge() {
     const shoppingList = this.shoppingService.getCurrentListSnapshot();
-    // Only show unchecked items - slice to ensure new array instance
-    const filteredItems = (shoppingList?.items || []).filter(item => !item.isChecked).slice(0, 3);
-    // Only update if items actually changed to prevent NG0100 errors
-    if (JSON.stringify(this.shoppingItems) !== JSON.stringify(filteredItems)) {
-      this.shoppingItems = filteredItems;
+    const uncheckedCount = (shoppingList?.items || []).filter(item => !item.isChecked).length;
+    this.setTileBadge('Courses', uncheckedCount);
+  }
+
+  private setTileBadge(label: string, count: number) {
+    const tile = this.appTiles.find(t => t.label === label);
+    if (tile) {
+      tile.badge = count > 0 ? count : undefined;
+      this.appTiles = [...this.appTiles];
     }
   }
 
-  async openAddTask() {
-    const modal = await this.modalController.create({
-      component: AddTaskModalComponent,
-      componentProps: {
-        householdMembers: this.householdMembers
-      },
-      breakpoints: [0, 0.5, 0.75],
-      initialBreakpoint: 0.5,
-      cssClass: 'auto-height-modal'
-    });
-
-    await modal.present();
-
-    const result = await modal.onDidDismiss();
-    const data = result.data || result;
-    
-    if (data?.added && data?.task) {
-      console.log('Creating task from home:', data.task);
-      this.taskService.createTask(data.task);
+  async goToTile(tile: AppTile) {
+    if (tile.action === 'swipe') {
+      await this.openSwipeMode();
+    } else if (tile.action === 'comingSoon') {
+      await this.presentComingSoon(tile.label);
+    } else if (tile.route) {
+      this.router.navigate([tile.route]);
     }
   }
 
-  async openAddProduct() {
+  private async openSwipeMode() {
     const modal = await this.modalController.create({
-      component: AddProductModalComponent,
-      breakpoints: [0, 0.5, 0.75],
-      initialBreakpoint: 0.5,
-      cssClass: 'auto-height-modal'
+      component: SwipePage,
+      cssClass: 'fullscreen-modal',
+      backdropDismiss: false
     });
-
     await modal.present();
-
-    // La souscription à getCurrentList() gérera la mise à jour automatiquement
-    await modal.onDidDismiss();
   }
 
-  openAddRecipe() {
-    this.router.navigate(['/tabs/add-recipe']);
+  private async presentComingSoon(label: string) {
+    const toast = await this.toastController.create({
+      message: `${label} arrive bientôt !`,
+      duration: 1800,
+      position: 'bottom'
+    });
+    await toast.present();
   }
 }

@@ -17,7 +17,7 @@ ion-content {
   height: 100%;
   min-height: 100vh;
   padding: 20px;
-  background: linear-gradient(180deg, #fff 0%, #fff8f3 100%);
+  background: linear-gradient(180deg, #fff 0%, #f5faf8 100%);
 }
 
 .loading-state,
@@ -82,7 +82,7 @@ ion-content {
     margin: 0;
     height: 100%;
     border-radius: 24px;
-    box-shadow: 0 12px 32px rgba(255, 150, 113, 0.15);
+    box-shadow: 0 12px 32px rgba(116, 179, 157, 0.15);
     overflow: hidden;
     background: white;
     display: flex;
@@ -98,7 +98,7 @@ ion-content {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #ffc75f 0%, #ffb347 100%);
+      background: linear-gradient(135deg, #74B39D 0%, #4F8A76 100%);
 
       ion-icon {
         font-size: 80px;
@@ -137,7 +137,7 @@ ion-content {
         gap: 10px;
 
         .info-badge {
-          background: linear-gradient(135deg, #ffc75f 0%, #ffb347 100%);
+          background: linear-gradient(135deg, #74B39D 0%, #4F8A76 100%);
           color: white;
           padding: 8px 16px;
           border-radius: 20px;
@@ -146,7 +146,7 @@ ion-content {
           display: flex;
           align-items: center;
           gap: 6px;
-          box-shadow: 0 2px 8px rgba(255, 150, 113, 0.2);
+          box-shadow: 0 2px 8px rgba(116, 179, 157, 0.2);
           
           ion-icon {
             font-size: 16px;
@@ -173,25 +173,40 @@ ion-content {
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 
     &:active {
       transform: scale(0.9);
+
+      &.dislike, &.like {
+        box-shadow:
+          inset 3px 3px 6px rgba(0, 0, 0, 0.2),
+          inset -2px -2px 5px rgba(255, 255, 255, 0.25);
+      }
     }
 
     &.dislike {
-      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      background: linear-gradient(145deg, #ff9a9a 0%, #ee5a6f 100%);
+      box-shadow:
+        inset -4px -4px 8px rgba(0, 0, 0, 0.15),
+        inset 4px 4px 8px rgba(255, 255, 255, 0.4),
+        0 8px 18px rgba(238, 90, 111, 0.35);
 
       ion-icon {
         color: white;
+        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.12));
       }
     }
 
     &.like {
-      background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+      background: linear-gradient(145deg, #7ee096 0%, #37b24d 100%);
+      box-shadow:
+        inset -4px -4px 8px rgba(0, 0, 0, 0.15),
+        inset 4px 4px 8px rgba(255, 255, 255, 0.4),
+        0 8px 18px rgba(55, 178, 77, 0.35);
 
       ion-icon {
         color: white;
+        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.12));
       }
     }
   }

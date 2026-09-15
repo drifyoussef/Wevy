@@ -1,10 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonList,
-  IonItem, IonInput, IonButton, IonText, IonSpinner, IonIcon,
+  IonHeader, IonToolbar, IonTitle, IonContent,
+  IonInput, IonButton, IonText, IonSpinner, IonIcon,
   IonButtons, IonBackButton, IonCard, IonCardContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -27,8 +27,8 @@ interface ForgotPasswordForm {
     CommonModule,
     FormsModule,
     RouterModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonList,
-    IonItem, IonInput, IonButton, IonText, IonSpinner, IonIcon,
+    IonHeader, IonToolbar, IonTitle, IonContent,
+    IonInput, IonButton, IonText, IonSpinner, IonIcon,
     IonButtons, IonBackButton, IonCard, IonCardContent
   ]
 })
@@ -54,7 +54,8 @@ export class LoginPage {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     addIcons({ 'eye': eye, 'eye-off': eyeOff });
   }
@@ -95,6 +96,7 @@ export class LoginPage {
       console.error('Login error:', error);
     } finally {
       this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -120,12 +122,13 @@ export class LoginPage {
     } catch (error: unknown) {
       console.error('Request reset code error:', error);
       // Show generic message for security
-      const errorMsg = error instanceof Error && (error as any).error?.error 
-        ? (error as any).error.error 
+      const errorMsg = error instanceof Error && (error as any).error?.error
+        ? (error as any).error.error
         : 'Erreur lors de l\'envoi du code';
       this.forgotPasswordError = errorMsg;
     } finally {
       this.forgotPasswordLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -171,10 +174,11 @@ export class LoginPage {
       
       console.log('Password reset successful:', response);
       this.forgotPasswordSuccess = 'Mot de passe réinitialisé avec succès!';
-      
+
       // Redirect to login after 2 seconds
       setTimeout(() => {
         this.goBackToLogin();
+        this.cdr.detectChanges();
       }, 2000);
     } catch (error: unknown) {
       console.error('Reset password error:', error);
@@ -196,6 +200,7 @@ export class LoginPage {
       this.forgotPasswordError = errorMsg;
     } finally {
       this.forgotPasswordLoading = false;
+      this.cdr.detectChanges();
     }
   }
 }

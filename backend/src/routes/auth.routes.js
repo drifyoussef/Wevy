@@ -5,6 +5,33 @@ const { ObjectId } = require('mongodb');
 const { authenticateUser } = require('../middleware/auth.middleware');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
+
+async function sendResetEmail(to, code) {
+  await transporter.sendMail({
+    from: `"Wevy" <${process.env.GMAIL_USER}>`,
+    to,
+    subject: 'Réinitialisation de votre mot de passe Wevy',
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:auto">
+        <h2>Réinitialisation du mot de passe</h2>
+        <p>Voici votre code de réinitialisation (valable 15 minutes) :</p>
+        <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:20px;background:#f4f4f4;border-radius:8px;margin:20px 0">
+          ${code}
+        </div>
+        <p style="color:#888;font-size:13px">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+      </div>
+    `,
+  });
+}
 
 // Register new user
 router.post('/register', async (req, res) => {
@@ -20,49 +47,22 @@ router.post('/register', async (req, res) => {
     
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Create a default household for the user
-    const household = {
-      name: `${displayName}'s Household`,
-      createdBy: null, // Will be updated after user creation
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      members: []
-    };
-    
-    const householdResult = await db.collection('households').insertOne(household);
-    const householdId = householdResult.insertedId;
-    
-    // Create user with householdId
+
+    // A new user starts without a household. They create or join one
+    // explicitly afterwards (see household routes).
     const user = {
       email,
       password: hashedPassword,
       displayName,
-      householdId,
+      householdId: null,
       role: 'admin',
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     const result = await db.collection('users').insertOne(user);
     user._id = result.insertedId;
-    
-    // Update household with user info
-    await db.collection('households').updateOne(
-      { _id: householdId },
-      { 
-        $set: { 
-          createdBy: user._id,
-          members: [{
-            userId: user._id,
-            displayName: user.displayName,
-            role: 'admin',
-            joinedAt: new Date()
-          }]
-        }
-      }
-    );
-    
+
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id.toString(), email: user.email },
@@ -75,10 +75,10 @@ router.post('/register', async (req, res) => {
     const userResponse = {
       ...user,
       id: user._id.toString(),
-      householdId: user.householdId.toString()
+      householdId: user.householdId ? user.householdId.toString() : null
     };
     delete userResponse._id;
-    
+
     res.status(201).json({ user: userResponse, token });
   } catch (error) {
     console.error('Register error:', error);
@@ -176,12 +176,12 @@ router.put('/profile', authenticateUser, async (req, res) => {
     
     // Map _id to id
     const userResponse = {
-      ...result.value,
-      id: result.value._id.toString(),
-      householdId: result.value.householdId ? result.value.householdId.toString() : null
+      ...result,
+      id: result._id.toString(),
+      householdId: result.householdId ? result.householdId.toString() : null
     };
     delete userResponse._id;
-    
+
     res.json({ user: userResponse });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -228,12 +228,12 @@ router.post('/change-password', authenticateUser, async (req, res) => {
     
     // Map _id to id
     const userResponse = {
-      ...result.value,
-      id: result.value._id.toString(),
-      householdId: result.value.householdId ? result.value.householdId.toString() : null
+      ...result,
+      id: result._id.toString(),
+      householdId: result.householdId ? result.householdId.toString() : null
     };
     delete userResponse._id;
-    
+
     res.json({ message: 'Password changed successfully', user: userResponse });
   } catch (error) {
     console.error('Change password error:', error);
@@ -288,8 +288,11 @@ router.post('/forgot-password', async (req, res) => {
     );
     
     console.log(`\n🔐 PASSWORD RESET CODE FOR ${email}: ${resetCode}\n`);
-    console.log('[forgot-password] Reset code stored successfully');
-    
+    console.log('[forgot-password] Reset code stored, sending email...');
+
+    await sendResetEmail(email, resetCode);
+    console.log('[forgot-password] Email sent successfully');
+
     res.json({ message: 'Reset code sent to your email' });
   } catch (error) {
     console.error('[forgot-password] Error:', error);
@@ -354,23 +357,23 @@ router.post('/reset-password', async (req, res) => {
       { $set: { password: hashedPassword, updatedAt: new Date() } },
       { returnDocument: 'after', projection: { password: 0 } }
     );
-    
-    if (!result.value) {
+
+    if (!result) {
       console.log('[reset-password] Failed to update password - no result returned');
       return res.status(404).json({ error: 'Failed to update password' });
     }
-    
+
     console.log('[reset-password] Password updated successfully');
-    
+
     // Delete reset code
     console.log('[reset-password] Deleting reset code...');
     await db.collection('password_resets').deleteOne({ email });
-    
+
     // Map _id to id
     const userResponse = {
-      ...result.value,
-      id: result.value._id.toString(),
-      householdId: result.value.householdId ? result.value.householdId.toString() : null
+      ...result,
+      id: result._id.toString(),
+      householdId: result.householdId ? result.householdId.toString() : null
     };
     delete userResponse._id;
     

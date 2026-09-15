@@ -163,6 +163,17 @@ export class AuthService {
     return user?.householdId || null;
   }
 
+  /**
+   * Met à jour le household actif de l'utilisateur en mémoire.
+   * Utilisé après création/adhésion/départ d'un foyer pour garder
+   * le reste de l'app (liste de courses, etc.) synchronisé.
+   */
+  setHouseholdId(householdId: string | null): void {
+    const user = this.currentUserSubject.value;
+    if (!user) return;
+    this.currentUserSubject.next({ ...user, householdId: householdId ?? undefined });
+  }
+
   isAuthenticated(): boolean {
     return this.currentUserSubject.value !== null;
   }

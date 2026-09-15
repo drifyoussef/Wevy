@@ -3,29 +3,29 @@
      WEVY DESIGN SYSTEM - COLOR PALETTE
      ======================================== */
   
-  /** primary - Orange clair (CTA) **/
-  --ion-color-primary: #FFB088;
-  --ion-color-primary-rgb: 255, 176, 136;
+  /** primary - Vert bleuté (CTA) **/
+  --ion-color-primary: #74B39D;
+  --ion-color-primary-rgb: 116, 179, 157;
   --ion-color-primary-contrast: #FFFFFF;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #e09b78;
-  --ion-color-primary-tint: #ffc09e;
+  --ion-color-primary-shade: #669E8A;
+  --ion-color-primary-tint: #82BBA7;
 
-  /** secondary - Orange pastel secondaire **/
-  --ion-color-secondary: #FFE4D6;
-  --ion-color-secondary-rgb: 255, 228, 214;
+  /** secondary - Menthe pastel secondaire **/
+  --ion-color-secondary: #D9EFE7;
+  --ion-color-secondary-rgb: 217, 239, 231;
   --ion-color-secondary-contrast: #2D2D2D;
   --ion-color-secondary-contrast-rgb: 45, 45, 45;
-  --ion-color-secondary-shade: #e0c9bc;
-  --ion-color-secondary-tint: #ffe7da;
+  --ion-color-secondary-shade: #BFD2CB;
+  --ion-color-secondary-tint: #DDF1E9;
 
-  /** tertiary - Coral rose **/
-  --ion-color-tertiary: #f9af9f;
-  --ion-color-tertiary-rgb: 249, 175, 159;
+  /** tertiary - Vert forêt (accent) **/
+  --ion-color-tertiary: #4F8A76;
+  --ion-color-tertiary-rgb: 79, 138, 118;
   --ion-color-tertiary-contrast: #ffffff;
   --ion-color-tertiary-contrast-rgb: 255, 255, 255;
-  --ion-color-tertiary-shade: #db9a8c;
-  --ion-color-tertiary-tint: #fab7a9;
+  --ion-color-tertiary-shade: #467968;
+  --ion-color-tertiary-tint: #619684;
 
   /** success - Vert doux **/
   --ion-color-success: #a8d5ba;
@@ -51,37 +51,37 @@
   --ion-color-danger-shade: #e07a82;
   --ion-color-danger-tint: #ff979f;
 
-  /** dark - Brun chaud **/
-  --ion-color-dark: #7d5a50;
-  --ion-color-dark-rgb: 125, 90, 80;
+  /** dark - Vert charbon **/
+  --ion-color-dark: #3E5A50;
+  --ion-color-dark-rgb: 62, 90, 80;
   --ion-color-dark-contrast: #ffffff;
   --ion-color-dark-contrast-rgb: 255, 255, 255;
-  --ion-color-dark-shade: #6e4f46;
-  --ion-color-dark-tint: #8a6a62;
+  --ion-color-dark-shade: #374F46;
+  --ion-color-dark-tint: #516B62;
 
-  /** medium - Taupe clair **/
-  --ion-color-medium: #c4a89f;
-  --ion-color-medium-rgb: 196, 168, 159;
+  /** medium - Sauge clair **/
+  --ion-color-medium: #9FB5AC;
+  --ion-color-medium-rgb: 159, 181, 172;
   --ion-color-medium-contrast: #ffffff;
   --ion-color-medium-contrast-rgb: 255, 255, 255;
-  --ion-color-medium-shade: #ac948c;
-  --ion-color-medium-tint: #cab1a9;
+  --ion-color-medium-shade: #8C9F97;
+  --ion-color-medium-tint: #A9BCB4;
 
-  /** light - Crème chaleureux **/
-  --ion-color-light: #fff8f3;
-  --ion-color-light-rgb: 255, 248, 243;
-  --ion-color-light-contrast: #7d5a50;
-  --ion-color-light-contrast-rgb: 125, 90, 80;
-  --ion-color-light-shade: #e0dad6;
-  --ion-color-light-tint: #fff9f4;
+  /** light - Blanc menthé **/
+  --ion-color-light: #F5FAF8;
+  --ion-color-light-rgb: 245, 250, 248;
+  --ion-color-light-contrast: #3E5A50;
+  --ion-color-light-contrast-rgb: 62, 90, 80;
+  --ion-color-light-shade: #D8DCDA;
+  --ion-color-light-tint: #F8FCFA;
 
   /* ========================================
      WEVY DESIGN SYSTEM - SEMANTIC COLORS
      ======================================== */
   
-  /** Background - Fond orange pastel très clair **/
-  --ion-background-color: #FFF4ED;
-  --ion-background-color-rgb: 255, 244, 237;
+  /** Background - Blanc chaleureux, légèrement plus clair **/
+  --ion-background-color: #FFFFFF;
+  --ion-background-color-rgb: 255, 255, 255;
   
   /** Foreground - Texte principal (gris foncé) **/
   --ion-text-color: #2D2D2D;
@@ -91,20 +91,29 @@
   --ion-color-muted: #F5F5F5;
   --ion-color-muted-rgb: 245, 245, 245;
 
-  /** Border - Bordures orange pastel **/
-  --ion-border-color: #FFD4BA;
+  /** Border - Bordures vertes pastel **/
+  --ion-border-color: #CDE6DC;
   --ion-border-subtle: #E5E5E5;
 
   /** Card - Cartes/conteneurs (blanc) **/
   --ion-card-background: #FFFFFF;
 
   /** Toolbar **/
-  --ion-toolbar-background: #FFF4ED;
-  --ion-toolbar-border-color: #FFD4BA;
+  --ion-toolbar-background: #FFFFFF;
+  --ion-toolbar-border-color: #CDE6DC;
+
+  /* ========================================
+     WEVY DESIGN SYSTEM - APP GRID TILE COLORS
+     ======================================== */
+
+  --tile-bg: #E5F2ED;
+  --tile-icon: #74B39D;
+  --tile-icon-light: #8EC3AF;
+  --tile-icon-dark: #4F8A76;
   
   /** Tab bar **/
   --ion-tab-bar-background: #FFFFFF;
-  --ion-tab-bar-border-color: #FFD4BA;
+  --ion-tab-bar-border-color: #CDE6DC;
   
   /* ========================================
      WEVY DESIGN SYSTEM - GRAYSCALE
@@ -159,8 +168,8 @@
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(255, 176, 136, 0.1), 0 4px 6px -4px rgba(255, 176, 136, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(255, 176, 136, 0.15), 0 8px 10px -6px rgba(255, 176, 136, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(116, 179, 157, 0.15), 0 4px 6px -4px rgba(116, 179, 157, 0.15);
+  --shadow-xl: 0 20px 25px -5px rgba(116, 179, 157, 0.2), 0 8px 10px -6px rgba(116, 179, 157, 0.15);
 }
 
 /* Dark theme disabled - Wevy uses a warm, light color palette only */

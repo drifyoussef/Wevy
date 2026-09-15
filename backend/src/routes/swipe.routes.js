@@ -87,15 +87,15 @@ router.post('/swipe', async (req, res) => {
     
     // Check if all household members have swiped
     const household = await db.collection('households').findOne({
-      _id: session.value.householdId
+      _id: session.householdId
     });
     
     const memberIds = household.members.map(m => m.userId);
-    const swipedUserIds = [...new Set(session.value.swipes.map(s => s.userId))];
+    const swipedUserIds = [...new Set(session.swipes.map(s => s.userId))];
     
     // Check for matches
     if (direction === 'right') {
-      const rightSwipesForRecipe = session.value.swipes.filter(
+      const rightSwipesForRecipe = session.swipes.filter(
         s => s.recipeId === recipeId && s.direction === 'right'
       );
       
@@ -111,12 +111,12 @@ router.post('/swipe', async (req, res) => {
           }
         );
         
-        session.value.status = 'matched';
-        session.value.matchedRecipeId = recipeId;
+        session.status = 'matched';
+        session.matchedRecipeId = recipeId;
       }
     }
     
-    res.json({ session: session.value });
+    res.json({ session: session });
   } catch (error) {
     console.error('Submit swipe error:', error);
     res.status(500).json({ error: error.message });

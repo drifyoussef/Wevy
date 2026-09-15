@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
-  IonInput, IonButtons, ModalController, IonItem, IonLabel, IonSelect, IonSelectOption
+  IonInput, IonButtons, ModalController, IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { ShoppingListService } from '../../../services/shopping-list.service';
 
@@ -14,7 +14,7 @@ import { ShoppingListService } from '../../../services/shopping-list.service';
     CommonModule,
     FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
-    IonInput, IonButtons, IonItem, IonLabel, IonSelect, IonSelectOption
+    IonInput, IonButtons, IonSelect, IonSelectOption
   ],
   template: `
     <ion-header>
@@ -28,20 +28,22 @@ import { ShoppingListService } from '../../../services/shopping-list.service';
 
     <ion-content class="ion-padding">
       <!-- Nom du produit -->
-      <ion-item class="mb-4">
-        <ion-label position="stacked">Nom du produit *</ion-label>
+      <div class="form-field">
+        <label class="field-label">Nom du produit *</label>
         <ion-input
           #productNameInput
           [(ngModel)]="productName"
           name="productName"
           placeholder="Ex: Lait, Pain, Tomates..."
           type="text"
+          fill="outline"
+          class="custom-input"
         ></ion-input>
-      </ion-item>
+      </div>
 
       <!-- Quantité -->
-      <ion-item class="mb-4">
-        <ion-label position="stacked">Quantité *</ion-label>
+      <div class="form-field">
+        <label class="field-label">Quantité *</label>
         <ion-input
           #quantityInput
           [(ngModel)]="quantity"
@@ -50,16 +52,20 @@ import { ShoppingListService } from '../../../services/shopping-list.service';
           type="number"
           min="0"
           step="0.1"
+          fill="outline"
+          class="custom-input"
         ></ion-input>
-      </ion-item>
+      </div>
 
       <!-- Unité -->
-      <ion-item class="mb-4">
-        <ion-label position="stacked">Unité *</ion-label>
-        <ion-select 
+      <div class="form-field">
+        <label class="field-label">Unité *</label>
+        <ion-select
           [(ngModel)]="unit"
           name="unit"
           placeholder="Sélectionner une unité"
+          fill="outline"
+          class="custom-input"
         >
           <ion-select-option value="pcs">Pièces (pcs)</ion-select-option>
           <ion-select-option value="g">Grammes (g)</ion-select-option>
@@ -74,15 +80,17 @@ import { ShoppingListService } from '../../../services/shopping-list.service';
           <ion-select-option value="bunch">Botte (bunch)</ion-select-option>
           <ion-select-option value="clove">Gousse (clove)</ion-select-option>
         </ion-select>
-      </ion-item>
+      </div>
 
       <!-- Catégorie -->
-      <ion-item class="mb-4">
-        <ion-label position="stacked">Catégorie</ion-label>
-        <ion-select 
+      <div class="form-field">
+        <label class="field-label">Catégorie</label>
+        <ion-select
           [(ngModel)]="category"
           name="category"
           placeholder="Sélectionner une catégorie"
+          fill="outline"
+          class="custom-input"
         >
           <ion-select-option value="produce">Fruits & Légumes</ion-select-option>
           <ion-select-option value="meat">Viande & Poisson</ion-select-option>
@@ -91,10 +99,10 @@ import { ShoppingListService } from '../../../services/shopping-list.service';
           <ion-select-option value="spices">Épices</ion-select-option>
           <ion-select-option value="other">Autre</ion-select-option>
         </ion-select>
-      </ion-item>
+      </div>
 
-      <ion-button 
-        expand="block" 
+      <ion-button
+        expand="block"
         (click)="addProduct()"
         [disabled]="!isFormValid()"
         class="mt-6"
@@ -104,18 +112,33 @@ import { ShoppingListService } from '../../../services/shopping-list.service';
     </ion-content>
   `,
   styles: [`
-    ion-item {
-      --background: transparent;
-      --padding-start: 0;
-      --inner-padding-end: 0;
+    .form-field {
+      margin-bottom: 16px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ion-color-dark);
+      margin: 0 0 8px 4px;
+    }
+
+    .custom-input {
+      --background: var(--ion-color-light);
+      --border-radius: 16px;
+      --border-color: transparent;
+      --border-width: 1.5px;
+      --highlight-color-focused: var(--ion-color-primary);
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      font-size: 16px;
     }
 
     .mt-6 {
       margin-top: 24px;
-    }
-
-    .mb-4 {
-      margin-bottom: 16px;
     }
   `]
 })

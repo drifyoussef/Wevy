@@ -7,6 +7,25 @@ const { authenticateUser } = require('../middleware/auth.middleware');
 // All routes require authentication
 router.use(authenticateUser);
 
+// Ensure the authenticated user actually belongs to the household in the URL.
+// Without this, any user could read/write another household's shopping list
+// simply by passing its id in the path.
+router.use('/:householdId', async (req, res, next) => {
+  try {
+    const db = getDB();
+    const user = await db.collection('users').findOne({ _id: new ObjectId(req.user.uid) });
+
+    if (!user || !user.householdId || user.householdId.toString() !== req.params.householdId) {
+      return res.status(403).json({ error: 'Access to this household is not allowed' });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Household authorization error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get or create active shopping list
 router.get('/:householdId', async (req, res) => {
   try {
@@ -84,12 +103,12 @@ router.post('/:householdId/add-recipe', async (req, res) => {
     
     console.log('Add recipe result:', result);
     
-    if (!result?.value) {
-      console.error('No value in result:', result);
+    if (!result) {
+      console.error('No result:', result);
       return res.status(500).json({ error: 'Failed to add recipe to list' });
     }
     
-    res.json({ shoppingList: result.value });
+    res.json({ shoppingList: result });
   } catch (error) {
     console.error('Add recipe to list error:', error);
     res.status(500).json({ error: error.message });
@@ -116,7 +135,7 @@ router.put('/:householdId', async (req, res) => {
       { returnDocument: 'after' }
     );
     
-    res.json({ shoppingList: result.value });
+    res.json({ shoppingList: result });
   } catch (error) {
     console.error('Update shopping list error:', error);
     res.status(500).json({ error: error.message });
@@ -143,7 +162,7 @@ router.post('/:householdId/complete', async (req, res) => {
       { returnDocument: 'after' }
     );
     
-    res.json({ shoppingList: result.value });
+    res.json({ shoppingList: result });
   } catch (error) {
     console.error('Complete shopping list error:', error);
     res.status(500).json({ error: error.message });
@@ -170,7 +189,7 @@ router.delete('/:householdId/clear', async (req, res) => {
       { returnDocument: 'after' }
     );
     
-    res.json({ shoppingList: result.value });
+    res.json({ shoppingList: result });
   } catch (error) {
     console.error('Clear shopping list error:', error);
     res.status(500).json({ error: error.message });

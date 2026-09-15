@@ -5,6 +5,7 @@ import { tap, distinctUntilChanged, map } from 'rxjs/operators';
 import { ShoppingList, ShoppingListItem, ShoppingListGroup } from '../models/shopping-list.model';
 import { Recipe } from '../models/recipe.model';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 // Interfaces pour les réponses du backend
 interface BackendShoppingList {
@@ -48,17 +49,32 @@ export class ShoppingListService {
   );
 
   private apiUrl = `${environment.apiUrl}/shopping`;
-  private householdId = 'household1'; // TODO: Get from household service
 
-  constructor(private http: HttpClient) {
-    this.loadCurrentList();
+  constructor(private http: HttpClient, private authService: AuthService) {
+    // Recharge la liste dès que l'utilisateur (et donc son household) change
+    this.authService.currentUser$.subscribe(user => {
+      if (user?.householdId) {
+        this.loadCurrentList();
+      } else {
+        // Déconnexion : on vide la liste en mémoire pour ne rien fuiter
+        this.currentListSubject.next(null);
+      }
+    });
+  }
+
+  /**
+   * Identifiant du household de l'utilisateur connecté
+   */
+  private get householdId(): string | null {
+    return this.authService.getHouseholdId();
   }
 
   /**
    * Charge la liste de course actuelle depuis le backend
    */
   private loadCurrentList() {
-    this.getCurrentList(this.householdId).subscribe();
+    if (!this.householdId) return;
+    this.getCurrentList().subscribe();
   }
 
   /**

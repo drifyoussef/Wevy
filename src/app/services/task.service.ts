@@ -9,7 +9,7 @@ import { Task } from '../models/task.model';
 export class TaskService {
   private readonly STORAGE_KEY = 'wevy_tasks';
   private tasksSubject: BehaviorSubject<Task[]>;
-  private readonly colors = ['#FFB088', '#FF8B94', '#FFC75F', '#A8D5BA', '#F9AF9F'];
+  private readonly colors = ['#74B39D', '#4F8A76', '#6FA8DC', '#9FB5AC', '#5C9EA6'];
   
   // Mock data initial pour le MVP
   private defaultTasks: Task[] = [
