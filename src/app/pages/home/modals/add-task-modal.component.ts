@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
-  IonInput, IonButtons, ModalController, IonSelect, IonSelectOption
+  IonInput, IonButtons, ModalController
 } from '@ionic/angular/standalone';
 import { TaskService } from '../../../services/task.service';
 import { AuthService } from '../../../services/auth.service';
@@ -18,7 +18,7 @@ import { HouseholdMember } from '../../../models/user.model';
     CommonModule,
     FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
-    IonInput, IonButtons, IonSelect, IonSelectOption
+    IonInput, IonButtons
   ],
   template: `
     <ion-header>
@@ -45,21 +45,21 @@ import { HouseholdMember } from '../../../models/user.model';
       </div>
 
       <div class="form-field">
-        <label class="field-label">Assignée à</label>
-        <ion-select
-          #taskAssigneeSelect
-          [(ngModel)]="assignedTo"
-          name="assignedTo"
-          placeholder="Sélectionnez un membre"
-          fill="outline"
-          class="custom-input"
-        >
+        <label class="field-label">Assigner à</label>
+        <div class="member-picker">
           @for (member of householdMembers; track member.userId) {
-            <ion-select-option [value]="member.userId">
-              {{ member.displayName }}
-            </ion-select-option>
+            <button
+              class="member-chip"
+              [class.selected]="assignedTo === member.userId"
+              (click)="assignedTo = member.userId"
+            >
+              <span class="member-avatar" [style.background]="getAvatarColor(member.displayName)">
+                {{ member.displayName.charAt(0).toUpperCase() }}
+              </span>
+              <span class="member-name">{{ member.displayName }}</span>
+            </button>
           }
-        </ion-select>
+        </div>
       </div>
 
       <ion-button
@@ -73,6 +73,59 @@ import { HouseholdMember } from '../../../models/user.model';
     </ion-content>
   `,
   styles: [`
+    .member-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .member-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 64px;
+      border: none;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .member-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 700;
+      box-shadow: var(--shadow-sm);
+      border: 3px solid transparent;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .member-chip.selected .member-avatar {
+      border-color: var(--ion-color-primary);
+      transform: scale(1.08);
+    }
+
+    .member-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ion-color-medium);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .member-chip.selected .member-name {
+      color: var(--ion-color-primary);
+    }
+
     .mt-6 {
       margin-top: 24px;
     }
@@ -82,6 +135,8 @@ export class AddTaskModalComponent implements OnInit {
   @Input() householdMembers: HouseholdMember[] = [];
   taskTitle: string = '';
   assignedTo: string = '';
+
+  private readonly avatarColors = ['#74B39D', '#4F8A76', '#6FA8DC', '#9FB5AC', '#5C9EA6'];
 
   constructor(
     private modalController: ModalController,
@@ -106,6 +161,11 @@ export class AddTaskModalComponent implements OnInit {
     if (household) {
       this.householdMembers = household.members || [];
     }
+  }
+
+  getAvatarColor(name: string): string {
+    const index = (name || 'U').charCodeAt(0) % this.avatarColors.length;
+    return this.avatarColors[index];
   }
 
   dismiss() {
