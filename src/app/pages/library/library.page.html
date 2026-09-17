@@ -10,10 +10,10 @@
 <ion-content [fullscreen]="true" class="ion-padding">
   @if (filteredRecipes.length > 0) {
     <!-- Recipe Grid -->
-    <div class="recipe-grid">
+    <div class="recipe-flex">
       @for (recipe of filteredRecipes; track recipe.id) {
-        <div 
-          class="recipe-card bg-white rounded-2xl overflow-hidden shadow" 
+        <div
+          class="recipe-card"
           (click)="openRecipeDetails(recipe)"
           (keyup.enter)="openRecipeDetails(recipe)"
           role="button"

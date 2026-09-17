@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent, IonButton } from '@ionic/angular/standalone';
+import { IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { imagesOutline, peopleOutline, heartOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -8,13 +10,15 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './welcome.page.html',
   styleUrls: ['./welcome.page.scss'],
   standalone: true,
-  imports: [IonContent, IonButton]
+  imports: [IonContent, IonButton, IonIcon]
 })
 export class WelcomePage implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) {
+    addIcons({ imagesOutline, peopleOutline, heartOutline, checkmarkCircleOutline });
+  }
 
   ngOnInit() {
     // Si déjà connecté, rediriger vers l'app

@@ -1,45 +1,56 @@
 <ion-content [fullscreen]="true" class="welcome-content">
   <div class="welcome-container">
-    <div class="hero-section">
-      <div class="logo-animation">
-        <h1 class="app-logo">🍽️</h1>
-      </div>
-      <h1 class="app-name">Wevy</h1>
-      <p class="tagline">Décidez ensemble quoi manger ce soir</p>
+    <div class="brand-row">
+      <span class="brand-logo">🍽️</span>
+      <span class="brand-name">Wevy</span>
     </div>
 
-    <div class="features-section">
-      <div class="feature">
-        <span class="feature-icon">👨‍👩‍👧‍👦</span>
-        <h3>En famille ou entre amis</h3>
-        <p>Créez votre foyer et invitez vos proches</p>
+    <!-- Image placeholder: swap this block for a real <img src="assets/..."> whenever a visual is ready -->
+    <div class="hero-image-placeholder">
+      <ion-icon name="images-outline"></ion-icon>
+      <p>Votre visuel ici</p>
+    </div>
+
+    <div class="hero-copy">
+      <h1 class="app-tagline">Décidez ensemble<br />quoi manger ce soir</h1>
+      <p class="app-subtitle">Wevy réunit tout le foyer autour d'un seul plat, sans prise de tête.</p>
+    </div>
+
+    <div class="features-row">
+      <div class="feature-chip">
+        <span class="feature-icon-clay">
+          <ion-icon name="people-outline"></ion-icon>
+        </span>
+        <span class="feature-chip-label">En famille</span>
       </div>
-      
-      <div class="feature">
-        <span class="feature-icon">❤️</span>
-        <h3>Swipez vos préférences</h3>
-        <p>Chaque membre vote pour ses plats préférés</p>
+
+      <div class="feature-chip">
+        <span class="feature-icon-clay">
+          <ion-icon name="heart-outline"></ion-icon>
+        </span>
+        <span class="feature-chip-label">Swipez</span>
       </div>
-      
-      <div class="feature">
-        <span class="feature-icon">🎯</span>
-        <h3>Match parfait</h3>
-        <p>L'app trouve le plat qui plaît à tout le monde</p>
+
+      <div class="feature-chip">
+        <span class="feature-icon-clay">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </span>
+        <span class="feature-chip-label">Match parfait</span>
       </div>
     </div>
 
     <div class="action-section">
-      <ion-button 
-        expand="block" 
+      <ion-button
+        expand="block"
         size="large"
         (click)="goToRegister()"
         class="primary-button"
       >
         Commencer
       </ion-button>
-      
-      <ion-button 
-        expand="block" 
+
+      <ion-button
+        expand="block"
         fill="clear"
         size="large"
         (click)="goToLogin()"

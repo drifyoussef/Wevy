@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonList,
-  IonItem, IonInput, IonButton, IonText, IonBackButton, IonButtons, IonSpinner, IonIcon
+  IonHeader, IonToolbar, IonTitle, IonContent,
+  IonInput, IonButton, IonText, IonBackButton, IonButtons, IonSpinner, IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eye, eyeOff } from 'ionicons/icons';
@@ -17,8 +17,8 @@ import { AuthService } from '../../../services/auth.service';
   imports: [
     CommonModule,
     RouterModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonList,
-    IonItem, IonInput, IonButton, IonText, IonBackButton, IonButtons, IonIcon, IonSpinner
+    IonHeader, IonToolbar, IonTitle, IonContent,
+    IonInput, IonButton, IonText, IonBackButton, IonButtons, IonIcon, IonSpinner
   ]
 })
 export class RegisterPage {

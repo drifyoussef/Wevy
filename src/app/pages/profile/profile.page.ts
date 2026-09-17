@@ -251,14 +251,14 @@ export class ProfilePage implements OnInit, OnDestroy {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonInput, IonLabel
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonInput
   ],
   template: `
     <ion-header [translucent]="true">
       <ion-toolbar>
         <ion-title>Créer un foyer</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="dismiss()">
+          <ion-button fill="clear" color="danger" (click)="dismiss()">
             <ion-icon slot="icon-only" name="close"></ion-icon>
           </ion-button>
         </ion-buttons>
@@ -266,16 +266,16 @@ export class ProfilePage implements OnInit, OnDestroy {
     </ion-header>
 
     <ion-content class="ion-padding">
-      <ion-item>
-        <ion-label position="floating">Nom du foyer</ion-label>
-        <ion-input [(ngModel)]="householdName" placeholder="ex: Notre maison"></ion-input>
-      </ion-item>
+      <div class="form-field">
+        <label class="field-label">Nom du foyer</label>
+        <ion-input [(ngModel)]="householdName" placeholder="ex: Notre maison" fill="outline" class="custom-input"></ion-input>
+      </div>
 
       <div class="ion-padding-top">
         <ion-button expand="block" color="primary" (click)="create()">
           Créer le foyer
         </ion-button>
-        <ion-button expand="block" fill="outline" (click)="dismiss()">
+        <ion-button expand="block" fill="outline" color="danger" (click)="dismiss()">
           Annuler
         </ion-button>
       </div>
@@ -317,7 +317,7 @@ export class CreateHouseholdModalComponent {
       <ion-toolbar>
         <ion-title>Rejoindre un foyer</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="dismiss()">
+          <ion-button fill="clear" color="danger" (click)="dismiss()">
             <ion-icon slot="icon-only" name="close"></ion-icon>
           </ion-button>
         </ion-buttons>
@@ -335,22 +335,22 @@ export class CreateHouseholdModalComponent {
       </ion-segment>
 
       <div class="ion-padding-top">
-        <ion-item *ngIf="joinMethod === 'code'">
-          <ion-label position="floating">Code ami (8 caractères)</ion-label>
-          <ion-input [(ngModel)]="inviteCode" placeholder="ex: ABC12345"></ion-input>
-        </ion-item>
+        <div class="form-field" *ngIf="joinMethod === 'code'">
+          <label class="field-label">Code ami (8 caractères)</label>
+          <ion-input [(ngModel)]="inviteCode" placeholder="ex: ABC12345" fill="outline" class="custom-input"></ion-input>
+        </div>
 
-        <ion-item *ngIf="joinMethod === 'link'">
-          <ion-label position="floating">Lien d'invitation</ion-label>
-          <ion-input [(ngModel)]="inviteLink" placeholder="wevy://join/..."></ion-input>
-        </ion-item>
+        <div class="form-field" *ngIf="joinMethod === 'link'">
+          <label class="field-label">Lien d'invitation</label>
+          <ion-input [(ngModel)]="inviteLink" placeholder="wevy://join/..." fill="outline" class="custom-input"></ion-input>
+        </div>
       </div>
 
       <div class="ion-padding-top">
         <ion-button expand="block" color="primary" (click)="join()">
           Rejoindre
         </ion-button>
-        <ion-button expand="block" fill="outline" (click)="dismiss()">
+        <ion-button expand="block" fill="outline" color="danger" (click)="dismiss()">
           Annuler
         </ion-button>
       </div>

@@ -15,63 +15,67 @@
     </div>
 
     <form>
-      <ion-list>
-        <ion-item>
-          <ion-input
-            #nameInput
-            id="register-name"
-            type="text"
-            placeholder="Prénom"
-            label="Prénom"
-            labelPlacement="floating"
-          ></ion-input>
-        </ion-item>
+      <div class="form-field">
+        <label class="field-label" for="register-name">Prénom</label>
+        <ion-input
+          #nameInput
+          id="register-name"
+          type="text"
+          placeholder="Votre prénom"
+          fill="outline"
+          class="custom-input"
+        ></ion-input>
+      </div>
 
-        <ion-item>
-          <ion-input
-            #emailInput
-            id="register-email"
-            type="email"
-            placeholder="Email"
-            label="Email"
-            labelPlacement="floating"
-          ></ion-input>
-        </ion-item>
+      <div class="form-field">
+        <label class="field-label" for="register-email">Email</label>
+        <ion-input
+          #emailInput
+          id="register-email"
+          type="email"
+          placeholder="votre@email.com"
+          fill="outline"
+          class="custom-input"
+        ></ion-input>
+      </div>
 
-        <ion-item class="password-item">
+      <div class="form-field">
+        <label class="field-label" for="register-password">Mot de passe</label>
+        <div class="input-wrapper">
           <ion-input
             #passwordInput
             id="register-password"
             [type]="showPassword ? 'text' : 'password'"
-            placeholder="Mot de passe"
-            label="Mot de passe"
-            labelPlacement="floating"
-          >
-          </ion-input>
-          <ion-icon 
+            placeholder="••••••••"
+            fill="outline"
+            class="custom-input has-toggle"
+          ></ion-input>
+          <ion-icon
             [name]="showPassword ? 'eye-off' : 'eye'"
             (click)="togglePasswordVisibility()"
             class="password-toggle"
           ></ion-icon>
-        </ion-item>
+        </div>
+      </div>
 
-        <ion-item class="password-item">
+      <div class="form-field">
+        <label class="field-label" for="register-confirm-password">Confirmer le mot de passe</label>
+        <div class="input-wrapper">
           <ion-input
             #confirmPasswordInput
             id="register-confirm-password"
             [type]="showConfirmPassword ? 'text' : 'password'"
-            placeholder="Confirmer le mot de passe"
-            label="Confirmer le mot de passe"
-            labelPlacement="floating"
-          >
-          </ion-input>
-          <ion-icon 
+            placeholder="••••••••"
+            fill="outline"
+            class="custom-input has-toggle"
+          ></ion-input>
+          <ion-icon
             [name]="showConfirmPassword ? 'eye-off' : 'eye'"
             (click)="toggleConfirmPasswordVisibility()"
             class="password-toggle"
           ></ion-icon>
-        </ion-item>
-      </ion-list>
+        </div>
+      </div>
 
       @if (error) {
         <ion-text color="danger">

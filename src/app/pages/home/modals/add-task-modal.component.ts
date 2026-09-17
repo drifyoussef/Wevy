@@ -25,7 +25,7 @@ import { HouseholdMember } from '../../../models/user.model';
       <ion-toolbar>
         <ion-title>Ajouter une tâche</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="dismiss()">Annuler</ion-button>
+          <ion-button fill="clear" color="danger" (click)="dismiss()">Annuler</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -73,31 +73,6 @@ import { HouseholdMember } from '../../../models/user.model';
     </ion-content>
   `,
   styles: [`
-    .form-field {
-      margin-bottom: 16px;
-    }
-
-    .field-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--ion-color-dark);
-      margin: 0 0 8px 4px;
-    }
-
-    .custom-input {
-      --background: var(--ion-color-light);
-      --border-radius: 16px;
-      --border-color: transparent;
-      --border-width: 1.5px;
-      --highlight-color-focused: var(--ion-color-primary);
-      --padding-start: 16px;
-      --padding-end: 16px;
-      --padding-top: 14px;
-      --padding-bottom: 14px;
-      font-size: 16px;
-    }
-
     .mt-6 {
       margin-top: 24px;
     }

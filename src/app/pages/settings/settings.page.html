@@ -128,7 +128,7 @@
         <ion-card-content>
           <div>
             <h4 class="font-semibold mb-3">À quelle fréquence les recevoir?</h4>
-            <ion-select [(ngModel)]="preferences.notificationFrequency" class="w-full">
+            <ion-select [(ngModel)]="preferences.notificationFrequency" fill="outline" class="custom-input w-full">
               <ion-select-option *ngFor="let option of frequencyOptions" [value]="option.value">
                 {{ option.label }}
               </ion-select-option>
@@ -153,35 +153,38 @@
         <ion-card-content>
           <div class="space-y-4">
             <!-- Current Password -->
-            <div>
-              <ion-label class="text-sm font-semibold">Mot de passe actuel</ion-label>
-              <ion-input 
-                type="password" 
+            <div class="form-field">
+              <label class="field-label">Mot de passe actuel</label>
+              <ion-input
+                type="password"
                 placeholder="Entrez votre mot de passe actuel"
                 [(ngModel)]="passwordForm.currentPassword"
-                class="mt-2">
+                fill="outline"
+                class="custom-input">
               </ion-input>
             </div>
 
             <!-- New Password -->
-            <div>
-              <ion-label class="text-sm font-semibold">Nouveau mot de passe</ion-label>
-              <ion-input 
-                type="password" 
+            <div class="form-field">
+              <label class="field-label">Nouveau mot de passe</label>
+              <ion-input
+                type="password"
                 placeholder="Entrez le nouveau mot de passe"
                 [(ngModel)]="passwordForm.newPassword"
-                class="mt-2">
+                fill="outline"
+                class="custom-input">
               </ion-input>
             </div>
 
             <!-- Confirm Password -->
-            <div>
-              <ion-label class="text-sm font-semibold">Confirmer le mot de passe</ion-label>
-              <ion-input 
-                type="password" 
+            <div class="form-field">
+              <label class="field-label">Confirmer le mot de passe</label>
+              <ion-input
+                type="password"
                 placeholder="Confirmez le nouveau mot de passe"
                 [(ngModel)]="passwordForm.confirmPassword"
-                class="mt-2">
+                fill="outline"
+                class="custom-input">
               </ion-input>
             </div>
 
