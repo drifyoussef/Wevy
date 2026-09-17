@@ -5,15 +5,17 @@ import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButtons, IonButton, ModalController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close } from 'ionicons/icons';
+import { checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close, chevronBack, chevronForward } from 'ionicons/icons';
 import { TaskService } from '../../services/task.service';
 import { ShoppingListService } from '../../services/shopping-list.service';
+import { CalendarService } from '../../services/calendar.service';
 import { Task } from '../../models/task.model';
 import { ShoppingListItem } from '../../models/shopping-list.model';
 import { Subscription, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { SwipePage } from '../swipe/swipe.page';
 import { AddWidgetModalComponent, HomeWidgetType } from './modals/add-widget-modal.component';
+import { DAY_LETTERS, MONTH_NAMES_FR, getMonday, toIsoDate } from '../../utils/date.utils';
 
 interface AppTile {
   label: string;
@@ -21,6 +23,14 @@ interface AppTile {
   route?: string;
   action?: 'swipe' | 'comingSoon';
   badge?: number;
+}
+
+interface MiniDayCell {
+  iso: string;
+  dayLetter: string;
+  dayNumber: number;
+  isToday: boolean;
+  hasEvents: boolean;
 }
 
 @Component({
@@ -37,15 +47,19 @@ interface AppTile {
 export class HomePage implements OnInit, OnDestroy {
   private tasksSubscription?: Subscription;
   private shoppingSubscription?: Subscription;
+  private calendarSubscription?: Subscription;
   displayName: string = '';
   todayLabel: string = '';
 
   appTiles: AppTile[] = [];
   todayTasks: Task[] = [];
   shoppingItems: ShoppingListItem[] = [];
+  calendarWeekDays: MiniDayCell[] = [];
+  calendarMonthLabel = '';
   homeWidgets: HomeWidgetType[] = [];
 
   private static readonly WIDGETS_STORAGE_KEY = 'wevy_home_widgets';
+  private calendarWidgetWeekStart: Date = getMonday(new Date());
 
   private static readonly TILE_DEFS: Omit<AppTile, 'badge'>[] = [
     { label: 'Tâches', icon: 'checkmark-done', route: '/tabs/tasks' },
@@ -53,7 +67,7 @@ export class HomePage implements OnInit, OnDestroy {
     { label: 'Recettes', icon: 'restaurant', route: '/tabs/library' },
     { label: 'Découvrir', icon: 'sparkles', action: 'swipe' },
     { label: 'Ajouter', icon: 'add-circle', route: '/tabs/add-recipe' },
-    { label: 'Calendrier', icon: 'calendar', action: 'comingSoon' },
+    { label: 'Calendrier', icon: 'calendar', route: '/tabs/calendar' },
     { label: 'Voyage', icon: 'airplane', action: 'comingSoon' },
     { label: 'Profil', icon: 'person', route: '/tabs/profile' },
   ];
@@ -61,13 +75,14 @@ export class HomePage implements OnInit, OnDestroy {
   constructor(
     private taskService: TaskService,
     private shoppingService: ShoppingListService,
+    private calendarService: CalendarService,
     private router: Router,
     private authService: AuthService,
     private modalController: ModalController,
     private toastController: ToastController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close });
+    addIcons({ checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close, chevronBack, chevronForward });
     this.appTiles = HomePage.TILE_DEFS.map(tile => ({ ...tile }));
     this.todayLabel = this.formatToday();
     this.homeWidgets = this.loadHomeWidgets();
@@ -108,14 +123,23 @@ export class HomePage implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     });
 
+    this.calendarSubscription = this.calendarService.events$.subscribe(() => {
+      this.buildCalendarWidgetWeek();
+      this.updateCalendarBadge();
+      this.cdr.markForCheck();
+    });
+
     this.updateTasksBadge();
     this.updateShoppingBadge();
+    this.buildCalendarWidgetWeek();
+    this.updateCalendarBadge();
     this.displayName = await this.authService.getDisplayName();
   }
 
   ngOnDestroy() {
     this.tasksSubscription?.unsubscribe();
     this.shoppingSubscription?.unsubscribe();
+    this.calendarSubscription?.unsubscribe();
   }
 
   private updateTasksBadge() {
@@ -129,6 +153,47 @@ export class HomePage implements OnInit, OnDestroy {
     const uncheckedItems = (shoppingList?.items || []).filter(item => !item.isChecked);
     this.shoppingItems = uncheckedItems.slice(0, 3);
     this.setTileBadge('Courses', uncheckedItems.length);
+  }
+
+  private buildCalendarWidgetWeek() {
+    const todayIso = toIsoDate(new Date());
+
+    this.calendarWeekDays = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(this.calendarWidgetWeekStart);
+      date.setDate(date.getDate() + i);
+      const iso = toIsoDate(date);
+
+      return {
+        iso,
+        dayLetter: DAY_LETTERS[i],
+        dayNumber: date.getDate(),
+        isToday: iso === todayIso,
+        hasEvents: this.calendarService.getEventsForDate(iso).length > 0
+      };
+    });
+
+    this.calendarMonthLabel = `${MONTH_NAMES_FR[this.calendarWidgetWeekStart.getMonth()]} ${this.calendarWidgetWeekStart.getFullYear()}`;
+  }
+
+  calendarWidgetPreviousWeek(event: Event) {
+    event.stopPropagation();
+    this.calendarWidgetWeekStart.setDate(this.calendarWidgetWeekStart.getDate() - 7);
+    this.calendarWidgetWeekStart = new Date(this.calendarWidgetWeekStart);
+    this.buildCalendarWidgetWeek();
+  }
+
+  calendarWidgetNextWeek(event: Event) {
+    event.stopPropagation();
+    this.calendarWidgetWeekStart.setDate(this.calendarWidgetWeekStart.getDate() + 7);
+    this.calendarWidgetWeekStart = new Date(this.calendarWidgetWeekStart);
+    this.buildCalendarWidgetWeek();
+  }
+
+  private updateCalendarBadge() {
+    const now = new Date();
+    const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const count = this.calendarService.getEvents().filter(event => event.date.startsWith(monthPrefix)).length;
+    this.setTileBadge('Calendrier', count);
   }
 
   private setTileBadge(label: string, count: number) {

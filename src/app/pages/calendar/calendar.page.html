@@ -1,0 +1,83 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title class="text-2xl">Calendrier</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="openAddEventModal()" aria-label="Ajouter un événement">
+        <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Month nav -->
+  <div class="month-nav">
+    <button class="month-nav-btn" (click)="previousWeek()" aria-label="Semaine précédente">
+      <ion-icon name="chevron-back"></ion-icon>
+    </button>
+    <span class="month-label">{{ monthLabel }}</span>
+    <button class="month-nav-btn" (click)="nextWeek()" aria-label="Semaine suivante">
+      <ion-icon name="chevron-forward"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Week strip -->
+  <div class="week-strip">
+    @for (day of weekDays; track day.iso) {
+      <button
+        class="day-cell"
+        [class.today]="day.isToday"
+        [class.selected]="isSelected(day)"
+        (click)="selectDay(day)"
+      >
+        <span class="day-letter">{{ day.dayLetter }}</span>
+        <span class="day-number">{{ day.dayNumber }}</span>
+        <span class="day-dots">
+          @for (event of day.events.slice(0, 3); track event.id) {
+            <span class="day-dot" [style.background]="event.color"></span>
+          }
+        </span>
+      </button>
+    }
+  </div>
+
+  <!-- Selected day events -->
+  <div class="mb-6">
+    <h2 class="text-xl mb-4 selected-date-title">{{ formattedSelectedDate() }}</h2>
+
+    @if (selectedDayEvents.length > 0) {
+      <div class="tasks-list">
+        @for (event of selectedDayEvents; track event.id) {
+          <div class="event-card" [class.removing]="removingIds.has(event.id)">
+            <span class="event-bar" [style.background]="event.color"></span>
+            <div class="event-info">
+              <div class="event-title-row">
+                <span class="event-title">{{ event.title }}</span>
+                @if (event.time) {
+                  <span class="event-time">{{ event.time }}</span>
+                }
+              </div>
+              @if (event.location) {
+                <div class="event-location">
+                  <ion-icon name="location-outline"></ion-icon>
+                  <span>{{ event.location }}</span>
+                </div>
+              }
+              <span class="event-type-chip" [style.background]="event.color">{{ getTypeLabel(event.type) }}</span>
+            </div>
+            <button class="task-delete-badge" (click)="deleteEvent(event.id)" aria-label="Supprimer l'événement">
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="bg-muted rounded-xl p-6 text-center">
+        <p class="text-sm text-gray-500">Aucun événement ce jour</p>
+      </div>
+    }
+  </div>
+</ion-content>

@@ -81,6 +81,39 @@
           }
         </div>
       }
+
+      @if (homeWidgets.includes('calendar')) {
+        <div class="widget mb-4" (click)="goTo('/tabs/calendar')">
+          <div class="widget-header">
+            <h3 class="text-base font-semibold">Mon calendrier</h3>
+            <button class="widget-remove" (click)="removeWidget('calendar', $event)" aria-label="Retirer le widget">
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+
+          <div class="widget-card calendar-widget-card">
+            <div class="calendar-widget-nav">
+              <button class="calendar-widget-nav-btn" (click)="calendarWidgetPreviousWeek($event)" aria-label="Semaine précédente">
+                <ion-icon name="chevron-back"></ion-icon>
+              </button>
+              <span class="calendar-widget-month">{{ calendarMonthLabel }}</span>
+              <button class="calendar-widget-nav-btn" (click)="calendarWidgetNextWeek($event)" aria-label="Semaine suivante">
+                <ion-icon name="chevron-forward"></ion-icon>
+              </button>
+            </div>
+
+            <div class="calendar-widget-week">
+              @for (day of calendarWeekDays; track day.iso) {
+                <div class="calendar-widget-day" [class.today]="day.isToday">
+                  <span class="calendar-widget-day-letter">{{ day.dayLetter }}</span>
+                  <span class="calendar-widget-day-number">{{ day.dayNumber }}</span>
+                  <span class="calendar-widget-day-dot" [class.visible]="day.hasEvents"></span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
     }
   </div>
 

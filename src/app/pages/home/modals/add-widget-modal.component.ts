@@ -7,10 +7,12 @@ import { addIcons } from 'ionicons';
 import { close, add } from 'ionicons/icons';
 import { TaskService } from '../../../services/task.service';
 import { ShoppingListService } from '../../../services/shopping-list.service';
+import { CalendarService } from '../../../services/calendar.service';
 import { Task } from '../../../models/task.model';
 import { ShoppingListItem } from '../../../models/shopping-list.model';
+import { CalendarEvent } from '../../../models/calendar-event.model';
 
-export type HomeWidgetType = 'tasks' | 'shopping';
+export type HomeWidgetType = 'tasks' | 'shopping' | 'calendar';
 
 interface WidgetOption {
   type: HomeWidgetType;
@@ -22,6 +24,7 @@ interface WidgetOption {
 const WIDGET_OPTIONS: WidgetOption[] = [
   { type: 'tasks', label: 'Tâches', description: 'Garde tes tâches du jour à portée de main', previewTitle: 'Mes tâches' },
   { type: 'shopping', label: 'Courses', description: 'Accède vite à ta liste de courses', previewTitle: 'Ma liste de courses' },
+  { type: 'calendar', label: 'Calendrier', description: 'Affiche tes prochains événements', previewTitle: 'Mon calendrier' },
 ];
 
 @Component({
@@ -75,6 +78,17 @@ const WIDGET_OPTIONS: WidgetOption[] = [
                 </div>
               } @empty {
                 <p class="preview-empty">Liste vide</p>
+              }
+            }
+
+            @if (option.type === 'calendar') {
+              @for (event of previewEvents; track event.id) {
+                <div class="preview-row">
+                  <span class="dot" [style.background]="event.color"></span>
+                  <span>{{ event.title }}</span>
+                </div>
+              } @empty {
+                <p class="preview-empty">Aucun événement à venir</p>
               }
             }
           </div>
@@ -178,11 +192,13 @@ export class AddWidgetModalComponent implements OnInit {
   availableOptions: WidgetOption[] = [];
   previewTasks: Task[] = [];
   previewItems: ShoppingListItem[] = [];
+  previewEvents: CalendarEvent[] = [];
 
   constructor(
     private modalController: ModalController,
     private taskService: TaskService,
-    private shoppingService: ShoppingListService
+    private shoppingService: ShoppingListService,
+    private calendarService: CalendarService
   ) {
     addIcons({ close, add });
   }
@@ -192,6 +208,12 @@ export class AddWidgetModalComponent implements OnInit {
     this.previewTasks = this.taskService.getTodayTasks().slice(0, 3);
     const list = this.shoppingService.getCurrentListSnapshot();
     this.previewItems = (list?.items || []).filter(item => !item.isChecked).slice(0, 3);
+
+    const todayIso = new Date().toISOString().slice(0, 10);
+    this.previewEvents = this.calendarService.getEvents()
+      .filter(event => event.date >= todayIso)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 3);
   }
 
   add(type: HomeWidgetType) {
