@@ -1,8 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <div class="header-content">
-      <p class="date-label">{{ todayLabel }}</p>
       <ion-title class="text-3xl greeting-title">Bonjour {{ displayName }} 👋</ion-title>
+      <p class="date-label">{{ todayLabel }}</p>
     </div>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="goToSettings()" aria-label="Paramètres">
@@ -31,7 +31,13 @@
       </div>
 
       @if (homeWidgets.includes('tasks')) {
-        <div class="widget mb-4" (click)="goTo('/tabs/tasks')">
+        <div
+          class="widget mb-4"
+          (click)="goTo('/tabs/tasks')"
+          (keyup.enter)="goTo('/tabs/tasks')"
+          role="button"
+          tabindex="0"
+        >
           <div class="widget-header">
             <h3 class="text-base font-semibold">Tâches du jour</h3>
             <button class="widget-remove" (click)="removeWidget('tasks', $event)" aria-label="Retirer le widget">
@@ -57,7 +63,13 @@
       }
 
       @if (homeWidgets.includes('shopping')) {
-        <div class="widget mb-4" (click)="goTo('/tabs/shopping')">
+        <div
+          class="widget mb-4"
+          (click)="goTo('/tabs/shopping')"
+          (keyup.enter)="goTo('/tabs/shopping')"
+          role="button"
+          tabindex="0"
+        >
           <div class="widget-header">
             <h3 class="text-base font-semibold">Liste de courses</h3>
             <button class="widget-remove" (click)="removeWidget('shopping', $event)" aria-label="Retirer le widget">
@@ -83,7 +95,13 @@
       }
 
       @if (homeWidgets.includes('calendar')) {
-        <div class="widget mb-4" (click)="goTo('/tabs/calendar')">
+        <div
+          class="widget mb-4"
+          (click)="goTo('/tabs/calendar')"
+          (keyup.enter)="goTo('/tabs/calendar')"
+          role="button"
+          tabindex="0"
+        >
           <div class="widget-header">
             <h3 class="text-base font-semibold">Mon calendrier</h3>
             <button class="widget-remove" (click)="removeWidget('calendar', $event)" aria-label="Retirer le widget">
