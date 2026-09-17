@@ -1,7 +1,7 @@
 <ion-header [translucent]="true" class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button (click)="goBack()"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/home" text="" (click)="goBack()"></ion-back-button>
     </ion-buttons>
     <ion-title>Paramètres</ion-title>
   </ion-toolbar>
@@ -16,8 +16,8 @@
     <ion-segment-button value="security">
       <ion-label>Sécurité</ion-label>
     </ion-segment-button>
-    <ion-segment-button value="family">
-      <ion-label>Famille</ion-label>
+    <ion-segment-button value="profile">
+      <ion-label>Profil</ion-label>
     </ion-segment-button>
   </ion-segment>
 
@@ -222,48 +222,32 @@
     </div>
   </div>
 
-  <!-- TAB: FAMILLE -->
-  <div *ngIf="selectedTab === 'family'">
+  <!-- TAB: PROFIL -->
+  <div *ngIf="selectedTab === 'profile'">
     <div class="mb-6">
-      <h3 class="text-lg font-semibold mb-4">Gestion de la famille</h3>
+      <h3 class="text-lg font-semibold mb-4">Mon compte</h3>
 
       <ion-card class="card-primary">
         <ion-card-content>
-          <p class="text-gray-600 mb-4">
-            Depuis l'onglet "Profil", vous pouvez:
-          </p>
-          <ul class="text-sm space-y-2">
-            <li class="flex items-start gap-2">
-              <span class="text-primary font-bold">✓</span>
-              <span>Créer un nouveau foyer</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-primary font-bold">✓</span>
-              <span>Rejoindre un foyer existant via code ami</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-primary font-bold">✓</span>
-              <span>Partager un lien d'invitation unique</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-primary font-bold">✓</span>
-              <span>Gérer les membres du foyer</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-primary font-bold">✓</span>
-              <span>Promouvoir/rétrograder les rôles</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-primary font-bold">✓</span>
-              <span>Quitter le foyer</span>
-            </li>
-          </ul>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" [style.background-color]="'var(--ion-color-primary)'">
+              <span class="text-base text-white font-semibold">{{ getInitial() }}</span>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-semibold">{{ currentUser?.displayName || 'Utilisateur' }}</h4>
+              <p class="text-xs text-gray-600 truncate">{{ currentUser?.email }}</p>
+            </div>
+          </div>
+
+          <ion-button expand="block" fill="outline" routerLink="/tabs/profile">
+            Gérer mon foyer
+          </ion-button>
         </ion-card-content>
       </ion-card>
 
-      <p class="text-xs text-gray-500 text-center mt-4">
-        Besoin d'aide? Consultez l'onglet Profil pour plus de détails
-      </p>
+      <ion-button expand="block" fill="clear" color="danger" class="mt-4" (click)="logout()">
+        Se déconnecter
+      </ion-button>
     </div>
   </div>
 </ion-content>

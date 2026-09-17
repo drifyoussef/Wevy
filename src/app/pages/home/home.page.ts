@@ -2,15 +2,18 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRe
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, ModalController, ToastController
+  IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButtons, IonButton, ModalController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane } from 'ionicons/icons';
+import { checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close } from 'ionicons/icons';
 import { TaskService } from '../../services/task.service';
 import { ShoppingListService } from '../../services/shopping-list.service';
+import { Task } from '../../models/task.model';
+import { ShoppingListItem } from '../../models/shopping-list.model';
 import { Subscription, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { SwipePage } from '../swipe/swipe.page';
+import { AddWidgetModalComponent, HomeWidgetType } from './modals/add-widget-modal.component';
 
 interface AppTile {
   label: string;
@@ -27,7 +30,7 @@ interface AppTile {
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonIcon
+    IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButtons, IonButton
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -38,6 +41,11 @@ export class HomePage implements OnInit, OnDestroy {
   todayLabel: string = '';
 
   appTiles: AppTile[] = [];
+  todayTasks: Task[] = [];
+  shoppingItems: ShoppingListItem[] = [];
+  homeWidgets: HomeWidgetType[] = [];
+
+  private static readonly WIDGETS_STORAGE_KEY = 'wevy_home_widgets';
 
   private static readonly TILE_DEFS: Omit<AppTile, 'badge'>[] = [
     { label: 'Tâches', icon: 'checkmark-done', route: '/tabs/tasks' },
@@ -59,9 +67,23 @@ export class HomePage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane });
+    addIcons({ checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close });
     this.appTiles = HomePage.TILE_DEFS.map(tile => ({ ...tile }));
     this.todayLabel = this.formatToday();
+    this.homeWidgets = this.loadHomeWidgets();
+  }
+
+  private loadHomeWidgets(): HomeWidgetType[] {
+    try {
+      const raw = localStorage.getItem(HomePage.WIDGETS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private saveHomeWidgets() {
+    localStorage.setItem(HomePage.WIDGETS_STORAGE_KEY, JSON.stringify(this.homeWidgets));
   }
 
   private formatToday(): string {
@@ -97,13 +119,16 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   private updateTasksBadge() {
-    this.setTileBadge('Tâches', this.taskService.getTodayTasks().length);
+    const uncompletedTasks = this.taskService.getTodayTasks();
+    this.todayTasks = uncompletedTasks.slice(0, 3);
+    this.setTileBadge('Tâches', uncompletedTasks.length);
   }
 
   private updateShoppingBadge() {
     const shoppingList = this.shoppingService.getCurrentListSnapshot();
-    const uncheckedCount = (shoppingList?.items || []).filter(item => !item.isChecked).length;
-    this.setTileBadge('Courses', uncheckedCount);
+    const uncheckedItems = (shoppingList?.items || []).filter(item => !item.isChecked);
+    this.shoppingItems = uncheckedItems.slice(0, 3);
+    this.setTileBadge('Courses', uncheckedItems.length);
   }
 
   private setTileBadge(label: string, count: number) {
@@ -122,6 +147,39 @@ export class HomePage implements OnInit, OnDestroy {
     } else if (tile.route) {
       this.router.navigate([tile.route]);
     }
+  }
+
+  goTo(route: string) {
+    this.router.navigate([route]);
+  }
+
+  goToSettings() {
+    this.router.navigate(['/tabs/settings']);
+  }
+
+  async openAddWidgetModal() {
+    const modal = await this.modalController.create({
+      component: AddWidgetModalComponent,
+      componentProps: { existingWidgets: this.homeWidgets },
+      breakpoints: [0, 0.75, 0.95],
+      initialBreakpoint: 0.75,
+      cssClass: 'auto-height-modal'
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if (data?.type && !this.homeWidgets.includes(data.type)) {
+      this.homeWidgets = [...this.homeWidgets, data.type];
+      this.saveHomeWidgets();
+      this.cdr.markForCheck();
+    }
+  }
+
+  removeWidget(type: HomeWidgetType, event: Event) {
+    event.stopPropagation();
+    this.homeWidgets = this.homeWidgets.filter(w => w !== type);
+    this.saveHomeWidgets();
   }
 
   private async openSwipeMode() {

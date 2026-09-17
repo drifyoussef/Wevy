@@ -1,14 +1,16 @@
 import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
-  IonToggle, IonBackButton, IonCard, IonCardContent,
+  IonToggle, IonBackButton, IonButtons, IonCard, IonCardContent,
   IonSelect, IonSelectOption, IonInput, IonLabel, IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, notifications, phonePortrait, mail } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
+import { User } from '../../models/user.model';
 
 interface NotificationPreferences {
   emailNotifications: boolean;
@@ -36,13 +38,15 @@ interface PasswordForm {
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
-    IonToggle, IonBackButton, IonCard, IonCardContent,
+    IonToggle, IonBackButton, IonButtons, IonCard, IonCardContent,
     IonSelect, IonSelectOption, IonInput, IonLabel, IonSpinner
   ]
 })
 export class SettingsPage implements OnInit {
   selectedTab = 'notifications';
+  currentUser: User | null = null;
   preferences: NotificationPreferences = {
     emailNotifications: true,
     pushNotifications: true,
@@ -70,12 +74,27 @@ export class SettingsPage implements OnInit {
     { label: 'Hebdomadaire', value: 'weekly' }
   ];
 
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {
     addIcons({ arrowBack, notifications, phonePortrait, mail });
   }
 
   ngOnInit() {
     this.loadPreferences();
+    this.currentUser = this.authService.getCurrentUser();
+  }
+
+  getInitial(): string {
+    return (this.currentUser?.displayName || 'U').charAt(0).toUpperCase();
+  }
+
+  async logout() {
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+      await this.authService.signOut();
+      this.router.navigate(['/auth/login'], { replaceUrl: true });
+    }
   }
 
   loadPreferences() {

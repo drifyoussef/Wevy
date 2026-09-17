@@ -4,10 +4,86 @@
       <p class="date-label">{{ todayLabel }}</p>
       <ion-title class="text-3xl greeting-title">Bonjour {{ displayName }} 👋</ion-title>
     </div>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="goToSettings()" aria-label="Paramètres">
+        <ion-icon slot="icon-only" name="settings"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
+  <!-- Widgets -->
+  <div class="mb-6">
+    @if (homeWidgets.length === 0) {
+      <button class="widgets-empty" (click)="openAddWidgetModal()">
+        <span class="widgets-empty-plus">
+          <ion-icon name="add"></ion-icon>
+        </span>
+        <p>Clique ici pour ajouter des widgets pour accéder rapidement à des informations du foyer</p>
+      </button>
+    } @else {
+      <div class="widgets-section-header">
+        <h2 class="text-xl">Widgets</h2>
+        <button class="widgets-add-btn" (click)="openAddWidgetModal()" aria-label="Ajouter un widget">
+          <ion-icon name="add"></ion-icon>
+        </button>
+      </div>
+
+      @if (homeWidgets.includes('tasks')) {
+        <div class="widget mb-4" (click)="goTo('/tabs/tasks')">
+          <div class="widget-header">
+            <h3 class="text-base font-semibold">Tâches du jour</h3>
+            <button class="widget-remove" (click)="removeWidget('tasks', $event)" aria-label="Retirer le widget">
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+
+          @if (todayTasks.length > 0) {
+            <div class="widget-card">
+              @for (task of todayTasks; track task.id) {
+                <div class="widget-row">
+                  <span class="widget-dot"></span>
+                  <span>{{ task.title }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="widget-card widget-empty">
+              <p class="text-sm text-gray-500">Aucune tâche pour aujourd'hui</p>
+            </div>
+          }
+        </div>
+      }
+
+      @if (homeWidgets.includes('shopping')) {
+        <div class="widget mb-4" (click)="goTo('/tabs/shopping')">
+          <div class="widget-header">
+            <h3 class="text-base font-semibold">Liste de courses</h3>
+            <button class="widget-remove" (click)="removeWidget('shopping', $event)" aria-label="Retirer le widget">
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+
+          @if (shoppingItems.length > 0) {
+            <div class="widget-card">
+              @for (item of shoppingItems; track item.id) {
+                <div class="widget-row">
+                  <span class="widget-dot"></span>
+                  <span>{{ item.name }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="widget-card widget-empty">
+              <p class="text-sm text-gray-500">Aucun produit dans la liste</p>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+
   <!-- Mes applications -->
   <div class="mb-6">
     <h2 class="text-xl mb-3">Mes applications</h2>

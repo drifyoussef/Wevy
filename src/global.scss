@@ -18,8 +18,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--ion-font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -30,7 +29,7 @@ ion-content {
 }
 
 ion-toolbar {
-  --background: white;
+  --background: var(--ion-toolbar-background);
   --border-width: 0;
   --padding-top: 8px;
   --padding-bottom: 8px;
@@ -109,19 +108,21 @@ ion-button {
 
 ion-input, ion-textarea, ion-select {
   --background: var(--ion-card-background);
-  --border-radius: var(--radius-xl);
+  /* !important beats Ionic's own .input-fill-outline / .select-outline internal
+     rules (--border-radius: 4px), which are more specific than a single class. */
+  --border-radius: var(--radius-xl) !important;
   --padding-start: var(--spacing-4);
   --padding-end: var(--spacing-4);
   --padding-top: var(--spacing-3);
   --padding-bottom: var(--spacing-3);
-  border: 1px solid var(--ion-border-color);
+  border: 2px solid var(--ion-color-primary);
   border-radius: var(--radius-xl);
   margin-bottom: var(--spacing-3);
   transition: border-color 0.2s ease, background 0.2s ease;
   font-size: var(--text-base);
 
   &:focus-within {
-    border-color: var(--ion-color-primary);
+    border-color: var(--ion-color-primary-shade);
     box-shadow: var(--shadow-sm);
   }
 }
@@ -145,9 +146,9 @@ ion-input, ion-textarea, ion-select {
 
 .custom-input {
   --background: var(--ion-color-light);
-  --border-radius: 12px;
-  --border-color: transparent;
-  --border-width: 1.5px;
+  --border-radius: 12px !important;
+  --border-color: var(--ion-color-primary) !important;
+  --border-width: 2px !important;
   --highlight-color-focused: var(--ion-color-primary);
   --padding-start: 16px;
   --padding-end: 16px;
@@ -159,7 +160,7 @@ ion-input, ion-textarea, ion-select {
   transition: background 0.2s ease, box-shadow 0.2s ease;
 
   &.ion-focused {
-    --border-color: var(--ion-color-primary);
+    --border-color: var(--ion-color-primary-shade) !important;
     --background: var(--ion-color-light-shade, #eef0f4);
   }
 
@@ -368,6 +369,7 @@ h3, .text-xl {
 .line-through { text-decoration: line-through !important; }
 .opacity-60 { opacity: 0.6 !important; }
 .overflow-hidden { overflow: hidden !important; }
+.whitespace-nowrap { white-space: nowrap !important; }
 
 /* Cards & Containers */
 .card {
@@ -418,7 +420,7 @@ h3, .text-xl {
 /* Floating Action Button */
 .fab {
   position: fixed;
-  bottom: 80px;
+  bottom: 24px;
   right: 20px;
   width: 56px;
   height: 56px;
@@ -471,8 +473,19 @@ h3, .text-xl {
 /* Auto Height Modal */
 .auto-height-modal {
   --border-radius: 16px 16px 0 0;
-  
+
   ion-modal {
     --border-radius: 16px 16px 0 0;
+  }
+}
+
+/* Toasts */
+ion-toast.wevy-toast {
+  --border-radius: 12px;
+  --box-shadow: var(--shadow-lg);
+  font-weight: 600;
+
+  &::part(message) {
+    padding-inline-start: 4px;
   }
 }

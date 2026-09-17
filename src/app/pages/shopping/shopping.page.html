@@ -1,61 +1,46 @@
 <ion-header [translucent]="true" class="ion-no-border">
   <ion-toolbar class="transparent-toolbars">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
     <ion-title class="text-2xl">Courses</ion-title>
-    <ion-button slot="end" fill="clear" class="rounded-full" (click)="openAddProductModal()">
-      <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
-    </ion-button>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Ajout rapide -->
+  <div class="quick-add">
+    <ion-input
+      [(ngModel)]="newItemName"
+      (keyup.enter)="quickAdd()"
+      placeholder="Ajouter un produit..."
+      fill="outline"
+      class="custom-input quick-add-input"
+    ></ion-input>
+    <button class="quick-add-btn" (click)="quickAdd()" [disabled]="!newItemName.trim() || adding" aria-label="Ajouter">
+      <ion-icon name="add"></ion-icon>
+    </button>
+  </div>
+
   <!-- Articles à acheter -->
   <div class="mb-6">
     <h2 class="text-xl mb-4">À acheter</h2>
     
     @if (uncheckedItems.length > 0) {
-      <div class="flex flex-col gap-3">
+      <div class="tasks-list">
         @for (item of uncheckedItems; track item.id) {
-          <div class="bg-white rounded-xl p-4 flex items-center gap-3 shadow-sm hover-lift">
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-              [style.background-color]="getAvatarColor(item)"
-            >
-              <span class="text-sm text-white font-semibold">{{ getAvatarInitial(item) }}</span>
+          <div class="task-card" [class.removing]="removingIds.has(item.id)">
+            <button class="task-dot-btn" (click)="toggleItem(item.id)" aria-label="Marquer comme acheté">
+              <span class="task-dot"></span>
+            </button>
+
+            <div class="task-info">
+              <span class="task-title">{{ item.name }}</span>
             </div>
 
-            <div class="flex-1 min-w-0">
-              <h3 class="text-base font-semibold">{{ item.name }}</h3>
-              <p class="text-sm text-gray-500">
-                {{ item.quantity }} {{ item.unit }}
-              </p>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <ion-button
-                fill="clear"
-                size="small"
-                (click)="toggleItem(item.id)"
-              >
-                <ion-icon
-                  slot="icon-only"
-                  [name]="item.isChecked ? 'checkmark-circle' : 'ellipse-outline'"
-                  [color]="item.isChecked ? 'success' : 'medium'"
-                  size="large"
-                ></ion-icon>
-              </ion-button>
-              <ion-button 
-                fill="clear" 
-                size="small"
-                color="danger"
-                (click)="deleteItem(item.id)"
-              >
-                <ion-icon 
-                  slot="icon-only" 
-                  name="trash"
-                  size="small"
-                ></ion-icon>
-              </ion-button>
-            </div>
+            <button class="task-delete-badge" (click)="deleteItem(item.id)" aria-label="Supprimer le produit">
+              <ion-icon name="close"></ion-icon>
+            </button>
           </div>
         }
       </div>
@@ -71,49 +56,20 @@
     <div class="mb-6">
       <h2 class="text-xl mb-4">Acheté</h2>
       
-      <div class="flex flex-col gap-3">
+      <div class="tasks-list">
         @for (item of checkedItems; track item.id) {
-          <div class="bg-white rounded-xl p-4 flex items-center gap-3 shadow-sm opacity-60">
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-              [style.background-color]="getAvatarColor(item)"
-            >
-              <span class="text-sm text-white font-semibold">{{ getAvatarInitial(item) }}</span>
+          <div class="task-card completed" [class.removing]="removingIds.has(item.id)">
+            <button class="task-dot-btn" (click)="toggleItem(item.id)" aria-label="Marquer comme à acheter">
+              <span class="task-dot filled"></span>
+            </button>
+
+            <div class="task-info">
+              <span class="task-title">{{ item.name }}</span>
             </div>
 
-            <div class="flex-1 min-w-0">
-              <h3 class="text-base font-semibold line-through">{{ item.name }}</h3>
-              <p class="text-sm text-gray-500 line-through">
-                {{ item.quantity }} {{ item.unit }}
-              </p>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <ion-button
-                fill="clear"
-                size="small"
-                (click)="toggleItem(item.id)"
-              >
-                <ion-icon
-                  slot="icon-only"
-                  name="checkmark-circle"
-                  color="success"
-                  size="large"
-                ></ion-icon>
-              </ion-button>
-              <ion-button 
-                fill="clear" 
-                size="small"
-                color="danger"
-                (click)="deleteItem(item.id)"
-              >
-                <ion-icon 
-                  slot="icon-only" 
-                  name="trash"
-                  size="small"
-                ></ion-icon>
-              </ion-button>
-            </div>
+            <button class="task-delete-badge" (click)="deleteItem(item.id)" aria-label="Supprimer le produit">
+              <ion-icon name="close"></ion-icon>
+            </button>
           </div>
         }
       </div>

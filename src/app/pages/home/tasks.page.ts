@@ -1,14 +1,17 @@
 import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { 
+import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
-  ModalController
+  IonButtons, IonBackButton, ModalController
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
-import { add, checkmarkCircle, ellipseOutline, trash, close } from 'ionicons/icons';
+import { add, close } from 'ionicons/icons';
 import { TaskService } from '../../services/task.service';
 import { HouseholdService } from '../../services/household.service';
+import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
+import { NotificationService } from '../../services/notification.service';
 import { Task } from '../../models/task.model';
 import { HouseholdMember } from '../../models/user.model';
 import { Subscription } from 'rxjs';
@@ -23,7 +26,8 @@ import { AddTaskModalComponent } from './modals/add-task-modal.component';
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
+    IonButtons, IonBackButton
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -31,34 +35,35 @@ export class TasksPage implements OnInit, OnDestroy {
   todayTasks: Task[] = [];
   completedTasks: Task[] = [];
   householdMembers: HouseholdMember[] = [];
+  removingIds = new Set<string>();
   private todayTasksSubscription?: Subscription;
   private completedTasksSubscription?: Subscription;
 
   constructor(
     private taskService: TaskService,
     private householdService: HouseholdService,
+    private authService: AuthService,
+    private toastService: ToastService,
+    private notificationService: NotificationService,
     private modalController: ModalController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, checkmarkCircle, ellipseOutline, trash, close });
+    addIcons({ add, close });
   }
 
   ngOnInit() {
     this.initializeComponent();
-    
+
     // Subscribe to reactive task streams - this will emit immediately with BehaviorSubject
     this.todayTasksSubscription = this.taskService.todayTasks$.subscribe(
       tasks => {
-        console.log('todayTasks$ emitted:', tasks);
         this.todayTasks = tasks;
-        console.log('this.todayTasks set to:', this.todayTasks);
         this.cdr.markForCheck();
       }
     );
 
     this.completedTasksSubscription = this.taskService.completedTasks$.subscribe(
       tasks => {
-        console.log('completedTasks$ emitted:', tasks);
         this.completedTasks = tasks;
         this.cdr.markForCheck();
       }
@@ -86,8 +91,6 @@ export class TasksPage implements OnInit, OnDestroy {
   }
 
   async openNewTaskModal() {
-    console.log('Opening task modal, householdMembers:', this.householdMembers);
-    
     const modal = await this.modalController.create({
       component: AddTaskModalComponent,
       componentProps: {
@@ -98,19 +101,21 @@ export class TasksPage implements OnInit, OnDestroy {
     await modal.present();
 
     const result = await modal.onDidDismiss();
-    console.log('Full onDidDismiss result:', result);
-    console.log('result.data:', result.data);
-    console.log('result.role:', result.role);
-    
-    // Ionic retourne {data, role} - les données peuvent être dans result directement ou dans result.data
     const data = result.data || result;
-    console.log('Extracted data:', data);
-    
+
     if (data?.added && data?.task) {
-      console.log('Creating task:', data.task);
-      this.taskService.createTask(data.task);
-    } else {
-      console.error('Invalid data received from modal. Full result:', result);
+      try {
+        const createdTask = this.taskService.createTask(data.task);
+        this.toastService.success('Tâche ajoutée !');
+
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser && createdTask.assignedTo === currentUser.id) {
+          this.notificationService.notifyTaskAssigned(createdTask.title);
+        }
+      } catch (error) {
+        console.error('Error creating task:', error);
+        this.toastService.error("Impossible d'ajouter la tâche");
+      }
     }
   }
 
@@ -119,6 +124,13 @@ export class TasksPage implements OnInit, OnDestroy {
   }
 
   deleteTask(taskId: string) {
-    this.taskService.deleteTask(taskId);
+    // Slide the card out to the right (Tinder-style) before actually removing it
+    this.removingIds.add(taskId);
+    this.cdr.markForCheck();
+
+    setTimeout(() => {
+      this.taskService.deleteTask(taskId);
+      this.removingIds.delete(taskId);
+    }, 280);
   }
 }

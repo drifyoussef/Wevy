@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton,
+  IonButtons, IonBackButton,
   ModalController, IonSegment, IonSegmentButton, IonInput, IonLabel
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
@@ -13,6 +14,7 @@ import {
 } from 'ionicons/icons';
 import { HouseholdService } from '../../services/household.service';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 import { Household, HouseholdMember } from '../../models/user.model';
 import { Subscription } from 'rxjs';
 
@@ -26,6 +28,7 @@ import { Subscription } from 'rxjs';
     CommonModule,
     FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton,
+    IonButtons, IonBackButton,
     IonSegment, IonSegmentButton, IonLabel
   ]
 })
@@ -44,7 +47,8 @@ export class ProfilePage implements OnInit, OnDestroy {
     private householdService: HouseholdService,
     private authService: AuthService,
     private modalController: ModalController,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {
     addIcons({
       notifications, people, settings, add, close, copy, checkmark,
@@ -82,12 +86,18 @@ export class ProfilePage implements OnInit, OnDestroy {
     if (data) {
       const currentUser = this.authService.getCurrentUser();
       if (currentUser) {
-        const household = await this.householdService.createHousehold(
-          data.householdName,
-          currentUser.id,
-          currentUser.displayName
-        );
-        this.householdService.setCurrentHousehold(household);
+        try {
+          const household = await this.householdService.createHousehold(
+            data.householdName,
+            currentUser.id,
+            currentUser.displayName
+          );
+          this.householdService.setCurrentHousehold(household);
+          this.toastService.success('Foyer créé !');
+        } catch (error) {
+          console.error('Error creating household:', error);
+          this.toastService.error('Impossible de créer le foyer');
+        }
       }
     }
   }
@@ -110,10 +120,11 @@ export class ProfilePage implements OnInit, OnDestroy {
         );
         if (household) {
           this.householdService.setCurrentHousehold(household);
+          this.toastService.success('Tu as rejoint le foyer !');
         }
       } catch (error) {
         console.error('Error joining household:', error);
-        alert('Code ami invalide');
+        this.toastService.error('Code ami invalide');
       }
     }
   }
@@ -130,10 +141,11 @@ export class ProfilePage implements OnInit, OnDestroy {
       );
       if (household) {
         this.householdService.setCurrentHousehold(household);
+        this.toastService.success('Tu as rejoint le foyer !');
       }
     } catch (error) {
       console.error('Error joining household via link:', error);
-      alert('Lien d\'invitation invalide ou expiré');
+      this.toastService.error("Lien d'invitation invalide ou expiré");
     }
   }
 

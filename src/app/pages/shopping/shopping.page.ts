@@ -1,15 +1,16 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
-  ModalController
+  IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonInput,
+  IonButtons, IonBackButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, checkmarkCircle, ellipseOutline, trash } from 'ionicons/icons';
+import { add, close } from 'ionicons/icons';
 import { ShoppingListService } from '../../services/shopping-list.service';
 import { ShoppingListItem } from '../../models/shopping-list.model';
 import { Subscription } from 'rxjs';
-import { AddProductModalComponent } from '../home/modals/add-product-modal.component';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-shopping',
@@ -19,31 +20,26 @@ import { AddProductModalComponent } from '../home/modals/add-product-modal.compo
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     CommonModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon
+    FormsModule,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonInput,
+    IonButtons, IonBackButton
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ShoppingPage implements OnInit, OnDestroy {
   uncheckedItems: ShoppingListItem[] = [];
   checkedItems: ShoppingListItem[] = [];
+  newItemName: string = '';
+  adding = false;
+  removingIds = new Set<string>();
   private listSubscription?: Subscription;
-
-  // Category color mapping
-  private categoryColors: { [key: string]: string } = {
-    'produce': '#10B981',    // Green
-    'meat': '#EF4444',       // Red
-    'dairy': '#F3A537',      // Orange
-    'pantry': '#8B5CF6',     // Purple
-    'spices': '#D97706',     // Amber
-    'other': '#6B7280'       // Gray
-  };
 
   constructor(
     private shoppingService: ShoppingListService,
-    private modalController: ModalController,
+    private toastService: ToastService,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, checkmarkCircle, ellipseOutline, trash });
+    addIcons({ add, close });
   }
 
   ngOnInit() {
@@ -61,24 +57,21 @@ export class ShoppingPage implements OnInit, OnDestroy {
     this.listSubscription?.unsubscribe();
   }
 
-  getAvatarColor(item: ShoppingListItem): string {
-    return this.categoryColors[item.category || 'other'] || this.categoryColors['other'];
-  }
+  async quickAdd() {
+    const name = this.newItemName.trim();
+    if (!name || this.adding) return;
 
-  getAvatarInitial(item: ShoppingListItem): string {
-    return (item.name || 'P').charAt(0).toUpperCase();
-  }
-
-  async openAddProductModal() {
-    const modal = await this.modalController.create({
-      component: AddProductModalComponent
-    });
-
-    await modal.present();
-    const { data } = await modal.onDidDismiss();
-    
-    if (data?.added) {
-      // List will update via subscription
+    this.adding = true;
+    try {
+      await this.shoppingService.addManualItem(name, 1, 'pcs', 'other');
+      this.newItemName = '';
+      this.toastService.success('Produit ajouté !');
+    } catch (error) {
+      console.error('Error adding item:', error);
+      this.toastService.error("Erreur lors de l'ajout du produit");
+    } finally {
+      this.adding = false;
+      this.cdr.markForCheck();
     }
   }
 
@@ -90,12 +83,21 @@ export class ShoppingPage implements OnInit, OnDestroy {
     }
   }
 
-  async deleteItem(itemId: string) {
-    try {
-      await this.shoppingService.removeItem(itemId);
-    } catch (error) {
-      console.error('Error removing item:', error);
-    }
+  deleteItem(itemId: string) {
+    // Slide the card out to the right (Tinder-style) before actually removing it
+    this.removingIds.add(itemId);
+    this.cdr.markForCheck();
+
+    setTimeout(async () => {
+      try {
+        await this.shoppingService.removeItem(itemId);
+      } catch (error) {
+        console.error('Error removing item:', error);
+      } finally {
+        this.removingIds.delete(itemId);
+        this.cdr.markForCheck();
+      }
+    }, 280);
   }
 
   async clearList() {

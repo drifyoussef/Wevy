@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, ModalController
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
+  IonButtons, IonBackButton, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, arrowForward, restaurant, restaurantOutline } from 'ionicons/icons';
@@ -18,7 +19,8 @@ import { SwipePage } from '../swipe/swipe.page';
   imports: [
     CommonModule,
     RouterLink,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
+    IonButtons, IonBackButton
   ]
 })
 export class LibraryPage implements OnInit {

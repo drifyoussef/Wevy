@@ -6,12 +6,13 @@ import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonList,
   IonItem, IonLabel, IonInput, IonTextarea, IonButton,
   IonIcon, IonSelect, IonSelectOption, IonSegment,
-  IonSegmentButton, IonCard, IonCardContent
+  IonSegmentButton, IonCard, IonCardContent, IonButtons, IonBackButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { link, camera, close, add } from 'ionicons/icons';
 import { RecipeService } from '../../services/recipe.service';
 import { Recipe, Ingredient } from '../../models/recipe.model';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-add-recipe',
@@ -24,7 +25,7 @@ import { Recipe, Ingredient } from '../../models/recipe.model';
     IonHeader, IonToolbar, IonTitle, IonContent, IonList,
     IonItem, IonLabel, IonInput, IonTextarea, IonButton,
     IonIcon, IonSelect, IonSelectOption, IonSegment,
-    IonSegmentButton, IonCard, IonCardContent
+    IonSegmentButton, IonCard, IonCardContent, IonButtons, IonBackButton
   ]
 })
 export class AddRecipePage {
@@ -52,7 +53,8 @@ export class AddRecipePage {
 
   constructor(
     private recipeService: RecipeService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {
     addIcons({ link, camera, close, add });
   }
@@ -123,9 +125,10 @@ export class AddRecipePage {
       const extractedData = await this.recipeService.extractRecipeFromUrl(this.recipeUrl);
       this.recipe = { ...this.recipe, ...extractedData };
       this.addMethod = 'manual'; // Switch to manual mode to review/edit
+      this.toastService.success('Recette extraite avec succès !');
     } catch (error) {
       console.error('Error extracting recipe:', error);
-      // TODO: Show error toast
+      this.toastService.error("Impossible d'extraire la recette depuis ce lien");
     } finally {
       this.extracting = false;
     }
@@ -165,14 +168,14 @@ export class AddRecipePage {
       };
 
       await this.recipeService.createRecipe(recipeData);
-      
+
+      this.toastService.success('Recette ajoutée !');
+
       // Navigate back to library
       this.router.navigate(['/tabs/library']);
-      
-      // TODO: Show success toast
     } catch (error) {
       console.error('Error saving recipe:', error);
-      // TODO: Show error toast
+      this.toastService.error("Erreur lors de l'enregistrement de la recette");
     }
   }
 }

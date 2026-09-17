@@ -1,17 +1,109 @@
-
-
-.w-8 {
-  width: 32px;
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.h-8 {
-  height: 32px;
+.task-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #FFFFFF;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-base);
+  padding: 14px 16px;
+  transition: transform 0.28s ease, opacity 0.28s ease;
+
+  &.removing {
+    transform: translateX(120%) rotate(6deg);
+    opacity: 0;
+  }
 }
 
-.line-through {
-  text-decoration: line-through;
+.task-dot-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
 }
 
-.opacity-60 {
-  opacity: 0.6;
+.task-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tile-icon);
+  transition: transform 0.15s ease, background 0.15s ease;
+
+  &.filled {
+    background: var(--ion-color-medium);
+  }
+}
+
+.task-dot-btn:active .task-dot {
+  transform: scale(0.8);
+}
+
+.task-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-right: 12px;
+}
+
+.task-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+.task-assignee {
+  font-size: var(--text-sm);
+  color: var(--gray-500);
+}
+
+.task-card.completed {
+  .task-title {
+    text-decoration: line-through;
+    color: var(--ion-color-medium);
+  }
+
+  .task-assignee {
+    color: var(--ion-color-medium);
+  }
+}
+
+.task-delete-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  background: var(--ion-color-danger);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
 }

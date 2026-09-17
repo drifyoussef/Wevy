@@ -1,5 +1,8 @@
 <ion-header [translucent]="true" class="ion-no-border">
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
     <ion-title class="text-2xl">Profil</ion-title>
     <ion-button slot="end" fill="clear" (click)="goToSettings()">
       <ion-icon slot="icon-only" name="settings" color="primary"></ion-icon>
