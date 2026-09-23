@@ -39,26 +39,13 @@
           tabindex="0"
         >
           <div class="widget-header">
-            <h3 class="text-base font-semibold">Tâches du jour</h3>
+            <h3 class="text-base font-semibold">{{ widgetTitles.tasks }}</h3>
             <button class="widget-remove" (click)="removeWidget('tasks', $event)" aria-label="Retirer le widget">
               <ion-icon name="close"></ion-icon>
             </button>
           </div>
 
-          @if (todayTasks.length > 0) {
-            <div class="widget-card">
-              @for (task of todayTasks; track task.id) {
-                <div class="widget-row">
-                  <span class="widget-dot"></span>
-                  <span>{{ task.title }}</span>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="widget-card widget-empty">
-              <p class="text-sm text-gray-500">Aucune tâche pour aujourd'hui</p>
-            </div>
-          }
+          <app-home-widget-card type="tasks"></app-home-widget-card>
         </div>
       }
 
@@ -71,26 +58,13 @@
           tabindex="0"
         >
           <div class="widget-header">
-            <h3 class="text-base font-semibold">Liste de courses</h3>
+            <h3 class="text-base font-semibold">{{ widgetTitles.shopping }}</h3>
             <button class="widget-remove" (click)="removeWidget('shopping', $event)" aria-label="Retirer le widget">
               <ion-icon name="close"></ion-icon>
             </button>
           </div>
 
-          @if (shoppingItems.length > 0) {
-            <div class="widget-card">
-              @for (item of shoppingItems; track item.id) {
-                <div class="widget-row">
-                  <span class="widget-dot"></span>
-                  <span>{{ item.name }}</span>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="widget-card widget-empty">
-              <p class="text-sm text-gray-500">Aucun produit dans la liste</p>
-            </div>
-          }
+          <app-home-widget-card type="shopping"></app-home-widget-card>
         </div>
       }
 
@@ -103,33 +77,13 @@
           tabindex="0"
         >
           <div class="widget-header">
-            <h3 class="text-base font-semibold">Mon calendrier</h3>
+            <h3 class="text-base font-semibold">{{ widgetTitles.calendar }}</h3>
             <button class="widget-remove" (click)="removeWidget('calendar', $event)" aria-label="Retirer le widget">
               <ion-icon name="close"></ion-icon>
             </button>
           </div>
 
-          <div class="widget-card calendar-widget-card">
-            <div class="calendar-widget-nav">
-              <button class="calendar-widget-nav-btn" (click)="calendarWidgetPreviousWeek($event)" aria-label="Semaine précédente">
-                <ion-icon name="chevron-back"></ion-icon>
-              </button>
-              <span class="calendar-widget-month">{{ calendarMonthLabel }}</span>
-              <button class="calendar-widget-nav-btn" (click)="calendarWidgetNextWeek($event)" aria-label="Semaine suivante">
-                <ion-icon name="chevron-forward"></ion-icon>
-              </button>
-            </div>
-
-            <div class="calendar-widget-week">
-              @for (day of calendarWeekDays; track day.iso) {
-                <div class="calendar-widget-day" [class.today]="day.isToday">
-                  <span class="calendar-widget-day-letter">{{ day.dayLetter }}</span>
-                  <span class="calendar-widget-day-number">{{ day.dayNumber }}</span>
-                  <span class="calendar-widget-day-dot" [class.visible]="day.hasEvents"></span>
-                </div>
-              }
-            </div>
-          </div>
+          <app-home-widget-card type="calendar"></app-home-widget-card>
         </div>
       }
     }

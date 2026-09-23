@@ -13,7 +13,15 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-base);
   padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
   transition: transform 0.28s ease, opacity 0.28s ease;
+
+  &:active:not(.removing),
+  &.toggling {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
 
   &.removing {
     transform: translateX(120%) rotate(6deg);
@@ -28,26 +36,37 @@
   width: 28px;
   height: 28px;
   flex-shrink: 0;
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
 }
 
 .task-dot {
-  display: block;
-  width: 8px;
-  height: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: var(--tile-icon);
+  border: 2px solid var(--tile-icon);
+  background: transparent;
+  color: #FFFFFF;
   transition: transform 0.15s ease, background 0.15s ease;
 
+  ion-icon {
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
   &.filled {
-    background: var(--ion-color-medium);
+    background: var(--tile-icon);
+
+    ion-icon {
+      opacity: 1;
+    }
   }
 }
 
-.task-dot-btn:active .task-dot {
+.task-card:active .task-dot,
+.task-card.toggling .task-dot {
   transform: scale(0.8);
 }
 

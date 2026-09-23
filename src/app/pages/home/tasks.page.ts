@@ -6,7 +6,7 @@ import {
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
-import { add, close } from 'ionicons/icons';
+import { add, checkmark, close } from 'ionicons/icons';
 import { TaskService } from '../../services/task.service';
 import { HouseholdService } from '../../services/household.service';
 import { AuthService } from '../../services/auth.service';
@@ -36,6 +36,7 @@ export class TasksPage implements OnInit, OnDestroy {
   completedTasks: Task[] = [];
   householdMembers: HouseholdMember[] = [];
   removingIds = new Set<string>();
+  togglingIds = new Set<string>();
   private todayTasksSubscription?: Subscription;
   private completedTasksSubscription?: Subscription;
 
@@ -48,7 +49,7 @@ export class TasksPage implements OnInit, OnDestroy {
     private modalController: ModalController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, close });
+    addIcons({ add, checkmark, close });
   }
 
   ngOnInit() {
@@ -120,10 +121,27 @@ export class TasksPage implements OnInit, OnDestroy {
   }
 
   toggleTask(taskId: string) {
-    this.taskService.toggleTask(taskId);
+    if (this.togglingIds.has(taskId)) {
+      return;
+    }
+
+    // TaskService.toggleTask is synchronous, so the card would be destroyed and
+    // re-rendered in the other section within the same tick - the press
+    // animation would never get a frame. Hold it briefly so it can play.
+    this.togglingIds.add(taskId);
+    this.cdr.markForCheck();
+
+    setTimeout(() => {
+      this.togglingIds.delete(taskId);
+      this.taskService.toggleTask(taskId);
+      this.cdr.markForCheck();
+    }, 180);
   }
 
-  deleteTask(taskId: string) {
+  deleteTask(taskId: string, event: Event) {
+    // Keep the card click (toggle) from firing when the delete badge is tapped
+    event.stopPropagation();
+
     // Slide the card out to the right (Tinder-style) before actually removing it
     this.removingIds.add(taskId);
     this.cdr.markForCheck();

@@ -5,32 +5,24 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { close, add } from 'ionicons/icons';
-import { TaskService } from '../../../services/task.service';
-import { ShoppingListService } from '../../../services/shopping-list.service';
-import { CalendarService } from '../../../services/calendar.service';
-import { Task } from '../../../models/task.model';
-import { ShoppingListItem } from '../../../models/shopping-list.model';
-import { CalendarEvent } from '../../../models/calendar-event.model';
-
-export type HomeWidgetType = 'tasks' | 'shopping' | 'calendar';
+import { HomeWidgetCardComponent, HomeWidgetType, WIDGET_TITLES } from '../components/home-widget-card.component';
 
 interface WidgetOption {
   type: HomeWidgetType;
   label: string;
   description: string;
-  previewTitle: string;
 }
 
 const WIDGET_OPTIONS: WidgetOption[] = [
-  { type: 'tasks', label: 'Tâches', description: 'Garde tes tâches du jour à portée de main', previewTitle: 'Mes tâches' },
-  { type: 'shopping', label: 'Courses', description: 'Accède vite à ta liste de courses', previewTitle: 'Ma liste de courses' },
-  { type: 'calendar', label: 'Calendrier', description: 'Affiche tes prochains événements', previewTitle: 'Mon calendrier' },
+  { type: 'tasks', label: 'Tâches', description: 'Garde tes tâches du jour à portée de main' },
+  { type: 'shopping', label: 'Courses', description: 'Accède vite à ta liste de courses' },
+  { type: 'calendar', label: 'Calendrier', description: 'Affiche tes prochains événements' },
 ];
 
 @Component({
   selector: 'app-add-widget-modal',
   standalone: true,
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonButtons],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonButtons, HomeWidgetCardComponent],
   template: `
     <ion-header class="ion-no-border">
       <ion-toolbar>
@@ -51,47 +43,14 @@ const WIDGET_OPTIONS: WidgetOption[] = [
           <h3>{{ option.label }}</h3>
           <p class="description">{{ option.description }}</p>
 
-          <div class="preview-card">
-            <div class="preview-header">
-              <span>{{ option.previewTitle }}</span>
-              <button class="add-btn" (click)="add(option.type)" aria-label="Ajouter">
-                <ion-icon name="add"></ion-icon>
-              </button>
-            </div>
-
-            @if (option.type === 'tasks') {
-              @for (task of previewTasks; track task.id) {
-                <div class="preview-row">
-                  <span class="dot"></span>
-                  <span>{{ task.title }}</span>
-                </div>
-              } @empty {
-                <p class="preview-empty">Aucune tâche pour aujourd'hui</p>
-              }
-            }
-
-            @if (option.type === 'shopping') {
-              @for (item of previewItems; track item.id) {
-                <div class="preview-row">
-                  <span class="dot"></span>
-                  <span>{{ item.name }}</span>
-                </div>
-              } @empty {
-                <p class="preview-empty">Liste vide</p>
-              }
-            }
-
-            @if (option.type === 'calendar') {
-              @for (event of previewEvents; track event.id) {
-                <div class="preview-row">
-                  <span class="dot" [style.background]="event.color"></span>
-                  <span>{{ event.title }}</span>
-                </div>
-              } @empty {
-                <p class="preview-empty">Aucun événement à venir</p>
-              }
-            }
+          <div class="preview-header">
+            <span>{{ widgetTitles[option.type] }}</span>
+            <button class="add-btn" (click)="add(option.type)" aria-label="Ajouter">
+              <ion-icon name="add"></ion-icon>
+            </button>
           </div>
+
+          <app-home-widget-card [type]="option.type" preview></app-home-widget-card>
         </div>
       } @empty {
         <p class="all-added">Tous les widgets disponibles sont déjà sur ton accueil.</p>
@@ -121,19 +80,12 @@ const WIDGET_OPTIONS: WidgetOption[] = [
       }
     }
 
-    .preview-card {
-      background: #FFFFFF;
-      border-radius: 16px;
-      box-shadow: var(--shadow-base);
-      padding: 16px;
-    }
-
     .preview-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
 
     .add-btn {
@@ -141,7 +93,7 @@ const WIDGET_OPTIONS: WidgetOption[] = [
       height: 32px;
       border-radius: 50%;
       border: none;
-      background: linear-gradient(145deg, var(--tile-icon-light), var(--tile-icon));
+      background: var(--tile-icon);
       color: #FFFFFF;
       display: flex;
       align-items: center;
@@ -157,28 +109,6 @@ const WIDGET_OPTIONS: WidgetOption[] = [
       }
     }
 
-    .preview-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 0;
-      font-size: 14px;
-
-      .dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--tile-icon);
-        flex-shrink: 0;
-      }
-    }
-
-    .preview-empty {
-      color: var(--ion-color-medium);
-      font-size: 14px;
-      margin: 4px 0;
-    }
-
     .all-added {
       text-align: center;
       color: var(--ion-color-medium);
@@ -190,30 +120,14 @@ export class AddWidgetModalComponent implements OnInit {
   @Input() existingWidgets: HomeWidgetType[] = [];
 
   availableOptions: WidgetOption[] = [];
-  previewTasks: Task[] = [];
-  previewItems: ShoppingListItem[] = [];
-  previewEvents: CalendarEvent[] = [];
+  readonly widgetTitles = WIDGET_TITLES;
 
-  constructor(
-    private modalController: ModalController,
-    private taskService: TaskService,
-    private shoppingService: ShoppingListService,
-    private calendarService: CalendarService
-  ) {
+  constructor(private modalController: ModalController) {
     addIcons({ close, add });
   }
 
   ngOnInit() {
     this.availableOptions = WIDGET_OPTIONS.filter(option => !this.existingWidgets.includes(option.type));
-    this.previewTasks = this.taskService.getTodayTasks().slice(0, 3);
-    const list = this.shoppingService.getCurrentListSnapshot();
-    this.previewItems = (list?.items || []).filter(item => !item.isChecked).slice(0, 3);
-
-    const todayIso = new Date().toISOString().slice(0, 10);
-    this.previewEvents = this.calendarService.getEvents()
-      .filter(event => event.date >= todayIso)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 3);
   }
 
   add(type: HomeWidgetType) {

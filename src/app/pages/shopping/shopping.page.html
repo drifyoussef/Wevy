@@ -29,16 +29,24 @@
     @if (uncheckedItems.length > 0) {
       <div class="tasks-list">
         @for (item of uncheckedItems; track item.id) {
-          <div class="task-card" [class.removing]="removingIds.has(item.id)">
-            <button class="task-dot-btn" (click)="toggleItem(item.id)" aria-label="Marquer comme acheté">
+          <div
+            class="task-card"
+            [class.removing]="removingIds.has(item.id)"
+            (click)="toggleItem(item.id)"
+            (keyup.enter)="toggleItem(item.id)"
+            role="button"
+            tabindex="0"
+            aria-label="Marquer comme acheté"
+          >
+            <span class="task-dot-btn">
               <span class="task-dot"></span>
-            </button>
+            </span>
 
             <div class="task-info">
               <span class="task-title">{{ item.name }}</span>
             </div>
 
-            <button class="task-delete-badge" (click)="deleteItem(item.id)" aria-label="Supprimer le produit">
+            <button class="task-delete-badge" (click)="deleteItem(item.id, $event)" aria-label="Supprimer le produit">
               <ion-icon name="close"></ion-icon>
             </button>
           </div>
@@ -58,21 +66,39 @@
       
       <div class="tasks-list">
         @for (item of checkedItems; track item.id) {
-          <div class="task-card completed" [class.removing]="removingIds.has(item.id)">
-            <button class="task-dot-btn" (click)="toggleItem(item.id)" aria-label="Marquer comme à acheter">
-              <span class="task-dot filled"></span>
-            </button>
+          <div
+            class="task-card completed"
+            [class.removing]="removingIds.has(item.id)"
+            (click)="toggleItem(item.id)"
+            (keyup.enter)="toggleItem(item.id)"
+            role="button"
+            tabindex="0"
+            aria-label="Marquer comme à acheter"
+          >
+            <span class="task-dot-btn">
+              <span class="task-dot filled">
+                <ion-icon name="checkmark"></ion-icon>
+              </span>
+            </span>
 
             <div class="task-info">
               <span class="task-title">{{ item.name }}</span>
             </div>
 
-            <button class="task-delete-badge" (click)="deleteItem(item.id)" aria-label="Supprimer le produit">
+            <button class="task-delete-badge" (click)="deleteItem(item.id, $event)" aria-label="Supprimer le produit">
               <ion-icon name="close"></ion-icon>
             </button>
           </div>
         }
       </div>
     </div>
+  }
+
+  <!-- Terminer la liste -->
+  @if (totalItems > 0) {
+    <button class="finish-list-btn" (click)="finishList()" [disabled]="clearing">
+      <ion-icon name="checkmark-done"></ion-icon>
+      <span>Terminer la liste</span>
+    </button>
   }
 </ion-content>

@@ -18,10 +18,19 @@
     @if (todayTasks.length > 0) {
       <div class="tasks-list">
         @for (task of todayTasks; track task.id) {
-          <div class="task-card" [class.removing]="removingIds.has(task.id)">
-            <button class="task-dot-btn" (click)="toggleTask(task.id)" aria-label="Marquer comme terminée">
+          <div
+            class="task-card"
+            [class.removing]="removingIds.has(task.id)"
+            [class.toggling]="togglingIds.has(task.id)"
+            (click)="toggleTask(task.id)"
+            (keyup.enter)="toggleTask(task.id)"
+            role="button"
+            tabindex="0"
+            aria-label="Marquer comme terminée"
+          >
+            <span class="task-dot-btn">
               <span class="task-dot"></span>
-            </button>
+            </span>
 
             <div class="task-info">
               <span class="task-title">{{ task.title }}</span>
@@ -30,7 +39,7 @@
               }
             </div>
 
-            <button class="task-delete-badge" (click)="deleteTask(task.id)" aria-label="Supprimer la tâche">
+            <button class="task-delete-badge" (click)="deleteTask(task.id, $event)" aria-label="Supprimer la tâche">
               <ion-icon name="close"></ion-icon>
             </button>
           </div>
@@ -50,10 +59,21 @@
     @if (completedTasks.length > 0) {
       <div class="tasks-list">
         @for (task of completedTasks; track task.id) {
-          <div class="task-card completed" [class.removing]="removingIds.has(task.id)">
-            <button class="task-dot-btn" (click)="toggleTask(task.id)" aria-label="Marquer comme à faire">
-              <span class="task-dot filled"></span>
-            </button>
+          <div
+            class="task-card completed"
+            [class.removing]="removingIds.has(task.id)"
+            [class.toggling]="togglingIds.has(task.id)"
+            (click)="toggleTask(task.id)"
+            (keyup.enter)="toggleTask(task.id)"
+            role="button"
+            tabindex="0"
+            aria-label="Marquer comme à faire"
+          >
+            <span class="task-dot-btn">
+              <span class="task-dot filled">
+                <ion-icon name="checkmark"></ion-icon>
+              </span>
+            </span>
 
             <div class="task-info">
               <span class="task-title">{{ task.title }}</span>
@@ -62,7 +82,7 @@
               }
             </div>
 
-            <button class="task-delete-badge" (click)="deleteTask(task.id)" aria-label="Supprimer la tâche">
+            <button class="task-delete-badge" (click)="deleteTask(task.id, $event)" aria-label="Supprimer la tâche">
               <ion-icon name="close"></ion-icon>
             </button>
           </div>

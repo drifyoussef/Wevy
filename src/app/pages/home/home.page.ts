@@ -5,17 +5,15 @@ import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButtons, IonButton, ModalController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close, chevronBack, chevronForward } from 'ionicons/icons';
+import { checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close } from 'ionicons/icons';
 import { TaskService } from '../../services/task.service';
 import { ShoppingListService } from '../../services/shopping-list.service';
 import { CalendarService } from '../../services/calendar.service';
-import { Task } from '../../models/task.model';
-import { ShoppingListItem } from '../../models/shopping-list.model';
 import { Subscription, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { SwipePage } from '../swipe/swipe.page';
-import { AddWidgetModalComponent, HomeWidgetType } from './modals/add-widget-modal.component';
-import { DAY_LETTERS, MONTH_NAMES_FR, getMonday, toIsoDate } from '../../utils/date.utils';
+import { AddWidgetModalComponent } from './modals/add-widget-modal.component';
+import { HomeWidgetCardComponent, HomeWidgetType, WIDGET_TITLES } from './components/home-widget-card.component';
 
 interface AppTile {
   label: string;
@@ -25,14 +23,6 @@ interface AppTile {
   badge?: number;
 }
 
-interface MiniDayCell {
-  iso: string;
-  dayLetter: string;
-  dayNumber: number;
-  isToday: boolean;
-  hasEvents: boolean;
-}
-
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
@@ -40,7 +30,8 @@ interface MiniDayCell {
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButtons, IonButton
+    IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButtons, IonButton,
+    HomeWidgetCardComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -52,14 +43,10 @@ export class HomePage implements OnInit, OnDestroy {
   todayLabel: string = '';
 
   appTiles: AppTile[] = [];
-  todayTasks: Task[] = [];
-  shoppingItems: ShoppingListItem[] = [];
-  calendarWeekDays: MiniDayCell[] = [];
-  calendarMonthLabel = '';
   homeWidgets: HomeWidgetType[] = [];
+  readonly widgetTitles = WIDGET_TITLES;
 
   private static readonly WIDGETS_STORAGE_KEY = 'wevy_home_widgets';
-  private calendarWidgetWeekStart: Date = getMonday(new Date());
 
   private static readonly TILE_DEFS: Omit<AppTile, 'badge'>[] = [
     { label: 'Tâches', icon: 'checkmark-done', route: '/tabs/tasks' },
@@ -82,7 +69,7 @@ export class HomePage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close, chevronBack, chevronForward });
+    addIcons({ checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, airplane, settings, add, close });
     this.appTiles = HomePage.TILE_DEFS.map(tile => ({ ...tile }));
     this.todayLabel = this.formatToday();
     this.homeWidgets = this.loadHomeWidgets();
@@ -124,14 +111,12 @@ export class HomePage implements OnInit, OnDestroy {
     });
 
     this.calendarSubscription = this.calendarService.events$.subscribe(() => {
-      this.buildCalendarWidgetWeek();
       this.updateCalendarBadge();
       this.cdr.markForCheck();
     });
 
     this.updateTasksBadge();
     this.updateShoppingBadge();
-    this.buildCalendarWidgetWeek();
     this.updateCalendarBadge();
     this.displayName = await this.authService.getDisplayName();
   }
@@ -144,49 +129,13 @@ export class HomePage implements OnInit, OnDestroy {
 
   private updateTasksBadge() {
     const uncompletedTasks = this.taskService.getTodayTasks();
-    this.todayTasks = uncompletedTasks.slice(0, 3);
     this.setTileBadge('Tâches', uncompletedTasks.length);
   }
 
   private updateShoppingBadge() {
     const shoppingList = this.shoppingService.getCurrentListSnapshot();
     const uncheckedItems = (shoppingList?.items || []).filter(item => !item.isChecked);
-    this.shoppingItems = uncheckedItems.slice(0, 3);
     this.setTileBadge('Courses', uncheckedItems.length);
-  }
-
-  private buildCalendarWidgetWeek() {
-    const todayIso = toIsoDate(new Date());
-
-    this.calendarWeekDays = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(this.calendarWidgetWeekStart);
-      date.setDate(date.getDate() + i);
-      const iso = toIsoDate(date);
-
-      return {
-        iso,
-        dayLetter: DAY_LETTERS[i],
-        dayNumber: date.getDate(),
-        isToday: iso === todayIso,
-        hasEvents: this.calendarService.getEventsForDate(iso).length > 0
-      };
-    });
-
-    this.calendarMonthLabel = `${MONTH_NAMES_FR[this.calendarWidgetWeekStart.getMonth()]} ${this.calendarWidgetWeekStart.getFullYear()}`;
-  }
-
-  calendarWidgetPreviousWeek(event: Event) {
-    event.stopPropagation();
-    this.calendarWidgetWeekStart.setDate(this.calendarWidgetWeekStart.getDate() - 7);
-    this.calendarWidgetWeekStart = new Date(this.calendarWidgetWeekStart);
-    this.buildCalendarWidgetWeek();
-  }
-
-  calendarWidgetNextWeek(event: Event) {
-    event.stopPropagation();
-    this.calendarWidgetWeekStart.setDate(this.calendarWidgetWeekStart.getDate() + 7);
-    this.calendarWidgetWeekStart = new Date(this.calendarWidgetWeekStart);
-    this.buildCalendarWidgetWeek();
   }
 
   private updateCalendarBadge() {
