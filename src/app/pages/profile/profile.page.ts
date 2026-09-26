@@ -3,15 +3,15 @@ import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton,
   IonButtons, IonBackButton,
-  ModalController, AlertController, IonSegment, IonSegmentButton, IonInput, IonLabel
+  ModalController, AlertController, IonSegment, IonSegmentButton, IonInput, IonLabel, IonSpinner
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import {
-  homeOutline, home, addOutline, keyOutline, chevronForward, close, copyOutline,
+  homeOutline, home, cloudOfflineOutline, addOutline, keyOutline, chevronForward, close, copyOutline,
   checkmark, linkOutline, shareSocialOutline, refreshOutline, personRemoveOutline, exitOutline
 } from 'ionicons/icons';
-import { HouseholdService } from '../../services/household.service';
+import { HouseholdService, HouseholdLoadState } from '../../services/household.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { Household, HouseholdMember } from '../../models/user.model';
@@ -27,7 +27,7 @@ import { Subscription } from 'rxjs';
     CommonModule,
     FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonIcon,
-    IonButtons, IonBackButton
+    IonButtons, IonBackButton, IonSpinner
   ]
 })
 export class ProfilePage implements OnInit, OnDestroy {
@@ -38,7 +38,8 @@ export class ProfilePage implements OnInit, OnDestroy {
   inviteCode = '';
   copiedLink = false;
   copiedCode = false;
-  private householdSubscription?: Subscription;
+  loadState: HouseholdLoadState = 'loading';
+  private subscriptions = new Subscription();
 
   constructor(
     private householdService: HouseholdService,
@@ -48,28 +49,35 @@ export class ProfilePage implements OnInit, OnDestroy {
     private toastService: ToastService
   ) {
     addIcons({
-      homeOutline, home, addOutline, keyOutline, chevronForward, close, copyOutline,
+      homeOutline, home, cloudOfflineOutline, addOutline, keyOutline, chevronForward, close, copyOutline,
       checkmark, linkOutline, shareSocialOutline, refreshOutline, personRemoveOutline, exitOutline
     });
   }
 
   ngOnInit() {
-    const currentUser = this.authService.getCurrentUser();
-    this.currentUserId = currentUser?.id || null;
-    this.loadHousehold();
-  }
+    // Followed rather than read once: right after a refresh the user isn't loaded yet
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe(user => this.currentUserId = user?.id || null)
+    );
 
-  private loadHousehold() {
-    this.householdSubscription = this.householdService.getCurrentHousehold$().subscribe(
-      household => {
+    this.subscriptions.add(
+      this.householdService.loadState$.subscribe(state => this.loadState = state)
+    );
+
+    this.subscriptions.add(
+      this.householdService.getCurrentHousehold$().subscribe(household => {
         this.household = household;
         this.members = household?.members || [];
         if (household) {
           this.inviteLink = household.inviteLink;
           this.inviteCode = household.inviteCode;
         }
-      }
+      })
     );
+  }
+
+  retryLoad() {
+    this.householdService.reload();
   }
 
   async createHousehold() {
@@ -288,7 +296,7 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.householdSubscription?.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 }
 

@@ -48,7 +48,13 @@ export class AuthService {
       this.currentUserSubject.next(response.user);
     } catch (error) {
       console.error('Error loading user profile:', error);
-      this.signOut();
+      // Token refusé ou compte supprimé : la session est vraiment finie.
+      // Une erreur réseau / serveur (backend qui redémarre...) ne doit pas effacer le token :
+      // le prochain refresh reconnectera l'utilisateur tout seul.
+      const status = (error as { statusCode?: number }).statusCode;
+      if (status === 401 || status === 403 || status === 404) {
+        this.signOut();
+      }
     }
   }
 

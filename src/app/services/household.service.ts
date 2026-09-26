@@ -25,6 +25,13 @@ interface BackendHousehold {
   updatedAt: string | Date;
 }
 
+/**
+ * - loading : on ne sait pas encore (démarrage de l'app, refresh) - `null` ne veut PAS dire "pas de foyer"
+ * - ready   : état fiable - `null` veut dire que l'utilisateur n'a vraiment pas de foyer
+ * - error   : le foyer n'a pas pu être chargé (réseau, serveur) - on ne sait pas
+ */
+export type HouseholdLoadState = 'loading' | 'ready' | 'error';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -32,28 +39,82 @@ export class HouseholdService {
   private currentHouseholdSubject = new BehaviorSubject<Household | null>(null);
   public currentHousehold$ = this.currentHouseholdSubject.asObservable();
 
+  private loadStateSubject = new BehaviorSubject<HouseholdLoadState>('loading');
+  public loadState$ = this.loadStateSubject.asObservable();
+
+  /** Dernier chargement lancé, attendu par getCurrentHousehold(). */
+  private pendingLoad: Promise<void> = Promise.resolve();
+  /** Numéro du dernier chargement : une réponse plus ancienne arrivant après est ignorée. */
+  private loadSeq = 0;
+  private authReady = false;
+
   constructor(private api: ApiService, private authService: AuthService) {
     // Le foyer courant suit l'utilisateur connecté (aucune donnée locale partagée)
     this.authService.currentUser$.subscribe(user => {
       if (user?.householdId) {
-        this.loadHouseholdById(user.householdId);
+        this.pendingLoad = this.loadHouseholdById(user.householdId);
       } else {
+        this.loadSeq++; // annule un chargement en cours
         this.currentHouseholdSubject.next(null);
+        // Sans utilisateur avant la fin de l'init, on ne sait encore rien
+        if (user || this.authReady) {
+          this.loadStateSubject.next('ready');
+        }
       }
     });
+
+    this.authService.waitForInit().then(() => {
+      this.authReady = true;
+      // Pas connecté au démarrage : rien à charger
+      if (!this.authService.getCurrentUser()) {
+        this.loadStateSubject.next('ready');
+      }
+    });
+  }
+
+  get loadState(): HouseholdLoadState {
+    return this.loadStateSubject.value;
   }
 
   /**
    * Charge un foyer depuis le backend et le définit comme foyer courant
    */
   private async loadHouseholdById(householdId: string): Promise<void> {
+    const seq = ++this.loadSeq;
+
+    // Simple rafraîchissement du foyer déjà affiché : pas besoin de repasser en "loading"
+    if (this.currentHouseholdSubject.value?.id !== householdId) {
+      this.loadStateSubject.next('loading');
+    }
+
     try {
       const response = await this.api.getAsync<{ household: BackendHousehold }>(`households/${householdId}`);
+      if (seq !== this.loadSeq) return;
       this.currentHouseholdSubject.next(this.normalize(response.household));
+      this.loadStateSubject.next('ready');
     } catch (error) {
+      if (seq !== this.loadSeq) return;
       console.error('Error loading household:', error);
-      // Foyer introuvable / plus membre : on nettoie l'état
-      this.currentHouseholdSubject.next(null);
+
+      if ((error as { statusCode?: number }).statusCode === 404) {
+        // Le backend répond 404 quand le foyer n'existe plus ou qu'on n'en est plus membre
+        this.currentHouseholdSubject.next(null);
+        this.loadStateSubject.next('ready');
+      } else {
+        // Erreur réseau / serveur : on garde ce qu'on avait, sans prétendre qu'il n'y a pas de foyer
+        this.loadStateSubject.next('error');
+      }
+    }
+  }
+
+  /**
+   * Relance le chargement du foyer de l'utilisateur (après une erreur réseau par exemple)
+   */
+  async reload(): Promise<void> {
+    const householdId = this.authService.getHouseholdId();
+    if (householdId) {
+      this.pendingLoad = this.loadHouseholdById(householdId);
+      await this.pendingLoad;
     }
   }
 
@@ -93,9 +154,20 @@ export class HouseholdService {
   }
 
   /**
-   * Obtenir le foyer actuel
+   * Obtenir le foyer actuel.
+   * Attend la fin de l'init de l'auth et du chargement en cours : juste après un refresh,
+   * lire directement la valeur donnerait `null` alors que l'utilisateur a bien un foyer.
    */
   async getCurrentHousehold(): Promise<Household | null> {
+    await this.authService.waitForInit();
+
+    // Un nouveau chargement peut démarrer pendant qu'on attend le précédent
+    let pending: Promise<void>;
+    do {
+      pending = this.pendingLoad;
+      await pending;
+    } while (pending !== this.pendingLoad);
+
     return this.currentHouseholdSubject.value;
   }
 

@@ -83,7 +83,9 @@ export class SwipePage implements OnInit {
     try {
       const household = await this.householdService.getCurrentHousehold();
       if (!household) {
-        this.errorMessage = 'Tu dois rejoindre ou créer un foyer pour utiliser le mode swipe.';
+        this.errorMessage = this.householdService.loadState === 'error'
+          ? 'Impossible de charger ton foyer. Vérifie ta connexion et réessaie.'
+          : 'Tu dois rejoindre ou créer un foyer pour utiliser le mode swipe.';
         return;
       }
 

@@ -8,7 +8,27 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  @if (!household) {
+  @if (!household && loadState === 'loading') {
+    <!-- Juste après un refresh : on ne sait pas encore s'il y a un foyer -->
+    <div class="household-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  } @else if (!household && loadState === 'error') {
+    <section class="settings-section">
+      <div class="empty-state household-empty">
+        <ion-icon name="cloud-offline-outline"></ion-icon>
+        <span>Impossible de charger ton foyer. Vérifie ta connexion et réessaie.</span>
+      </div>
+
+      <div class="settings-card">
+        <button class="settings-row" (click)="retryLoad()">
+          <span class="settings-row-icon"><ion-icon name="refresh-outline"></ion-icon></span>
+          <span class="settings-row-label">Réessayer</span>
+          <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+        </button>
+      </div>
+    </section>
+  } @else if (!household) {
     <!-- Pas encore de foyer -->
     <section class="settings-section">
       <div class="empty-state household-empty">

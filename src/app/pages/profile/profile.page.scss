@@ -4,6 +4,16 @@
   margin-bottom: 16px;
 }
 
+.household-loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+
+  ion-spinner {
+    --color: var(--tile-icon);
+  }
+}
+
 .settings-account--last {
   border-bottom: none;
 }
