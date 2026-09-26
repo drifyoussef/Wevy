@@ -1,4 +1,4 @@
-import { enableProdMode } from '@angular/core';
+import { enableProdMode, provideZoneChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { RouteReuseStrategy, provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -16,6 +16,10 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
+    // Angular 21 bootstraps zoneless by default, even with zone.js in the polyfills. The app is
+    // written for Zone.js (default change detection, async loads that just assign fields):
+    // without this, the screen isn't refreshed when an HTTP call resolves (endless spinners).
+    provideZoneChangeDetection({ eventCoalescing: true }),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     provideIonicAngular(),

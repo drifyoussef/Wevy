@@ -1,0 +1,246 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Horaires</ion-title>
+    @if (state === 'ready') {
+      <ion-buttons slot="end">
+        <ion-button fill="clear" (click)="openAdd()" aria-label="Ajouter un créneau">
+          <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  @switch (state) {
+    @case ('loading') {
+      <div class="schedules-loading">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    }
+
+    @case ('error') {
+      <div class="empty-state schedules-message">
+        <ion-icon name="cloud-offline-outline"></ion-icon>
+        <span>Impossible de charger les horaires. Vérifie ta connexion et réessaie.</span>
+      </div>
+      <div class="settings-card">
+        <button class="settings-row" (click)="load()">
+          <span class="settings-row-icon"><ion-icon name="refresh-outline"></ion-icon></span>
+          <span class="settings-row-label">Réessayer</span>
+          <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+        </button>
+      </div>
+    }
+
+    @case ('no-household') {
+      <div class="empty-state schedules-message">
+        <ion-icon name="home-outline"></ion-icon>
+        <span>Rejoins ou crée un foyer pour partager tes horaires avec tes proches.</span>
+      </div>
+      <div class="settings-card">
+        <button class="settings-row" routerLink="/tabs/settings/household">
+          <span class="settings-row-icon"><ion-icon name="home-outline"></ion-icon></span>
+          <span class="settings-row-label">Mon foyer</span>
+          <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+        </button>
+      </div>
+    }
+
+    @case ('ready') {
+      <!-- Semaine -->
+      <div class="week-strip">
+        @for (day of week; track day) {
+          <button
+            class="day-cell"
+            [class.today]="day === today"
+            [class.selected]="day === selectedDay"
+            (click)="selectDay(day)"
+            [attr.aria-label]="dayNames[day]"
+          >
+            <span class="day-letter">{{ dayLetters[day] }}</span>
+            <span class="day-dots">
+              @for (color of busyColors(day); track $index) {
+                <span class="day-dot" [style.background]="color"></span>
+              }
+            </span>
+          </button>
+        }
+      </div>
+
+      <!-- Membres ce jour-là -->
+      <section class="settings-section">
+        <h2 class="settings-section-title">{{ dayNames[selectedDay] }}{{ selectedDay === today ? " · aujourd'hui" : '' }}</h2>
+
+        <div class="settings-card">
+          @for (entry of memberDays; track entry.member.userId) {
+            <div class="member-row">
+              <span class="member-avatar" [style.background]="avatarColor(entry.member.displayName)">
+                {{ entry.member.displayName.charAt(0).toUpperCase() }}
+              </span>
+
+              <div class="member-body">
+                <div class="member-name-row">
+                  <span class="member-name">{{ entry.member.displayName }}</span>
+                  @if (entry.isMe) {
+                    <span class="member-chip">Vous</span>
+                  }
+                </div>
+
+                @if (entry.slots.length > 0) {
+                  <div class="slot-list">
+                    @for (slot of entry.slots; track slot.id) {
+                      <span class="slot" [class.slot--mine]="entry.isMe">
+                        <span class="slot-main">
+                          <span class="slot-line">
+                            <span class="slot-time">{{ slot.start }} – {{ slot.end }}</span>
+                            <span class="slot-label">{{ slot.label }}</span>
+                          </span>
+                          @if (slot.breakStart) {
+                            <span class="slot-break">
+                              <ion-icon name="cafe-outline"></ion-icon>
+                              Pause {{ slot.breakStart }} – {{ slot.breakEnd }}
+                            </span>
+                          }
+                        </span>
+                        @if (entry.isMe) {
+                          <button class="slot-delete" (click)="deleteSlot(slot)" [attr.aria-label]="'Supprimer ' + slot.label">
+                            <ion-icon name="close"></ion-icon>
+                          </button>
+                        }
+                      </span>
+                    }
+                  </div>
+                } @else {
+                  <span class="member-free">
+                    <ion-icon name="sunny-outline"></ion-icon>
+                    Libre
+                  </span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <button class="add-slot-btn" (click)="openAdd()">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Ajouter mes horaires</span>
+      </button>
+    }
+  }
+
+  <!-- Ajout de créneaux -->
+  <ion-modal
+    [isOpen]="addOpen"
+    (didDismiss)="addOpen = false"
+    [initialBreakpoint]="0.85"
+    [breakpoints]="[0, 0.85, 1]"
+  >
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Nouveau créneau</ion-title>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" (click)="addOpen = false" aria-label="Fermer">
+              <ion-icon slot="icon-only" name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <section class="form-group">
+          <h3 class="form-group-title">Quoi</h3>
+          <input
+            class="form-input"
+            type="text"
+            [(ngModel)]="form.label"
+            placeholder="Travail, École, Sport..."
+            maxlength="40"
+            aria-label="Nom du créneau"
+          />
+          <div class="chips">
+            @for (suggestion of labelSuggestions; track suggestion) {
+              <button class="chip" [class.selected]="form.label === suggestion" (click)="form.label = suggestion">
+                {{ suggestion }}
+              </button>
+            }
+          </div>
+        </section>
+
+        <section class="form-group">
+          <div class="form-group-header">
+            <h3 class="form-group-title">Quels jours</h3>
+            <button class="form-link" (click)="selectWorkWeek()">Du lundi au vendredi</button>
+          </div>
+          <div class="day-picker">
+            @for (day of week; track day) {
+              <button
+                class="day-pick"
+                [class.selected]="form.days.has(day)"
+                [attr.aria-pressed]="form.days.has(day)"
+                (click)="toggleFormDay(day)"
+                [attr.aria-label]="dayNames[day]"
+              >
+                {{ dayLetters[day] }}
+              </button>
+            }
+          </div>
+        </section>
+
+        <section class="form-group">
+          <h3 class="form-group-title">Horaires</h3>
+          <div class="time-row">
+            <label class="time-field">
+              <span>De</span>
+              <input type="time" [(ngModel)]="form.start" />
+            </label>
+            <label class="time-field">
+              <span>À</span>
+              <input type="time" [(ngModel)]="form.end" />
+            </label>
+          </div>
+        </section>
+
+        <section class="form-group">
+          <label class="break-toggle">
+            <span class="break-toggle-label">
+              <ion-icon name="cafe-outline"></ion-icon>
+              Pause (déjeuner...)
+            </span>
+            <ion-toggle [(ngModel)]="form.hasBreak" aria-label="Ajouter une pause"></ion-toggle>
+          </label>
+
+          @if (form.hasBreak) {
+            <div class="time-row break-times">
+              <label class="time-field">
+                <span>Pause de</span>
+                <input type="time" [(ngModel)]="form.breakStart" />
+              </label>
+              <label class="time-field">
+                <span>À</span>
+                <input type="time" [(ngModel)]="form.breakEnd" />
+              </label>
+            </div>
+          }
+        </section>
+
+        @if (formError) {
+          <p class="form-error">{{ formError }}</p>
+        }
+
+        <button class="add-slot-btn" (click)="saveSlots()" [disabled]="saving">
+          @if (saving) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            Ajouter
+          }
+        </button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

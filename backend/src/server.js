@@ -18,6 +18,7 @@ app.use('/api/households', require('./routes/household.routes'));
 app.use('/api/recipes', require('./routes/recipe.routes'));
 app.use('/api/swipe', require('./routes/swipe.routes'));
 app.use('/api/shopping', require('./routes/shopping.routes'));
+app.use('/api/schedules', require('./routes/schedule.routes'));
 
 // Health check
 app.get('/health', (req, res) => {
