@@ -4,12 +4,17 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
-  IonToggle, IonBackButton, IonButtons, IonCard, IonCardContent,
-  IonSelect, IonSelectOption, IonInput, IonLabel, IonSpinner
+  IonToggle, IonBackButton, IonButtons, IonSelect, IonSelectOption,
+  IonInput, IonSpinner, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBack, notifications, phonePortrait, mail } from 'ionicons/icons';
+import {
+  chevronForward, homeOutline, phonePortraitOutline, mailOutline, checkmarkDoneOutline,
+  restaurantOutline, heartOutline, peopleOutline, timeOutline, notificationsOffOutline,
+  lockClosedOutline, logOutOutline
+} from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 import { User } from '../../models/user.model';
 
 interface NotificationPreferences {
@@ -23,11 +28,26 @@ interface NotificationPreferences {
   notificationFrequency: 'realtime' | 'daily' | 'weekly';
 }
 
+type NotificationTypeKey = 'taskReminders' | 'mealReminders' | 'swipeReminders' | 'familyUpdates';
+
 interface PasswordForm {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 }
+
+const PREFERENCES_STORAGE_KEY = 'wevy_notification_preferences';
+
+const DEFAULT_PREFERENCES: NotificationPreferences = {
+  emailNotifications: true,
+  pushNotifications: true,
+  smsNotifications: false,
+  swipeReminders: true,
+  mealReminders: true,
+  taskReminders: true,
+  familyUpdates: true,
+  notificationFrequency: 'realtime'
+};
 
 @Component({
   selector: 'app-settings',
@@ -40,45 +60,48 @@ interface PasswordForm {
     FormsModule,
     RouterLink,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
-    IonToggle, IonBackButton, IonButtons, IonCard, IonCardContent,
-    IonSelect, IonSelectOption, IonInput, IonLabel, IonSpinner
+    IonToggle, IonBackButton, IonButtons, IonSelect, IonSelectOption,
+    IonInput, IonSpinner
   ]
 })
 export class SettingsPage implements OnInit {
-  selectedTab = 'notifications';
   currentUser: User | null = null;
-  preferences: NotificationPreferences = {
-    emailNotifications: true,
-    pushNotifications: true,
-    smsNotifications: false,
-    swipeReminders: true,
-    mealReminders: true,
-    taskReminders: true,
-    familyUpdates: true,
-    notificationFrequency: 'realtime'
-  };
+  preferences: NotificationPreferences = { ...DEFAULT_PREFERENCES };
 
-  passwordForm: PasswordForm = {
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  };
+  readonly notificationTypes: { key: NotificationTypeKey; label: string; icon: string }[] = [
+    { key: 'taskReminders', label: 'Tâches à faire', icon: 'checkmark-done-outline' },
+    { key: 'mealReminders', label: 'Repas', icon: 'restaurant-outline' },
+    { key: 'swipeReminders', label: 'Swipe de recettes', icon: 'heart-outline' },
+    { key: 'familyUpdates', label: 'Nouvelles du foyer', icon: 'people-outline' },
+  ];
 
-  passwordError = '';
-  passwordSuccess = '';
-  isChangingPassword = false;
-
-  frequencyOptions = [
+  readonly frequencyOptions = [
     { label: 'En temps réel', value: 'realtime' },
     { label: 'Quotidien', value: 'daily' },
     { label: 'Hebdomadaire', value: 'weekly' }
   ];
 
+  showPasswordForm = false;
+  passwordForm: PasswordForm = this.emptyPasswordForm();
+  passwordError = '';
+  isChangingPassword = false;
+
   constructor(
     private authService: AuthService,
+    private toastService: ToastService,
+    private alertController: AlertController,
     private router: Router
   ) {
-    addIcons({ arrowBack, notifications, phonePortrait, mail });
+    addIcons({
+      chevronForward, homeOutline, phonePortraitOutline, mailOutline, checkmarkDoneOutline,
+      restaurantOutline, heartOutline, peopleOutline, timeOutline, notificationsOffOutline,
+      lockClosedOutline, logOutOutline
+    });
+  }
+
+  /** The per-type toggles only mean something if at least one channel is on. */
+  get notificationsEnabled(): boolean {
+    return this.preferences.pushNotifications || this.preferences.emailNotifications;
   }
 
   ngOnInit() {
@@ -91,38 +114,57 @@ export class SettingsPage implements OnInit {
   }
 
   async logout() {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-      await this.authService.signOut();
-      this.router.navigate(['/auth/login'], { replaceUrl: true });
-    }
+    const alert = await this.alertController.create({
+      header: 'Se déconnecter ?',
+      buttons: [
+        { text: 'Annuler', role: 'cancel' },
+        {
+          text: 'Se déconnecter',
+          role: 'destructive',
+          handler: async () => {
+            await this.authService.signOut();
+            this.router.navigate(['/auth/login'], { replaceUrl: true });
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   loadPreferences() {
     try {
-      const stored = localStorage.getItem('wevy_notification_preferences');
+      const stored = localStorage.getItem(PREFERENCES_STORAGE_KEY);
       if (stored) {
-        this.preferences = JSON.parse(stored);
+        // Merge over the defaults so a key added later never comes back undefined
+        this.preferences = { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
     }
   }
 
+  /** Saved on every change - no "save" button to forget. */
   savePreferences() {
     try {
-      localStorage.setItem('wevy_notification_preferences', JSON.stringify(this.preferences));
-      alert('Paramètres sauvegardés');
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(this.preferences));
     } catch (error) {
       console.error('Error saving preferences:', error);
+      this.toastService.error("Impossible d'enregistrer tes préférences");
+    }
+  }
+
+  togglePasswordForm() {
+    this.showPasswordForm = !this.showPasswordForm;
+    if (!this.showPasswordForm) {
+      this.passwordForm = this.emptyPasswordForm();
+      this.passwordError = '';
     }
   }
 
   async changePassword() {
-    // Reset messages
     this.passwordError = '';
-    this.passwordSuccess = '';
 
-    // Validation
     if (!this.passwordForm.currentPassword.trim()) {
       this.passwordError = 'Veuillez entrer votre mot de passe actuel';
       return;
@@ -148,7 +190,6 @@ export class SettingsPage implements OnInit {
       return;
     }
 
-    // Call API
     try {
       this.isChangingPassword = true;
       await this.authService.changePassword(
@@ -156,42 +197,37 @@ export class SettingsPage implements OnInit {
         this.passwordForm.newPassword
       );
 
-      this.passwordSuccess = 'Mot de passe changé avec succès!';
-      
-      // Reset form
-      this.passwordForm = {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      };
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        this.passwordSuccess = '';
-      }, 3000);
+      this.toastService.success('Mot de passe changé !');
+      this.showPasswordForm = false;
+      this.passwordForm = this.emptyPasswordForm();
     } catch (error: unknown) {
       console.error('Change password error:', error);
-      
-      // Handle different error types
-      if (error instanceof Error) {
-        this.passwordError = error.message;
-      } else if (typeof error === 'object' && error !== null && 'error' in error) {
-        const httpError = error as Record<string, unknown>;
-        if (typeof httpError.error === 'object' && httpError.error !== null && 'error' in httpError.error) {
-          const apiError = httpError.error as Record<string, unknown>;
-          this.passwordError = String(apiError.error || 'Erreur lors du changement de mot de passe');
-        } else {
-          this.passwordError = String(httpError.error || 'Erreur lors du changement de mot de passe');
-        }
-      } else {
-        this.passwordError = 'Erreur lors du changement de mot de passe';
-      }
+      this.passwordError = this.extractErrorMessage(error);
     } finally {
       this.isChangingPassword = false;
     }
   }
 
-  goBack() {
-    window.history.back();
+  private extractErrorMessage(error: unknown): string {
+    const fallback = 'Erreur lors du changement de mot de passe';
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    if (typeof error === 'object' && error !== null && 'error' in error) {
+      const httpError = error as Record<string, unknown>;
+      if (typeof httpError.error === 'object' && httpError.error !== null && 'error' in httpError.error) {
+        const apiError = httpError.error as Record<string, unknown>;
+        return String(apiError.error || fallback);
+      }
+      return String(httpError.error || fallback);
+    }
+
+    return fallback;
+  }
+
+  private emptyPasswordForm(): PasswordForm {
+    return { currentPassword: '', newPassword: '', confirmPassword: '' };
   }
 }

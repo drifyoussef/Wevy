@@ -1,16 +1,15 @@
-import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnInit, OnDestroy, Optional, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton,
-  IonButtons, IonBackButton,
-  ModalController, IonSegment, IonSegmentButton, IonInput, IonLabel
+  IonButtons, IonBackButton, IonRouterOutlet, NavController,
+  ModalController, AlertController, IonSegment, IonSegmentButton, IonInput, IonLabel
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import {
-  notifications, people, settings, add, close, copy, checkmark,
-  trash, shieldHalf, linkOutline, key, shareSocial, exit, refresh, chevronForward, logOut
+  settingsOutline, homeOutline, home, addOutline, keyOutline, chevronForward, close, copyOutline,
+  checkmark, linkOutline, shareSocialOutline, refreshOutline, personRemoveOutline, exitOutline
 } from 'ionicons/icons';
 import { HouseholdService } from '../../services/household.service';
 import { AuthService } from '../../services/auth.service';
@@ -28,15 +27,13 @@ import { Subscription } from 'rxjs';
     CommonModule,
     FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton,
-    IonButtons, IonBackButton,
-    IonSegment, IonSegmentButton, IonLabel
+    IonButtons, IonBackButton
   ]
 })
 export class ProfilePage implements OnInit, OnDestroy {
   household: Household | null = null;
   members: HouseholdMember[] = [];
   currentUserId: string | null = null;
-  selectedTab = 'household';
   inviteLink = '';
   inviteCode = '';
   copiedLink = false;
@@ -47,12 +44,14 @@ export class ProfilePage implements OnInit, OnDestroy {
     private householdService: HouseholdService,
     private authService: AuthService,
     private modalController: ModalController,
-    private router: Router,
-    private toastService: ToastService
+    private alertController: AlertController,
+    private navController: NavController,
+    private toastService: ToastService,
+    @Optional() private routerOutlet: IonRouterOutlet | null
   ) {
     addIcons({
-      notifications, people, settings, add, close, copy, checkmark,
-      trash, shieldHalf, linkOutline, key, shareSocial, exit, refresh, chevronForward, logOut
+      settingsOutline, homeOutline, home, addOutline, keyOutline, chevronForward, close, copyOutline,
+      checkmark, linkOutline, shareSocialOutline, refreshOutline, personRemoveOutline, exitOutline
     });
   }
 
@@ -152,12 +151,21 @@ export class ProfilePage implements OnInit, OnDestroy {
   async regenerateInvite() {
     if (!this.household) return;
 
+    const confirmed = await this.confirm(
+      'Nouveau code ?',
+      "L'ancien code et l'ancien lien ne fonctionneront plus.",
+      'Générer'
+    );
+    if (!confirmed) return;
+
     try {
       const result = await this.householdService.regenerateInviteLink(this.household.id);
       this.inviteLink = result.link;
       this.inviteCode = result.code;
+      this.toastService.success('Nouveau code généré');
     } catch (error) {
       console.error('Error regenerating invite:', error);
+      this.toastService.error('Impossible de générer un nouveau code');
     }
   }
 
@@ -170,28 +178,40 @@ export class ProfilePage implements OnInit, OnDestroy {
         this.copiedCode = true;
         setTimeout(() => this.copiedCode = false, 2000);
       }
-    });
+    }).catch(() => this.toastService.error('Impossible de copier'));
   }
 
   shareLink() {
-    if (navigator.share) {
-      navigator.share({
-        title: `Rejoignez mon foyer sur Wevy`,
-        text: `Rejoignez mon foyer avec ce lien: ${this.inviteLink}`,
-        url: this.inviteLink
-      }).catch(err => console.log('Error sharing:', err));
+    // No share sheet (desktop browsers): copying is the next best thing
+    if (!navigator.share) {
+      this.copyToClipboard(this.inviteLink, 'link');
+      this.toastService.success('Lien copié');
+      return;
     }
+
+    navigator.share({
+      title: 'Rejoins mon foyer sur Wevy',
+      text: `Rejoins mon foyer avec ce lien : ${this.inviteLink}`,
+      url: this.inviteLink
+    }).catch(err => console.log('Error sharing:', err));
   }
 
-  async removeMember(memberId: string) {
+  async removeMember(member: HouseholdMember) {
     if (!this.household) return;
 
-    if (confirm('Êtes-vous sûr de vouloir retirer ce membre?')) {
-      try {
-        await this.householdService.removeMember(this.household.id, memberId);
-      } catch (error) {
-        console.error('Error removing member:', error);
-      }
+    const confirmed = await this.confirm(
+      `Retirer ${member.displayName} ?`,
+      "Cette personne n'aura plus accès au foyer.",
+      'Retirer'
+    );
+    if (!confirmed) return;
+
+    try {
+      await this.householdService.removeMember(this.household.id, member.userId);
+      this.toastService.success(`${member.displayName} a été retiré du foyer`);
+    } catch (error) {
+      console.error('Error removing member:', error);
+      this.toastService.error('Impossible de retirer ce membre');
     }
   }
 
@@ -208,13 +228,45 @@ export class ProfilePage implements OnInit, OnDestroy {
   async leaveHousehold() {
     if (!this.household || !this.currentUserId) return;
 
-    if (confirm('Êtes-vous sûr de vouloir quitter le foyer?')) {
-      try {
-        await this.householdService.leaveHousehold(this.household.id, this.currentUserId);
-      } catch (error) {
-        console.error('Error leaving household:', error);
-      }
+    // The backend deletes the whole household when its creator (or last member) leaves
+    const deletesHousehold = this.household.createdBy === this.currentUserId || this.members.length === 1;
+    const others = this.members.length - 1;
+    const message = !deletesHousehold
+      ? "Tu n'auras plus accès aux tâches, courses et au calendrier du foyer."
+      : others > 0
+        ? `Tu as créé ce foyer : le quitter le supprimera définitivement pour les ${others} autre${others > 1 ? 's' : ''} membre${others > 1 ? 's' : ''}.`
+        : 'Tu es le seul membre : le foyer sera supprimé définitivement.';
+
+    const confirmed = await this.confirm(
+      deletesHousehold ? 'Supprimer le foyer ?' : 'Quitter le foyer ?',
+      message,
+      deletesHousehold ? 'Supprimer' : 'Quitter'
+    );
+    if (!confirmed) return;
+
+    try {
+      await this.householdService.leaveHousehold(this.household.id, this.currentUserId);
+      this.toastService.success(deletesHousehold ? 'Foyer supprimé' : 'Tu as quitté le foyer');
+    } catch (error) {
+      console.error('Error leaving household:', error);
+      this.toastService.error('Impossible de quitter le foyer');
     }
+  }
+
+  /** Native-looking confirmation dialog with a red action button. */
+  private async confirm(header: string, message: string, confirmText: string): Promise<boolean> {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: [
+        { text: 'Annuler', role: 'cancel' },
+        { text: confirmText, role: 'destructive' }
+      ]
+    });
+
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    return role === 'destructive';
   }
 
   isAdmin(member: HouseholdMember): boolean {
@@ -232,13 +284,11 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   goToSettings() {
-    this.router.navigate(['/tabs/settings']);
-  }
-
-  async logout() {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-      await this.authService.signOut();
-      this.router.navigate(['/auth/login'], { replaceUrl: true });
+    // Came from Paramètres: step back instead of stacking a second Paramètres on top
+    if (this.routerOutlet?.canGoBack()) {
+      this.navController.back();
+    } else {
+      this.navController.navigateForward('/tabs/settings');
     }
   }
 
@@ -263,7 +313,7 @@ export class ProfilePage implements OnInit, OnDestroy {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonInput
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon, IonInput
   ],
   template: `
     <ion-header [translucent]="true">
@@ -278,10 +328,7 @@ export class ProfilePage implements OnInit, OnDestroy {
     </ion-header>
 
     <ion-content class="ion-padding">
-      <div class="form-field">
-        <label class="field-label">Nom du foyer</label>
-        <ion-input [(ngModel)]="householdName" placeholder="ex: Notre maison" fill="outline" class="custom-input"></ion-input>
-      </div>
+      <ion-input [(ngModel)]="householdName" label="Nom du foyer" labelPlacement="stacked" placeholder="ex: Notre maison" fill="outline" class="custom-input"></ion-input>
 
       <div class="ion-padding-top">
         <ion-button expand="block" color="primary" (click)="create()">
@@ -322,7 +369,7 @@ export class CreateHouseholdModalComponent {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonInput, IonLabel, IonSegment, IonSegmentButton
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon, IonInput, IonLabel, IonSegment, IonSegmentButton
   ],
   template: `
     <ion-header [translucent]="true">
@@ -347,15 +394,11 @@ export class CreateHouseholdModalComponent {
       </ion-segment>
 
       <div class="ion-padding-top">
-        <div class="form-field" *ngIf="joinMethod === 'code'">
-          <label class="field-label">Code ami (8 caractères)</label>
-          <ion-input [(ngModel)]="inviteCode" placeholder="ex: ABC12345" fill="outline" class="custom-input"></ion-input>
-        </div>
-
-        <div class="form-field" *ngIf="joinMethod === 'link'">
-          <label class="field-label">Lien d'invitation</label>
-          <ion-input [(ngModel)]="inviteLink" placeholder="wevy://join/..." fill="outline" class="custom-input"></ion-input>
-        </div>
+        @if (joinMethod === 'code') {
+          <ion-input [(ngModel)]="inviteCode" label="Code ami (8 caractères)" labelPlacement="stacked" placeholder="ex: ABC12345" fill="outline" class="custom-input"></ion-input>
+        } @else {
+          <ion-input [(ngModel)]="inviteLink" label="Lien d'invitation" labelPlacement="stacked" placeholder="wevy://join/..." fill="outline" class="custom-input"></ion-input>
+        }
       </div>
 
       <div class="ion-padding-top">

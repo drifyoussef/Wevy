@@ -27,12 +27,19 @@ export const routes: Routes = [
         loadComponent: () => import('../recipe-detail/recipe-detail.page').then(m => m.RecipeDetailPage)
       },
       {
-        path: 'profile',
+        path: 'settings',
+        loadComponent: () => import('../settings/settings.page').then(m => m.SettingsPage)
+      },
+      {
+        // Lives under "settings" so both pages share one Ionic tab stack: back from
+        // "Mon foyer" returns to Paramètres when that is where the user came from.
+        path: 'settings/household',
         loadComponent: () => import('../profile/profile.page').then(m => m.ProfilePage)
       },
       {
-        path: 'settings',
-        loadComponent: () => import('../settings/settings.page').then(m => m.SettingsPage)
+        path: 'profile',
+        redirectTo: 'settings/household',
+        pathMatch: 'full'
       },
       {
         path: 'calendar',

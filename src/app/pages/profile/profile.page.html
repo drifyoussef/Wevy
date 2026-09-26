@@ -3,216 +3,130 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title class="text-2xl">Profil</ion-title>
-    <ion-button slot="end" fill="clear" (click)="goToSettings()">
-      <ion-icon slot="icon-only" name="settings" color="primary"></ion-icon>
-    </ion-button>
+    <ion-title>Mon foyer</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <!-- Segmented Control -->
-  <ion-segment [value]="selectedTab" (ionChange)="selectedTab = $any($event).detail.value" class="mb-6">
-    <ion-segment-button value="household">
-      <ion-label>Mon Foyer</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="settings">
-      <ion-label>Paramètres</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-
-  <!-- TAB: MON FOYER -->
-  <div *ngIf="selectedTab === 'household'">
-    <!-- Si pas de foyer -->
-    <div *ngIf="!household" class="mb-6">
-      <div class="card-primary rounded-xl p-6 text-center mb-4">
-        <ion-icon name="home-outline" size="large" color="medium" class="mb-3"></ion-icon>
-        <h3 class="text-lg font-semibold mb-2">Pas de foyer</h3>
-        <p class="text-gray-600 mb-4">Créez un foyer ou rejoignez un existant pour partager vos repas</p>
+  @if (!household) {
+    <!-- Pas encore de foyer -->
+    <section class="settings-section">
+      <div class="empty-state household-empty">
+        <ion-icon name="home-outline"></ion-icon>
+        <span>Crée ton foyer ou rejoins celui de tes proches pour partager tâches, courses et repas.</span>
       </div>
 
-      <div class="flex flex-col gap-3">
-        <ion-button expand="block" color="primary" (click)="createHousehold()">
-          <ion-icon slot="start" name="add"></ion-icon>
-          Créer un foyer
-        </ion-button>
-        <ion-button expand="block" fill="outline" color="primary" (click)="joinHouseholdByCode()">
-          <ion-icon slot="start" name="key"></ion-icon>
-          Rejoindre un foyer
-        </ion-button>
+      <div class="settings-card">
+        <button class="settings-row" (click)="createHousehold()">
+          <span class="settings-row-icon"><ion-icon name="add-outline"></ion-icon></span>
+          <span class="settings-row-label">Créer un foyer</span>
+          <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+        </button>
+
+        <button class="settings-row" (click)="joinHouseholdByCode()">
+          <span class="settings-row-icon"><ion-icon name="key-outline"></ion-icon></span>
+          <span class="settings-row-label">Rejoindre un foyer</span>
+          <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+        </button>
       </div>
-    </div>
+    </section>
+  } @else {
+    <!-- Foyer -->
+    <section class="settings-section">
+      <h2 class="settings-section-title">Foyer</h2>
 
-    <!-- Si foyer existe -->
-    <div *ngIf="household">
-      <!-- Infos du foyer -->
-      <div class="card-primary rounded-xl p-4 mb-6">
-        <h3 class="text-lg font-bold mb-2">{{ household.name }}</h3>
-        <p class="text-sm text-gray-600">{{ members.length }} membre{{ members.length > 1 ? 's' : '' }}</p>
-      </div>
-
-      <!-- Invitation Section -->
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-3">Inviter des personnes</h3>
-
-        <!-- Code Ami -->
-        <div class="card-primary rounded-xl p-4 mb-3">
-          <div class="flex items-center gap-3 mb-3">
-            <ion-icon name="key" color="primary" size="small"></ion-icon>
-            <p class="text-sm font-semibold">Code Ami</p>
-          </div>
-          <div class="flex items-center gap-2 mb-3">
-            <div class="bg-white rounded-lg px-3 py-2 flex-1 font-mono text-lg font-bold">
-              {{ inviteCode }}
-            </div>
-            <ion-button
-              fill="outline"
-              size="small"
-              (click)="copyToClipboard(inviteCode, 'code')"
-            >
-              <ion-icon slot="icon-only" [name]="copiedCode ? 'checkmark' : 'copy'"></ion-icon>
-            </ion-button>
-          </div>
-          <p class="text-xs text-gray-600">Partager ce code avec vos proches</p>
-        </div>
-
-        <!-- Lien d'invitation -->
-        <div class="card-primary rounded-xl p-4 mb-3">
-          <div class="flex items-center gap-3 mb-3">
-            <ion-icon name="link-outline" color="primary" size="small"></ion-icon>
-            <p class="text-sm font-semibold">Lien Unique</p>
-          </div>
-          <div class="flex items-center gap-2 mb-3">
-            <div class="bg-white rounded-lg px-3 py-2 flex-1 text-xs font-mono truncate">
-              {{ inviteLink }}
-            </div>
-            <ion-button
-              fill="outline"
-              size="small"
-              (click)="copyToClipboard(inviteLink, 'link')"
-            >
-              <ion-icon slot="icon-only" [name]="copiedLink ? 'checkmark' : 'copy'"></ion-icon>
-            </ion-button>
-          </div>
-          <div class="flex gap-2">
-            <ion-button expand="block" fill="outline" size="small" (click)="shareLink()">
-              <ion-icon slot="start" name="share-social"></ion-icon>
-              Partager
-            </ion-button>
-            <ion-button expand="block" fill="outline" size="small" (click)="regenerateInvite()" *ngIf="canManageMembers()">
-              <ion-icon slot="start" name="refresh"></ion-icon>
-              Rég.
-            </ion-button>
+      <div class="settings-card">
+        <div class="settings-account settings-account--last">
+          <div class="settings-avatar"><ion-icon name="home"></ion-icon></div>
+          <div class="settings-account-info">
+            <span class="settings-account-name">{{ household.name }}</span>
+            <span class="settings-account-email">{{ members.length }} membre{{ members.length > 1 ? 's' : '' }}</span>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Membres -->
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-3">Membres du foyer</h3>
+    <!-- Membres -->
+    <section class="settings-section">
+      <h2 class="settings-section-title">Membres</h2>
 
-        <div class="flex flex-col gap-3">
-          <div
-            class="card-primary rounded-xl p-4 flex items-center gap-3"
-            *ngFor="let member of members"
-          >
-            <div
-              class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
-              [style.background-color]="getAvatarColor(member.displayName)"
-            >
-              {{ member.displayName.charAt(0) }}
-            </div>
+      <div class="settings-card">
+        @for (member of members; track member.userId) {
+          <div class="settings-row">
+            <span class="member-avatar" [style.background]="getAvatarColor(member.displayName)">
+              {{ member.displayName.charAt(0).toUpperCase() }}
+            </span>
 
-            <div class="flex-1">
-              <div class="flex items-center gap-2">
-                <h4 class="font-semibold">{{ member.displayName }}</h4>
-                <ion-icon
-                  *ngIf="isAdmin(member)"
-                  name="shield-half"
-                  color="primary"
-                  size="small"
-                ></ion-icon>
-                <span *ngIf="isCurrentUser(member.userId)" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                  Vous
-                </span>
+            <div class="member-info">
+              <div class="member-name-row">
+                <span class="member-name">{{ member.displayName }}</span>
+                @if (isCurrentUser(member.userId)) {
+                  <span class="member-chip member-chip--me">Vous</span>
+                }
+                @if (isAdmin(member)) {
+                  <span class="member-chip">Admin</span>
+                }
               </div>
-              <p class="text-xs text-gray-600">
-                Membre depuis {{ member.joinedAt | date: 'dd/MM/yyyy' }}
-              </p>
+              <span class="member-since">Depuis le {{ member.joinedAt | date: 'dd/MM/yyyy' }}</span>
             </div>
 
-            <!-- Actions -->
-            <div class="flex items-center gap-2" *ngIf="canManageMembers() && !isCurrentUser(member.userId)">
-              <ion-button
-                fill="clear"
-                size="small"
-                color="danger"
-                (click)="removeMember(member.userId)"
-              >
-                <ion-icon slot="icon-only" name="trash" size="small"></ion-icon>
-              </ion-button>
-            </div>
+            @if (canManageMembers() && !isCurrentUser(member.userId)) {
+              <button class="member-remove" (click)="removeMember(member)" [attr.aria-label]="'Retirer ' + member.displayName">
+                <ion-icon name="person-remove-outline"></ion-icon>
+              </button>
+            }
           </div>
-        </div>
+        }
       </div>
+    </section>
 
-      <!-- Actions du foyer -->
-      <div class="flex flex-col gap-2" *ngIf="canManageMembers()">
-        <ion-button expand="block" fill="outline" color="warning" (click)="leaveHousehold()">
-          <ion-icon slot="start" name="exit"></ion-icon>
-          Quitter le foyer
-        </ion-button>
+    <!-- Inviter -->
+    <section class="settings-section">
+      <h2 class="settings-section-title">Inviter</h2>
+
+      <div class="settings-card">
+        <div class="settings-row">
+          <span class="settings-row-icon"><ion-icon name="key-outline"></ion-icon></span>
+          <div class="invite-value">
+            <span class="invite-label">Code ami</span>
+            <span class="invite-code">{{ inviteCode }}</span>
+          </div>
+          <button class="invite-copy" (click)="copyToClipboard(inviteCode, 'code')" aria-label="Copier le code">
+            <ion-icon [name]="copiedCode ? 'checkmark' : 'copy-outline'"></ion-icon>
+          </button>
+        </div>
+
+        <div class="settings-row">
+          <span class="settings-row-icon"><ion-icon name="link-outline"></ion-icon></span>
+          <div class="invite-value">
+            <span class="invite-label">Lien d'invitation</span>
+            <span class="invite-link">{{ inviteLink }}</span>
+          </div>
+          <button class="invite-copy" (click)="copyToClipboard(inviteLink, 'link')" aria-label="Copier le lien">
+            <ion-icon [name]="copiedLink ? 'checkmark' : 'copy-outline'"></ion-icon>
+          </button>
+        </div>
+
+        <button class="settings-row" (click)="shareLink()">
+          <span class="settings-row-icon"><ion-icon name="share-social-outline"></ion-icon></span>
+          <span class="settings-row-label">Partager le lien</span>
+          <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+        </button>
+
+        @if (canManageMembers()) {
+          <button class="settings-row" (click)="regenerateInvite()">
+            <span class="settings-row-icon"><ion-icon name="refresh-outline"></ion-icon></span>
+            <span class="settings-row-label">Générer un nouveau code</span>
+            <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+          </button>
+        }
       </div>
-    </div>
-  </div>
+    </section>
 
-  <!-- TAB: PARAMETRES -->
-  <div *ngIf="selectedTab === 'settings'">
-    <div class="flex flex-col gap-3">
-      <!-- Notifications -->
-      <div class="card-primary rounded-xl p-4 flex items-center gap-3">
-        <div
-          class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center"
-        >
-          <ion-icon name="notifications" size="large" color="primary"></ion-icon>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-base font-semibold">Notifications</h3>
-          <p class="text-sm text-gray-600">Gérer vos notifications</p>
-        </div>
-        <ion-button fill="clear">
-          <ion-icon slot="icon-only" name="chevron-forward"></ion-icon>
-        </ion-button>
-      </div>
-
-      <!-- Gestion de la famille -->
-      <div 
-        class="card-primary rounded-xl p-4 flex items-center gap-3" 
-        (click)="goToSettings()"
-        role="button"
-        tabindex="0"
-        (keyup.enter)="goToSettings()"
-        (keyup.space)="goToSettings()"
-      >
-        <div
-          class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center"
-        >
-          <ion-icon name="people" size="large" color="secondary"></ion-icon>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-base font-semibold">Gestion de la famille</h3>
-          <p class="text-sm text-gray-600">Inviter/retirer des gens</p>
-        </div>
-        <ion-button fill="clear">
-          <ion-icon slot="icon-only" name="chevron-forward"></ion-icon>
-        </ion-button>
-      </div>
-
-      <!-- Déconnexion -->
-      <ion-button expand="block" fill="outline" color="danger" class="mt-4" (click)="logout()">
-        <ion-icon slot="start" name="log-out"></ion-icon>
-        Se déconnecter
-      </ion-button>
-    </div>
-  </div>
+    <!-- Quitter -->
+    <button class="settings-danger-btn" (click)="leaveHousehold()">
+      <ion-icon name="exit-outline"></ion-icon>
+      <span>Quitter le foyer</span>
+    </button>
+  }
 </ion-content>

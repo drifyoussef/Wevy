@@ -1,253 +1,148 @@
 <ion-header [translucent]="true" class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/home" text="" (click)="goBack()"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
     </ion-buttons>
     <ion-title>Paramètres</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <!-- Segmented Control -->
-  <ion-segment [value]="selectedTab" (ionChange)="selectedTab = $any($event).detail.value" class="mb-6">
-    <ion-segment-button value="notifications">
-      <ion-label>Notifications</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="security">
-      <ion-label>Sécurité</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="profile">
-      <ion-label>Profil</ion-label>
-    </ion-segment-button>
-  </ion-segment>
+  <!-- Compte -->
+  <section class="settings-section">
+    <h2 class="settings-section-title">Compte</h2>
 
-  <!-- TAB: NOTIFICATIONS -->
-  <div *ngIf="selectedTab === 'notifications'">
-    <div class="mb-6">
-      <h3 class="text-lg font-semibold mb-4">Canaux de notification</h3>
+    <div class="settings-card">
+      <div class="settings-account">
+        <div class="settings-avatar">{{ getInitial() }}</div>
+        <div class="settings-account-info">
+          <span class="settings-account-name">{{ currentUser?.displayName || 'Utilisateur' }}</span>
+          <span class="settings-account-email">{{ currentUser?.email }}</span>
+        </div>
+      </div>
 
-      <!-- Email -->
-      <ion-card class="card-primary">
-        <ion-card-content>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <ion-icon name="mail" color="primary"></ion-icon>
-              </div>
-              <div>
-                <h4 class="font-semibold">Email</h4>
-                <p class="text-xs text-gray-600">Recevoir des notifications par email</p>
-              </div>
-            </div>
-            <ion-toggle [(ngModel)]="preferences.emailNotifications"></ion-toggle>
-          </div>
-        </ion-card-content>
-      </ion-card>
+      <button class="settings-row" routerLink="/tabs/settings/household">
+        <span class="settings-row-icon"><ion-icon name="home-outline"></ion-icon></span>
+        <span class="settings-row-label">Mon foyer</span>
+        <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+      </button>
+    </div>
+  </section>
 
-      <!-- Push Notifications -->
-      <ion-card class="card-primary">
-        <ion-card-content>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <ion-icon name="phone-portrait" color="success"></ion-icon>
-              </div>
-              <div>
-                <h4 class="font-semibold">Notifications Push</h4>
-                <p class="text-xs text-gray-600">Alertes sur votre appareil</p>
-              </div>
-            </div>
-            <ion-toggle [(ngModel)]="preferences.pushNotifications"></ion-toggle>
-          </div>
-        </ion-card-content>
-      </ion-card>
+  <!-- Notifications -->
+  <section class="settings-section">
+    <h2 class="settings-section-title">Notifications</h2>
+
+    <div class="settings-card">
+      <div class="settings-row">
+        <span class="settings-row-icon"><ion-icon name="phone-portrait-outline"></ion-icon></span>
+        <span class="settings-row-label">Notifications push</span>
+        <ion-toggle [(ngModel)]="preferences.pushNotifications" (ionChange)="savePreferences()" aria-label="Notifications push"></ion-toggle>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-row-icon"><ion-icon name="mail-outline"></ion-icon></span>
+        <span class="settings-row-label">Email</span>
+        <ion-toggle [(ngModel)]="preferences.emailNotifications" (ionChange)="savePreferences()" aria-label="Notifications par email"></ion-toggle>
+      </div>
     </div>
 
-    <!-- Types de notifications -->
-    <div class="mb-6">
-      <h3 class="text-lg font-semibold mb-4">Types de notifications</h3>
+    @if (notificationsEnabled) {
+      <h3 class="settings-subtitle">Me prévenir pour</h3>
 
-      <!-- Rappels Swipe -->
-      <ion-card class="card-primary">
-        <ion-card-content>
-          <div class="flex items-center justify-between">
-            <div>
-              <h4 class="font-semibold">Rappels de swipe</h4>
-              <p class="text-xs text-gray-600">Vous êtes invité à faire un swipe</p>
-            </div>
-            <ion-toggle [(ngModel)]="preferences.swipeReminders"></ion-toggle>
+      <div class="settings-card">
+        @for (type of notificationTypes; track type.key) {
+          <div class="settings-row">
+            <span class="settings-row-icon"><ion-icon [name]="type.icon"></ion-icon></span>
+            <span class="settings-row-label">{{ type.label }}</span>
+            <ion-toggle [(ngModel)]="preferences[type.key]" (ionChange)="savePreferences()" [attr.aria-label]="type.label"></ion-toggle>
           </div>
-        </ion-card-content>
-      </ion-card>
+        }
 
-      <!-- Rappels repas -->
-      <ion-card class="card-primary">
-        <ion-card-content>
-          <div class="flex items-center justify-between">
-            <div>
-              <h4 class="font-semibold">Rappels de repas</h4>
-              <p class="text-xs text-gray-600">C'est l'heure de manger</p>
-            </div>
-            <ion-toggle [(ngModel)]="preferences.mealReminders"></ion-toggle>
-          </div>
-        </ion-card-content>
-      </ion-card>
+        <div class="settings-row">
+          <span class="settings-row-icon"><ion-icon name="time-outline"></ion-icon></span>
+          <span class="settings-row-label">Fréquence</span>
+          <ion-select
+            [(ngModel)]="preferences.notificationFrequency"
+            (ionChange)="savePreferences()"
+            interface="popover"
+            aria-label="Fréquence des notifications"
+            class="settings-select"
+          >
+            @for (option of frequencyOptions; track option.value) {
+              <ion-select-option [value]="option.value">{{ option.label }}</ion-select-option>
+            }
+          </ion-select>
+        </div>
+      </div>
+    } @else {
+      <div class="empty-state settings-hint">
+        <ion-icon name="notifications-off-outline"></ion-icon>
+        <span>Active les notifications push ou email pour choisir ce que tu reçois.</span>
+      </div>
+    }
+  </section>
 
-      <!-- Rappels tâches -->
-      <ion-card class="card-primary">
-        <ion-card-content>
-          <div class="flex items-center justify-between">
-            <div>
-              <h4 class="font-semibold">Rappels de tâches</h4>
-              <p class="text-xs text-gray-600">Vous avez une tâche à faire</p>
-            </div>
-            <ion-toggle [(ngModel)]="preferences.taskReminders"></ion-toggle>
-          </div>
-        </ion-card-content>
-      </ion-card>
+  <!-- Sécurité -->
+  <section class="settings-section">
+    <h2 class="settings-section-title">Sécurité</h2>
 
-      <!-- Mises à jour famille -->
-      <ion-card class="card-primary">
-        <ion-card-content>
-          <div class="flex items-center justify-between">
-            <div>
-              <h4 class="font-semibold">Mises à jour de la famille</h4>
-              <p class="text-xs text-gray-600">Nouvelles de votre foyer</p>
-            </div>
-            <ion-toggle [(ngModel)]="preferences.familyUpdates"></ion-toggle>
-          </div>
-        </ion-card-content>
-      </ion-card>
-    </div>
+    <div class="settings-card">
+      <button class="settings-row" (click)="togglePasswordForm()" [attr.aria-expanded]="showPasswordForm">
+        <span class="settings-row-icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+        <span class="settings-row-label">Changer le mot de passe</span>
+        <ion-icon class="settings-row-chevron" [class.open]="showPasswordForm" name="chevron-forward"></ion-icon>
+      </button>
 
-    <!-- Fréquence -->
-    <div class="mb-6">
-      <h3 class="text-lg font-semibold mb-4">Fréquence</h3>
+      @if (showPasswordForm) {
+        <div class="settings-password">
+          <ion-input
+            type="password"
+            label="Mot de passe actuel"
+            labelPlacement="stacked"
+            [(ngModel)]="passwordForm.currentPassword"
+            fill="outline"
+            class="custom-input">
+          </ion-input>
 
-      <ion-card class="card-primary">
-        <ion-card-content>
-          <div>
-            <h4 class="font-semibold mb-3">À quelle fréquence les recevoir?</h4>
-            <ion-select [(ngModel)]="preferences.notificationFrequency" fill="outline" class="custom-input w-full">
-              <ion-select-option *ngFor="let option of frequencyOptions" [value]="option.value">
-                {{ option.label }}
-              </ion-select-option>
-            </ion-select>
-          </div>
-        </ion-card-content>
-      </ion-card>
-    </div>
+          <ion-input
+            type="password"
+            label="Nouveau mot de passe"
+            labelPlacement="stacked"
+            helperText="6 caractères minimum"
+            [(ngModel)]="passwordForm.newPassword"
+            fill="outline"
+            class="custom-input">
+          </ion-input>
 
-    <!-- Save Button -->
-    <ion-button expand="block" color="primary" (click)="savePreferences()" class="mb-4">
-      Sauvegarder les paramètres
-    </ion-button>
-  </div>
+          <ion-input
+            type="password"
+            label="Confirmer le mot de passe"
+            labelPlacement="stacked"
+            [(ngModel)]="passwordForm.confirmPassword"
+            fill="outline"
+            class="custom-input">
+          </ion-input>
 
-  <!-- TAB: SÉCURITÉ -->
-  <div *ngIf="selectedTab === 'security'">
-    <div class="mb-6">
-      <h3 class="text-lg font-semibold mb-4">Changer le mot de passe</h3>
+          @if (passwordError) {
+            <p class="settings-error">{{ passwordError }}</p>
+          }
 
-      <ion-card class="card-primary">
-        <ion-card-content>
-          <div class="space-y-4">
-            <!-- Current Password -->
-            <div class="form-field">
-              <label class="field-label">Mot de passe actuel</label>
-              <ion-input
-                type="password"
-                placeholder="Entrez votre mot de passe actuel"
-                [(ngModel)]="passwordForm.currentPassword"
-                fill="outline"
-                class="custom-input">
-              </ion-input>
-            </div>
-
-            <!-- New Password -->
-            <div class="form-field">
-              <label class="field-label">Nouveau mot de passe</label>
-              <ion-input
-                type="password"
-                placeholder="Entrez le nouveau mot de passe"
-                [(ngModel)]="passwordForm.newPassword"
-                fill="outline"
-                class="custom-input">
-              </ion-input>
-            </div>
-
-            <!-- Confirm Password -->
-            <div class="form-field">
-              <label class="field-label">Confirmer le mot de passe</label>
-              <ion-input
-                type="password"
-                placeholder="Confirmez le nouveau mot de passe"
-                [(ngModel)]="passwordForm.confirmPassword"
-                fill="outline"
-                class="custom-input">
-              </ion-input>
-            </div>
-
-            <!-- Error Message -->
-            <div *ngIf="passwordError" class="p-3 rounded bg-red-100 text-red-700 text-sm">
-              {{ passwordError }}
-            </div>
-
-            <!-- Success Message -->
-            <div *ngIf="passwordSuccess" class="p-3 rounded bg-green-100 text-green-700 text-sm">
-              {{ passwordSuccess }}
-            </div>
-
-            <!-- Change Password Button -->
-            <ion-button 
-              expand="block" 
-              color="primary"
-              (click)="changePassword()"
-              [disabled]="isChangingPassword">
-              <ion-spinner *ngIf="isChangingPassword" name="crescent" class="mr-2"></ion-spinner>
-              {{ isChangingPassword ? 'Changement en cours...' : 'Changer le mot de passe' }}
-            </ion-button>
-
-            <!-- Password Requirements -->
-            <div class="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600">
-              <p class="font-semibold mb-2">Critères:</p>
-              <ul class="space-y-1">
-                <li>• Au minimum 6 caractères</li>
-                <li>• Confirmation du mot de passe requise</li>
-              </ul>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-    </div>
-  </div>
-
-  <!-- TAB: PROFIL -->
-  <div *ngIf="selectedTab === 'profile'">
-    <div class="mb-6">
-      <h3 class="text-lg font-semibold mb-4">Mon compte</h3>
-
-      <ion-card class="card-primary">
-        <ion-card-content>
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" [style.background-color]="'var(--ion-color-primary)'">
-              <span class="text-base text-white font-semibold">{{ getInitial() }}</span>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-semibold">{{ currentUser?.displayName || 'Utilisateur' }}</h4>
-              <p class="text-xs text-gray-600 truncate">{{ currentUser?.email }}</p>
-            </div>
-          </div>
-
-          <ion-button expand="block" fill="outline" routerLink="/tabs/profile">
-            Gérer mon foyer
+          <ion-button expand="block" color="primary" (click)="changePassword()" [disabled]="isChangingPassword">
+            @if (isChangingPassword) {
+              <ion-spinner name="crescent"></ion-spinner>
+            } @else {
+              Enregistrer le mot de passe
+            }
           </ion-button>
-        </ion-card-content>
-      </ion-card>
-
-      <ion-button expand="block" fill="clear" color="danger" class="mt-4" (click)="logout()">
-        Se déconnecter
-      </ion-button>
+        </div>
+      }
     </div>
-  </div>
+  </section>
+
+  <!-- Déconnexion -->
+  <button class="settings-danger-btn" (click)="logout()">
+    <ion-icon name="log-out-outline"></ion-icon>
+    <span>Se déconnecter</span>
+  </button>
 </ion-content>

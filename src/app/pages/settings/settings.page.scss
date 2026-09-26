@@ -1,29 +1,39 @@
-.card-primary {
-  --background: var(--ion-color-light);
-  border: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-
-  ion-card-content {
-    padding: 16px;
-  }
-}
-
-ion-segment {
-  --background: transparent;
-  --border-color: var(--ion-color-light);
-}
-
-ion-segment-button {
-  --color-checked: var(--ion-color-primary);
-  --border-radius: 8px;
-  margin: 4px;
+.settings-subtitle {
+  margin: 18px 0 10px 4px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ion-color-medium-shade);
 }
 
 ion-toggle {
   margin: 0;
 }
 
-ion-select {
-  --padding-start: 0;
-  --padding-end: 0;
+.settings-select {
+  max-width: 50%;
+  min-height: 0;
+  color: var(--ion-color-medium-shade);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.settings-hint {
+  margin-top: 12px;
+}
+
+/* Password form, unfolded under its row */
+.settings-password {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 16px 16px;
+}
+
+.settings-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  color: var(--ion-color-danger);
+  font-size: var(--text-sm);
 }

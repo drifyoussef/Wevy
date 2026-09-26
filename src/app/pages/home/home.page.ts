@@ -56,7 +56,7 @@ export class HomePage implements OnInit, OnDestroy {
     { label: 'Ajouter', icon: 'add-circle', route: '/tabs/add-recipe' },
     { label: 'Calendrier', icon: 'calendar', route: '/tabs/calendar' },
     { label: 'Voyage', icon: 'airplane', action: 'comingSoon' },
-    { label: 'Profil', icon: 'person', route: '/tabs/profile' },
+    { label: 'Profil', icon: 'person', route: '/tabs/settings/household' },
   ];
 
   constructor(
