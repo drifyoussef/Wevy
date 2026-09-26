@@ -1,14 +1,14 @@
-import { Component, OnInit, OnDestroy, Optional, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton,
-  IonButtons, IonBackButton, IonRouterOutlet, NavController,
+  IonButtons, IonBackButton,
   ModalController, AlertController, IonSegment, IonSegmentButton, IonInput, IonLabel
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import {
-  settingsOutline, homeOutline, home, addOutline, keyOutline, chevronForward, close, copyOutline,
+  homeOutline, home, addOutline, keyOutline, chevronForward, close, copyOutline,
   checkmark, linkOutline, shareSocialOutline, refreshOutline, personRemoveOutline, exitOutline
 } from 'ionicons/icons';
 import { HouseholdService } from '../../services/household.service';
@@ -26,7 +26,7 @@ import { Subscription } from 'rxjs';
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonIcon,
     IonButtons, IonBackButton
   ]
 })
@@ -45,12 +45,10 @@ export class ProfilePage implements OnInit, OnDestroy {
     private authService: AuthService,
     private modalController: ModalController,
     private alertController: AlertController,
-    private navController: NavController,
-    private toastService: ToastService,
-    @Optional() private routerOutlet: IonRouterOutlet | null
+    private toastService: ToastService
   ) {
     addIcons({
-      settingsOutline, homeOutline, home, addOutline, keyOutline, chevronForward, close, copyOutline,
+      homeOutline, home, addOutline, keyOutline, chevronForward, close, copyOutline,
       checkmark, linkOutline, shareSocialOutline, refreshOutline, personRemoveOutline, exitOutline
     });
   }
@@ -281,15 +279,6 @@ export class ProfilePage implements OnInit, OnDestroy {
     if (!this.household || !this.currentUserId) return false;
     const currentMember = this.household.members.find(m => m.userId === this.currentUserId);
     return currentMember?.role === 'admin';
-  }
-
-  goToSettings() {
-    // Came from Paramètres: step back instead of stacking a second Paramètres on top
-    if (this.routerOutlet?.canGoBack()) {
-      this.navController.back();
-    } else {
-      this.navController.navigateForward('/tabs/settings');
-    }
   }
 
   getAvatarColor(name: string): string {

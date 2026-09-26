@@ -3,55 +3,215 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title class="text-2xl">Recettes</ion-title>
-    <ion-button slot="end" fill="clear" routerLink="/tabs/add-recipe">
-      <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
-    </ion-button>
+    <ion-title>Recettes</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" routerLink="/tabs/add-recipe" aria-label="Ajouter une recette">
+        <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  @if (filteredRecipes.length > 0) {
-    <!-- Recipe Grid -->
-    <div class="recipe-flex">
-      @for (recipe of filteredRecipes; track recipe.id) {
-        <div
-          class="recipe-card"
-          (click)="openRecipeDetails(recipe)"
-          (keyup.enter)="openRecipeDetails(recipe)"
-          role="button"
-          tabindex="0"
-        >
-          @if (recipe.imageUrl) {
-            <div class="recipe-image">
-              <img [src]="recipe.imageUrl" [alt]="recipe.title" />
-            </div>
-          } @else {
-            <div class="recipe-image recipe-placeholder">
-              <ion-icon name="restaurant" size="large"></ion-icon>
-            </div>
-          }
-          <div class="p-4">
-            <h3 class="text-base font-semibold">{{ recipe.title }}</h3>
-          </div>
-        </div>
-      }
+  @if (recipes.length > 0) {
+    <!-- Recherche + filtres -->
+    <div class="recipe-toolbar">
+      <div class="recipe-search">
+        <ion-icon name="search-outline"></ion-icon>
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="applyFilter()"
+          placeholder="Rechercher une recette, un tag..."
+          aria-label="Rechercher une recette"
+        />
+      </div>
+
+      <button
+        class="filter-btn"
+        [class.active]="activeFilterCount > 0"
+        (click)="filtersOpen = true"
+        [attr.aria-label]="activeFilterCount > 0 ? 'Filtres (' + activeFilterCount + ' actifs)' : 'Filtres'"
+      >
+        <ion-icon name="options-outline"></ion-icon>
+        @if (activeFilterCount > 0) {
+          <span class="filter-badge">{{ activeFilterCount }}</span>
+        }
+      </button>
     </div>
 
-    <!-- Floating Swipe Mode Button -->
+    <!-- Filtres actifs -->
+    @if (activeFilters.length > 0) {
+      <div class="active-filters">
+        @for (filter of activeFilters; track filter.key) {
+          <button class="active-filter" (click)="filter.clear()" [attr.aria-label]="'Retirer le filtre ' + filter.label">
+            <span>{{ filter.label }}</span>
+            <ion-icon name="close"></ion-icon>
+          </button>
+        }
+        <button class="active-filters-reset" (click)="resetFilters()">Tout effacer</button>
+      </div>
+    }
+
+    <p class="recipe-count">
+      {{ filteredRecipes.length }} recette{{ filteredRecipes.length > 1 ? 's' : '' }}
+    </p>
+
+    @if (filteredRecipes.length > 0) {
+      <div class="recipe-grid">
+        @for (recipe of filteredRecipes; track recipe.id) {
+          <button class="recipe-card" (click)="openRecipeDetails(recipe)">
+            <div class="recipe-image">
+              @if (recipe.imageUrl) {
+                <img [src]="recipe.imageUrl" [alt]="recipe.title" loading="lazy" />
+              } @else {
+                <ion-icon name="restaurant-outline"></ion-icon>
+              }
+
+              @if (recipe.isFavorite) {
+                <span class="recipe-favorite" aria-label="Favori">
+                  <ion-icon name="heart"></ion-icon>
+                </span>
+              }
+            </div>
+
+            <div class="recipe-body">
+              <span class="recipe-title">{{ recipe.title }}</span>
+
+              <span class="recipe-meta">
+                @if (recipe.totalTime) {
+                  <span class="recipe-meta-item">
+                    <ion-icon name="time-outline"></ion-icon>
+                    {{ recipe.totalTime }} min
+                  </span>
+                }
+                @if (recipe.difficulty) {
+                  <span class="recipe-meta-item">
+                    <ion-icon name="flame-outline"></ion-icon>
+                    {{ difficultyLabel(recipe.difficulty) }}
+                  </span>
+                }
+              </span>
+
+              @if (recipe.tags?.length) {
+                <span class="recipe-tags">
+                  @for (tag of recipe.tags!.slice(0, maxCardTags); track tag) {
+                    <span class="recipe-tag">{{ tag }}</span>
+                  }
+                  @if (recipe.tags!.length > maxCardTags) {
+                    <span class="recipe-tag recipe-tag--more">+{{ recipe.tags!.length - maxCardTags }}</span>
+                  }
+                </span>
+              }
+            </div>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <ion-icon name="search-outline"></ion-icon>
+        <span>Aucune recette ne correspond à ta recherche.</span>
+      </div>
+      @if (activeFilterCount > 0) {
+        <button class="empty-reset" (click)="resetFilters()">Effacer les filtres</button>
+      }
+    }
+
+    <!-- Mode swipe -->
     <button class="swipe-mode-btn" (click)="openSwipeMode()">
-      <span class="text-base font-semibold">Swipe mode</span>
-      <ion-icon name="arrow-forward" size="small"></ion-icon>
+      <ion-icon name="sparkles"></ion-icon>
+      <span>Mode swipe</span>
     </button>
   } @else {
-    <div class="empty-state">
-      <ion-icon name="restaurant-outline" size="large" color="medium"></ion-icon>
-      <h2 class="text-xl mt-4">Aucune recette</h2>
-      <p class="text-sm text-gray-500 mt-2">Ajoutez des recettes pour commencer</p>
-      <ion-button class="mt-4" expand="block" routerLink="/tabs/add-recipe">
-        <ion-icon slot="start" name="add"></ion-icon>
-        Ajouter une recette
-      </ion-button>
+    <div class="empty-state recipe-empty">
+      <ion-icon name="restaurant-outline"></ion-icon>
+      <span>Aucune recette pour l'instant. Ajoute ta première recette pour commencer.</span>
     </div>
+
+    <ion-button expand="block" routerLink="/tabs/add-recipe">
+      <ion-icon slot="start" name="add"></ion-icon>
+      Ajouter une recette
+    </ion-button>
   }
+
+  <!-- Panneau de filtres -->
+  <ion-modal
+    [isOpen]="filtersOpen"
+    (didDismiss)="filtersOpen = false"
+    [initialBreakpoint]="0.85"
+    [breakpoints]="[0, 0.85, 1]"
+    class="filters-sheet"
+  >
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Filtres</ion-title>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" (click)="resetFilters()" [disabled]="activeFilterCount === 0">
+              Réinitialiser
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <section class="filter-group">
+          <h3 class="filter-group-title">Type</h3>
+          <div class="filter-chips">
+            @for (diet of dietTypes; track diet.id) {
+              <button
+                class="filter-chip"
+                [class.selected]="selectedDiets.has(diet.id)"
+                [attr.aria-pressed]="selectedDiets.has(diet.id)"
+                (click)="toggleDiet(diet.id)"
+              >
+                <ion-icon [name]="diet.icon"></ion-icon>
+                <span>{{ diet.label }}</span>
+                <span class="filter-chip-count">{{ dietCount(diet) }}</span>
+              </button>
+            }
+          </div>
+        </section>
+
+        <section class="filter-group">
+          <h3 class="filter-group-title">Difficulté</h3>
+          <div class="filter-chips">
+            @for (level of difficulties; track level.id) {
+              <button
+                class="filter-chip"
+                [class.selected]="selectedDifficulties.has(level.id)"
+                [attr.aria-pressed]="selectedDifficulties.has(level.id)"
+                (click)="toggleDifficulty(level.id)"
+              >
+                <span>{{ level.label }}</span>
+                <span class="filter-chip-count">{{ difficultyCount(level.id) }}</span>
+              </button>
+            }
+          </div>
+        </section>
+
+        <section class="filter-group">
+          <h3 class="filter-group-title">Temps de recette</h3>
+          <div class="filter-chips">
+            @for (option of timeOptions; track option.id) {
+              <button
+                class="filter-chip"
+                [class.selected]="selectedTime === option.id"
+                [attr.aria-pressed]="selectedTime === option.id"
+                (click)="selectTime(option.id)"
+              >
+                <ion-icon name="time-outline"></ion-icon>
+                <span>{{ option.label }}</span>
+                <span class="filter-chip-count">{{ timeCount(option) }}</span>
+              </button>
+            }
+          </div>
+        </section>
+
+        <button class="filter-apply-btn" (click)="filtersOpen = false">
+          Voir {{ filteredRecipes.length }} recette{{ filteredRecipes.length > 1 ? 's' : '' }}
+        </button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>

@@ -135,7 +135,7 @@ export class RecipeService {
         difficulty: 'medium',
         servings: 4,
         mealType: 'lunch',
-        tags: ['américain', 'comfort food', 'rapide'],
+        tags: ['américain', 'comfort food', 'rapide', 'protéiné'],
         toolsNeeded: ['Poêle', 'Spatule'],
         ingredients: [
           { name: 'Hachis de bœuf', quantity: 600, unit: 'g', category: 'meat' },
@@ -169,7 +169,7 @@ export class RecipeService {
         difficulty: 'easy',
         servings: 4,
         mealType: 'dinner',
-        tags: ['mexicain', 'rapide', 'épicé'],
+        tags: ['mexicain', 'rapide', 'épicé', 'protéiné'],
         toolsNeeded: ['Poêle'],
         ingredients: [
           { name: 'Viande hachée', quantity: 500, unit: 'g', category: 'meat' },

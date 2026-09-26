@@ -1,89 +1,148 @@
-<ion-header [translucent]="true" class="ion-no-border">
+<ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-button slot="start" fill="clear" color="danger" (click)="close()">
-      <ion-icon slot="icon-only" name="close"></ion-icon>
-    </ion-button>
-    <ion-title>Choisissez un repas</ion-title>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="close()" aria-label="Fermer">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Mode swipe</ion-title>
+    @if (total > 0 && !finished) {
+      <span slot="end" class="swipe-counter">{{ total - currentRecipes.length + 1 }} / {{ total }}</span>
+    }
   </ion-toolbar>
+
+  @if (total > 0) {
+    <div class="swipe-progress" role="progressbar" [attr.aria-valuenow]="total - currentRecipes.length" aria-valuemin="0" [attr.aria-valuemax]="total">
+      <span [style.width.%]="progress * 100"></span>
+    </div>
+  }
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" [scrollY]="finished">
   <div class="swipe-container">
-    <!-- LOADING STATE -->
     @if (loading) {
-      <div class="loading-state">
-        <ion-spinner></ion-spinner>
-        <h3>Chargement...</h3>
+      <div class="swipe-state">
+        <ion-spinner name="crescent"></ion-spinner>
       </div>
-    }
-
-    <!-- ERROR STATE -->
-    @if (!loading && errorMessage) {
-      <div class="empty-state">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        <h3>{{ errorMessage }}</h3>
-        <ion-button (click)="close()">Retour</ion-button>
+    } @else if (errorMessage) {
+      <div class="swipe-state">
+        <div class="empty-state">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+        <button class="swipe-primary-btn" (click)="close()">Retour</button>
       </div>
-    }
+    } @else if (finished) {
+      <!-- Récap de la session -->
+      <div class="swipe-summary">
+        <div class="summary-icon">
+          <ion-icon [name]="likedRecipes.length > 0 ? 'heart' : 'heart-dislike-outline'"></ion-icon>
+        </div>
 
-    <!-- NO RECIPES STATE -->
-    @if (!loading && !errorMessage && currentRecipes.length === 0) {
-      <div class="empty-state">
-        <ion-icon name="restaurant-outline"></ion-icon>
-        <h3>Session terminée!</h3>
-        <p>Vous avez swiped toutes les recettes</p>
+        <h2>Session terminée !</h2>
+        <p>
+          @if (likedRecipes.length > 0) {
+            Tu as aimé {{ likedRecipes.length }} recette{{ likedRecipes.length > 1 ? 's' : '' }} sur {{ total }}.
+          } @else {
+            Aucune recette ne t'a tenté cette fois.
+          }
+        </p>
+
+        @if (likedRecipes.length > 0) {
+          <div class="settings-card summary-list">
+            @for (recipe of likedRecipes; track recipe.id) {
+              <button class="settings-row" (click)="openRecipe(recipe)">
+                <span class="summary-thumb">
+                  @if (recipe.imageUrl) {
+                    <img [src]="recipe.imageUrl" [alt]="recipe.title" />
+                  } @else {
+                    <ion-icon name="restaurant-outline"></ion-icon>
+                  }
+                </span>
+                <span class="settings-row-label">{{ recipe.title }}</span>
+                <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+              </button>
+            }
+          </div>
+        }
+
+        <div class="summary-actions">
+          <button class="swipe-secondary-btn" (click)="restart()">
+            <ion-icon name="refresh-outline"></ion-icon>
+            <span>Recommencer</span>
+          </button>
+          <button class="swipe-primary-btn" (click)="close()">Terminer</button>
+        </div>
       </div>
-    }
-
-    <!-- RECIPES STATE -->
-    @if (!loading && !errorMessage && currentRecipes.length > 0) {
-      <!-- Recipe Cards -->
+    } @else {
+      <!-- Pile de cartes -->
       <div class="cards-stack">
         @for (recipe of currentRecipes.slice(0, 3); track recipe.id; let i = $index) {
-          <div class="recipe-card" [style.z-index]="currentRecipes.length - i">
-            <ion-card>
-              <div class="placeholder-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 200px; display: flex; align-items: center; justify-content: center;">
-                <ion-icon name="restaurant" size="large" color="light"></ion-icon>
-              </div>
-              
-              <ion-card-header>
-                <h2>{{ recipe.title }}</h2>
-              </ion-card-header>
-              
-              <ion-card-content>
-                @if (recipe.description) {
-                  <p>{{ recipe.description }}</p>
+          <div
+            class="swipe-card"
+            [class.top]="i === 0"
+            [class.dragging]="i === 0 && dragging"
+            [class.leaving]="i === 0 && leaving"
+            [attr.data-depth]="i"
+            [style.z-index]="3 - i"
+            [style.transform]="i === 0 ? topCardTransform : null"
+            (pointerdown)="i === 0 && onPointerDown($event)"
+            (pointermove)="i === 0 && onPointerMove($event)"
+            (pointerup)="i === 0 && onPointerUp()"
+            (pointercancel)="i === 0 && onPointerUp()"
+          >
+            <div class="swipe-card-image">
+              @if (recipe.imageUrl) {
+                <img [src]="recipe.imageUrl" [alt]="recipe.title" draggable="false" />
+              } @else {
+                <ion-icon name="restaurant-outline"></ion-icon>
+              }
+            </div>
+
+            @if (i === 0) {
+              <span class="stamp stamp--like" [style.opacity]="likeOpacity">MIAM</span>
+              <span class="stamp stamp--nope" [style.opacity]="nopeOpacity">BOF</span>
+            }
+
+            <div class="swipe-card-info">
+              <h2>{{ recipe.title }}</h2>
+
+              <div class="swipe-card-meta">
+                @if (recipe.totalTime) {
+                  <span><ion-icon name="time-outline"></ion-icon>{{ recipe.totalTime }} min</span>
                 }
-                
-                <div class="recipe-info">
-                  @if (recipe.prepTime) {
-                    <div class="info-badge">
-                      <ion-icon name="time-outline"></ion-icon>
-                      <span>{{ recipe.prepTime }} min</span>
-                    </div>
-                  }
-                  @if (recipe.difficulty) {
-                    <div class="info-badge">
-                      <ion-icon name="bar-chart-outline"></ion-icon>
-                      <span>{{ recipe.difficulty }}</span>
-                    </div>
+                @if (recipe.difficulty) {
+                  <span><ion-icon name="flame-outline"></ion-icon>{{ difficultyLabel(recipe.difficulty) }}</span>
+                }
+              </div>
+
+              @if (recipe.description) {
+                <p>{{ recipe.description }}</p>
+              }
+
+              @if (recipe.tags?.length) {
+                <div class="swipe-card-tags">
+                  @for (tag of recipe.tags!.slice(0, maxCardTags); track tag) {
+                    <span>{{ tag }}</span>
                   }
                 </div>
-              </ion-card-content>
-            </ion-card>
+              }
+            </div>
           </div>
         }
       </div>
 
-      <!-- Swipe Actions -->
+      <!-- Boutons -->
       <div class="swipe-actions">
-        <button class="action-btn dislike" (click)="swipe('left')">
-          <ion-icon name="close" size="large"></ion-icon>
+        <button class="action-btn nope" (click)="swipe('left')" aria-label="Passer">
+          <ion-icon name="close"></ion-icon>
         </button>
-        <button class="action-btn like" (click)="swipe('right')">
-          <ion-icon name="heart" size="large"></ion-icon>
+        <button class="action-btn like" (click)="swipe('right')" aria-label="J'aime">
+          <ion-icon name="heart"></ion-icon>
         </button>
       </div>
+
+      <p class="swipe-hint">Glisse la carte ou utilise les boutons</p>
     }
   </div>
 </ion-content>
