@@ -5,7 +5,7 @@ export interface Recipe {
   imageUrl?: string;
   videoUrl?: string;
   sourceUrl?: string;
-  sourcePlatform?: 'tiktok' | 'instagram' | 'url' | 'manual';
+  sourcePlatform?: 'tiktok' | 'instagram' | 'facebook' | 'youtube' | 'url' | 'manual';
   ingredients: Ingredient[];
   instructions?: string[];
   prepTime?: number; // minutes

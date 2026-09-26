@@ -242,6 +242,15 @@
   color: var(--ion-text-color);
 }
 
+.recipe-actions {
+  margin-bottom: 16px;
+
+  a.settings-row {
+    text-decoration: none;
+    color: var(--ion-text-color);
+  }
+}
+
 /* Share */
 .recipe-share-btn {
   display: flex;

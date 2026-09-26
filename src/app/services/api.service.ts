@@ -70,10 +70,11 @@ export class ApiService {
     }).pipe(timeout(this.requestTimeout), catchError(this.handleError));
   }
 
-  post<T>(endpoint: string, data: unknown): Observable<T> {
+  /** `timeoutMs` overrides the default 15 s for slow calls (e.g. AI recipe import). */
+  post<T>(endpoint: string, data: unknown, timeoutMs = this.requestTimeout): Observable<T> {
     return this.http.post<T>(`${this.baseUrl}/${endpoint}`, data, {
       headers: this.getHeaders()
-    }).pipe(timeout(this.requestTimeout), catchError(this.handleError));
+    }).pipe(timeout(timeoutMs), catchError(this.handleError));
   }
 
   put<T>(endpoint: string, data: unknown): Observable<T> {
@@ -98,9 +99,9 @@ export class ApiService {
     });
   }
 
-  postAsync<T>(endpoint: string, data: unknown): Promise<T> {
+  postAsync<T>(endpoint: string, data: unknown, timeoutMs?: number): Promise<T> {
     return new Promise((resolve, reject) => {
-      this.post<T>(endpoint, data).subscribe({
+      this.post<T>(endpoint, data, timeoutMs).subscribe({
         next: (data) => resolve(data),
         error: (error) => reject(error)
       });

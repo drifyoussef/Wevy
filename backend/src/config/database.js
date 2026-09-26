@@ -39,6 +39,7 @@ const createIndexes = async (database) => {
   try {
     // Recipes indexes
     await database.collection('recipes').createIndex({ household_id: 1 });
+    await database.collection('recipes').createIndex({ householdId: 1, createdAt: -1 });
     await database.collection('recipes').createIndex({ created_at: -1 });
     await database.collection('recipes').createIndex({ title: 'text', description: 'text' });
     

@@ -83,6 +83,7 @@ export class LibraryPage implements OnInit {
   recipes: Recipe[] = [];
   filteredRecipes: Recipe[] = [];
   searchTerm = '';
+  private firstEnter = true;
 
   filtersOpen = false;
   selectedDiets = new Set<string>();
@@ -104,11 +105,19 @@ export class LibraryPage implements OnInit {
     this.loadRecipes();
   }
 
+  /** Ionic keeps this page alive: reload when coming back, e.g. right after importing a recipe. */
+  ionViewWillEnter() {
+    // The first entry is already covered by ngOnInit
+    if (this.firstEnter) {
+      this.firstEnter = false;
+      return;
+    }
+    this.loadRecipes();
+  }
+
   async loadRecipes() {
     try {
-      // TODO: Get household ID from auth
-      const householdId = 'placeholder-household-id';
-      this.recipes = await this.recipeService.getRecipes(householdId);
+      this.recipes = await this.recipeService.getRecipes();
       this.applyFilter();
     } catch (error) {
       console.error('Error loading recipes:', error);

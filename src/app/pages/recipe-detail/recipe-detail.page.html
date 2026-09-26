@@ -173,10 +173,23 @@
       }
     </section>
 
-    <!-- Partager -->
-    <button class="recipe-share-btn" (click)="shareRecipe()">
-      <ion-icon name="share-social-outline"></ion-icon>
-      <span>Partager la recette</span>
+    <!-- Source + actions -->
+    <div class="settings-card recipe-actions">
+      @if (recipe.sourceUrl) {
+        <a class="settings-row" [href]="recipe.sourceUrl" target="_blank" rel="noopener">
+          <span class="settings-row-icon"><ion-icon name="open-outline"></ion-icon></span>
+          <span class="settings-row-label">{{ sourceLabel }}</span>
+        </a>
+      }
+      <button class="settings-row" (click)="shareRecipe()">
+        <span class="settings-row-icon"><ion-icon name="share-social-outline"></ion-icon></span>
+        <span class="settings-row-label">Partager la recette</span>
+      </button>
+    </div>
+
+    <button class="settings-danger-btn" (click)="deleteRecipe()">
+      <ion-icon name="trash-outline"></ion-icon>
+      <span>Supprimer la recette</span>
     </button>
   } @else if (loaded) {
     <div class="empty-state">

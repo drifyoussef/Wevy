@@ -1,144 +1,96 @@
-// Recipe extraction using Groq (free tier, available in the EU).
-// Get a key at https://console.groq.com/keys and set GROQ_API_KEY.
+// Import a recipe from any link (TikTok, Instagram, Facebook, YouTube, recipe websites...).
+//   1. source.js reads the link: caption, structured data, page text, video
+//   2. ai.js has a free AI (Gemini, Groq as fallback) turn it into a structured recipe
+//   3. the result is cleaned up here so the app always gets well-formed data
 
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const { fetchSource } = require('./recipe-import/source');
+const { extractWithAI, CATEGORIES, DIFFICULTIES, MEAL_TYPES } = require('./recipe-import/ai');
+const { ImportError } = require('./recipe-import/errors');
 
-function detectSourcePlatform(url) {
-  if (url.includes('tiktok.com')) return 'tiktok';
-  if (url.includes('instagram.com')) return 'instagram';
-  return 'url';
+const MAX_INGREDIENTS = 60;
+const MAX_STEPS = 40;
+const MAX_TAGS = 6;
+
+function toText(value, max = 300) {
+  return typeof value === 'string' ? value.trim().slice(0, max) : '';
 }
 
-// Fetch the caption/description of a video or page.
-// TikTok and Instagram expose a free oEmbed endpoint that returns the caption
-// in its `title` field. For anything else we fall back to the page's HTML
-// meta description.
-async function fetchSourceContext(url) {
-  const platform = detectSourcePlatform(url);
+function toPositiveInt(value, max) {
+  const number = Math.round(Number(value));
+  return Number.isFinite(number) && number > 0 && number <= max ? number : undefined;
+}
 
-  try {
-    if (platform === 'tiktok') {
-      const res = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`);
-      if (res.ok) {
-        const data = await res.json();
-        return {
-          caption: data.title || '',
-          author: data.author_name || '',
-          thumbnail: data.thumbnail_url || ''
-        };
-      }
-    }
-
-    if (platform === 'instagram') {
-      const res = await fetch(`https://api.instagram.com/oembed?url=${encodeURIComponent(url)}`);
-      if (res.ok) {
-        const data = await res.json();
-        return {
-          caption: data.title || '',
-          author: data.author_name || '',
-          thumbnail: data.thumbnail_url || ''
-        };
-      }
-    }
-
-    // Generic fallback: grab the page and pull the og:description / meta description
-    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; WevyBot/1.0)' } });
-    if (res.ok) {
-      const html = await res.text();
-      const ogDesc = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i);
-      const metaDesc = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i);
-      const ogTitle = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i);
+function normalizeRecipe(raw) {
+  const ingredients = (Array.isArray(raw.ingredients) ? raw.ingredients : [])
+    .map(ingredient => {
+      const quantity = Number(ingredient?.quantity);
       return {
-        caption: (ogDesc?.[1] || metaDesc?.[1] || ogTitle?.[1] || '').replace(/&amp;/g, '&'),
-        author: '',
-        thumbnail: ''
+        name: toText(ingredient?.name, 120),
+        quantity: Number.isFinite(quantity) && quantity > 0 ? Math.round(quantity * 100) / 100 : undefined,
+        unit: toText(ingredient?.unit, 30),
+        category: CATEGORIES.includes(ingredient?.category) ? ingredient.category : 'other'
       };
-    }
-  } catch (err) {
-    console.warn('[recipe-extractor] Could not fetch source context:', err.message);
-  }
-
-  return { caption: '', author: '', thumbnail: '' };
-}
-
-async function callLLM(prompt) {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    throw new Error('GROQ_API_KEY is not configured');
-  }
-
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-      temperature: 0.4
     })
-  });
+    .filter(ingredient => ingredient.name)
+    .slice(0, MAX_INGREDIENTS);
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Groq API error (${res.status}): ${errText}`);
-  }
+  const instructions = (Array.isArray(raw.instructions) ? raw.instructions : [])
+    // "1. Faire bouillir" -> "Faire bouillir": the app numbers the steps itself
+    .map(step => toText(step, 1000).replace(/^\s*(?:étape\s*)?\d+\s*[.):-]\s*/i, ''))
+    .filter(Boolean)
+    .slice(0, MAX_STEPS);
 
-  const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content;
-  if (!text) {
-    throw new Error('No recipe could be extracted from this URL');
-  }
+  const tags = [...new Set(
+    (Array.isArray(raw.tags) ? raw.tags : [])
+      .map(tag => toText(tag, 30).toLowerCase().replace(/^#/, ''))
+      .filter(Boolean)
+  )].slice(0, MAX_TAGS);
 
-  return JSON.parse(text);
-}
-
-async function extractRecipeFromUrl(url) {
-  const platform = detectSourcePlatform(url);
-  const { caption, author, thumbnail } = await fetchSourceContext(url);
-
-  const prompt = `Tu es un assistant qui extrait des recettes de cuisine à partir de publications de réseaux sociaux.
-
-Voici les informations d'une vidéo/publication ${platform} :
-- Auteur : ${author || 'inconnu'}
-- Légende / description :
-"""
-${caption || '(aucune légende disponible)'}
-"""
-
-À partir de ces informations, déduis une recette structurée en français.
-- Si des ingrédients sont listés, extrais-les avec leur quantité et unité quand c'est possible.
-- Si les étapes ne sont pas explicites, déduis des instructions plausibles à partir du contexte.
-- Estime prepTime, cookTime (en minutes) et servings de façon réaliste.
-- Si la légende est vide ou ne contient pas de recette, crée une recette plausible basée sur le titre/auteur, avec une description indiquant qu'elle doit être vérifiée.
-
-Réponds UNIQUEMENT avec un objet JSON respectant exactement cette structure :
-{
-  "title": "string",
-  "description": "string",
-  "ingredients": [
-    { "name": "string", "quantity": number | null, "unit": "string", "category": "produce | meat | dairy | pantry | spices | other" }
-  ],
-  "instructions": ["string"],
-  "prepTime": number,
-  "cookTime": number,
-  "servings": number,
-  "difficulty": "easy | medium | hard",
-  "mealType": "breakfast | lunch | dinner | snack | dessert",
-  "tags": ["string"]
-}`;
-
-  const parsed = await callLLM(prompt);
+  const prepTime = toPositiveInt(raw.prepTime, 24 * 60);
+  const cookTime = toPositiveInt(raw.cookTime, 3 * 24 * 60);
 
   return {
-    ...parsed,
-    sourceUrl: url,
-    sourcePlatform: platform,
-    imageUrl: thumbnail || undefined,
-    totalTime: (parsed.prepTime || 0) + (parsed.cookTime || 0)
+    title: toText(raw.title, 120),
+    description: toText(raw.description, 600),
+    ingredients,
+    instructions,
+    prepTime,
+    cookTime,
+    totalTime: prepTime || cookTime ? (prepTime || 0) + (cookTime || 0) : undefined,
+    servings: toPositiveInt(raw.servings, 100),
+    difficulty: DIFFICULTIES.includes(raw.difficulty) ? raw.difficulty : undefined,
+    mealType: MEAL_TYPES.includes(raw.mealType) ? raw.mealType : undefined,
+    tags
   };
 }
 
-module.exports = { extractRecipeFromUrl };
+/**
+ * @returns {Promise<{recipe: object, meta: {platform: string, usedVideo: boolean, model: string}}>}
+ */
+async function extractRecipeFromUrl(url) {
+  const source = await fetchSource(url);
+
+  if (!source.video && !source.youtubeUrl && !source.caption && !source.pageText && !source.structuredRecipe) {
+    throw new ImportError(422, "Ce lien ne contient rien de lisible. S'il s'agit d'un compte privé, la publication doit être publique.");
+  }
+
+  const { recipe: raw, model, usedVideo } = await extractWithAI(source);
+  const recipe = normalizeRecipe(raw);
+
+  if (raw.isRecipe === false || (recipe.ingredients.length === 0 && recipe.instructions.length === 0)) {
+    throw new ImportError(422, 'Aucune recette trouvée dans ce lien.');
+  }
+
+  return {
+    recipe: {
+      ...recipe,
+      title: recipe.title || source.title || 'Recette importée',
+      imageUrl: source.imageUrl,
+      sourceUrl: source.finalUrl,
+      sourcePlatform: ['tiktok', 'instagram', 'facebook', 'youtube'].includes(source.platform) ? source.platform : 'url'
+    },
+    meta: { platform: source.platform, usedVideo, model }
+  };
+}
+
+module.exports = { extractRecipeFromUrl, normalizeRecipe };

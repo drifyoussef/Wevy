@@ -9,7 +9,8 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+// Recipes imported from social networks carry their cover picture inline (up to ~300 KB)
+app.use(bodyParser.json({ limit: '2mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
