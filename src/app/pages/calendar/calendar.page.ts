@@ -5,7 +5,7 @@ import {
   IonButtons, IonBackButton, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, add, close, locationOutline } from 'ionicons/icons';
+import { chevronBack, chevronForward, add, close, locationOutline, timeOutline } from 'ionicons/icons';
 import { CalendarService } from '../../services/calendar.service';
 import { HouseholdService } from '../../services/household.service';
 import { ToastService } from '../../services/toast.service';
@@ -52,7 +52,7 @@ export class CalendarPage implements OnInit, OnDestroy {
     private modalController: ModalController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ chevronBack, chevronForward, add, close, locationOutline });
+    addIcons({ chevronBack, chevronForward, add, close, locationOutline, timeOutline });
   }
 
   ngOnInit() {

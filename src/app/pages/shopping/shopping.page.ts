@@ -6,7 +6,7 @@ import {
   IonButtons, IonBackButton, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, checkmark, checkmarkDone, close } from 'ionicons/icons';
+import { add, cartOutline, checkmark, checkmarkDone, close } from 'ionicons/icons';
 import { ShoppingListService } from '../../services/shopping-list.service';
 import { ShoppingListItem } from '../../models/shopping-list.model';
 import { Subscription } from 'rxjs';
@@ -41,7 +41,7 @@ export class ShoppingPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, checkmark, checkmarkDone, close });
+    addIcons({ add, cartOutline, checkmark, checkmarkDone, close });
   }
 
   ngOnInit() {

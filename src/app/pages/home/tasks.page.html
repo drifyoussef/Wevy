@@ -46,8 +46,9 @@
         }
       </div>
     } @else {
-      <div class="bg-muted rounded-xl p-6 text-center">
-        <p class="text-sm text-gray-500">Aucune tâche pour aujourd'hui - Profitez-en ! 🎉</p>
+      <div class="empty-state">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        <span>Aucune tâche pour aujourd'hui - Profitez-en !</span>
       </div>
     }
   </div>
@@ -89,8 +90,9 @@
         }
       </div>
     } @else {
-      <div class="bg-muted rounded-xl p-6 text-center">
-        <p class="text-sm text-gray-500">Aucune tâche terminée</p>
+      <div class="empty-state">
+        <ion-icon name="hourglass-outline"></ion-icon>
+        <span>Aucune tâche terminée</span>
       </div>
     }
   </div>

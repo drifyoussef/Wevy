@@ -335,6 +335,25 @@ h3, .text-xl {
 .bg-muted { background-color: var(--ion-color-muted) !important; }
 .bg-secondary { background-color: var(--ion-color-secondary) !important; }
 
+/* Empty state: icon + message on a sage card that stands out from the page background */
+.empty-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--ion-border-color);
+  background: var(--tile-bg);
+  color: var(--ion-color-dark-tint);
+  font-size: var(--text-sm);
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--tile-icon);
+    flex-shrink: 0;
+  }
+}
+
 .text-primary { color: var(--ion-color-primary) !important; }
 .text-white { color: #FFFFFF !important; }
 .text-gray-400 { color: var(--gray-400) !important; }

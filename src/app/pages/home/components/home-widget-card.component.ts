@@ -1,13 +1,14 @@
-import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, booleanAttribute } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, HostBinding, booleanAttribute } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmark, chevronBack, chevronForward } from 'ionicons/icons';
+import { cartOutline, checkmark, checkmarkDoneOutline, chevronBack, chevronForward, locationOutline, timeOutline } from 'ionicons/icons';
 import { Subscription, distinctUntilChanged } from 'rxjs';
 import { TaskService } from '../../../services/task.service';
 import { ShoppingListService } from '../../../services/shopping-list.service';
 import { CalendarService } from '../../../services/calendar.service';
 import { DAY_LETTERS, MONTH_NAMES_FR, getMonday, toIsoDate } from '../../../utils/date.utils';
+import { CalendarEvent, EVENT_TYPES } from '../../../models/calendar-event.model';
 
 export type HomeWidgetType = 'tasks' | 'shopping' | 'calendar';
 
@@ -18,10 +19,9 @@ export const WIDGET_TITLES: Record<HomeWidgetType, string> = {
   calendar: 'Mon calendrier',
 };
 
-const EMPTY_LABELS: Record<HomeWidgetType, string> = {
-  tasks: "Aucune tâche pour aujourd'hui",
-  shopping: 'Aucun produit dans la liste',
-  calendar: 'Aucun événement à venir',
+const EMPTY_STATES: Record<'tasks' | 'shopping', { icon: string; label: string }> = {
+  tasks: { icon: 'checkmark-done-outline', label: "Aucune tâche pour aujourd'hui" },
+  shopping: { icon: 'cart-outline', label: 'Aucun produit dans la liste' },
 };
 
 const MAX_ROWS = 3;
@@ -41,6 +41,13 @@ const PREVIEW_ROWS: Record<'tasks' | 'shopping', WidgetRow[]> = {
   ],
 };
 
+/** Sample appointment for the picker, same idea as PREVIEW_ROWS. */
+const PREVIEW_EVENTS: AgendaEvent[] = [
+  { id: 'preview-1', title: 'Dentiste', time: '14:30', location: 'Cabinet du centre', color: '#3B82F6', type: 'rendezvous' },
+];
+
+type AgendaEvent = Pick<CalendarEvent, 'id' | 'title' | 'time' | 'location' | 'color' | 'type'>;
+
 interface WidgetRow {
   id: string;
   label: string;
@@ -52,7 +59,7 @@ interface MiniDayCell {
   dayLetter: string;
   dayNumber: number;
   isToday: boolean;
-  hasEvents: boolean;
+  eventColors: string[];
 }
 
 /**
@@ -64,27 +71,71 @@ interface MiniDayCell {
   standalone: true,
   imports: [CommonModule, IonIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '[class.preview]': 'preview' },
   template: `
     @if (type === 'calendar') {
       <div class="widget-card calendar-widget-card">
-        <div class="calendar-widget-nav">
-          <button class="calendar-widget-nav-btn" (click)="previousWeek($event)" aria-label="Semaine précédente">
-            <ion-icon name="chevron-back"></ion-icon>
-          </button>
-          <span class="calendar-widget-month">{{ monthLabel }}</span>
-          <button class="calendar-widget-nav-btn" (click)="nextWeek($event)" aria-label="Semaine suivante">
-            <ion-icon name="chevron-forward"></ion-icon>
-          </button>
+        <div class="calendar-widget-top">
+          <div class="calendar-widget-nav">
+            <button class="calendar-widget-nav-btn" (click)="previousWeek($event)" (keyup.enter)="$event.stopPropagation()" aria-label="Semaine précédente">
+              <ion-icon name="chevron-back"></ion-icon>
+            </button>
+            <span class="calendar-widget-month">{{ monthLabel }}</span>
+            <button class="calendar-widget-nav-btn" (click)="nextWeek($event)" (keyup.enter)="$event.stopPropagation()" aria-label="Semaine suivante">
+              <ion-icon name="chevron-forward"></ion-icon>
+            </button>
+          </div>
+
+          <div class="calendar-widget-week">
+            @for (day of weekDays; track day.iso) {
+              <button
+                class="calendar-widget-day"
+                [class.today]="day.isToday"
+                [class.selected]="day.iso === selectedIso"
+                (click)="selectDay(day.iso, $event)"
+                (keyup.enter)="$event.stopPropagation()"
+                [attr.aria-label]="'Voir le ' + day.dayNumber"
+              >
+                <span class="calendar-widget-day-letter">{{ day.dayLetter }}</span>
+                <span class="calendar-widget-day-number">{{ day.dayNumber }}</span>
+                <span class="calendar-widget-day-dots">
+                  @for (color of day.eventColors; track $index) {
+                    <span class="calendar-widget-day-dot" [style.background]="color"></span>
+                  }
+                </span>
+              </button>
+            }
+          </div>
         </div>
 
-        <div class="calendar-widget-week">
-          @for (day of weekDays; track day.iso) {
-            <div class="calendar-widget-day" [class.today]="day.isToday">
-              <span class="calendar-widget-day-letter">{{ day.dayLetter }}</span>
-              <span class="calendar-widget-day-number">{{ day.dayNumber }}</span>
-              <span class="calendar-widget-day-dot" [class.visible]="day.hasEvents"></span>
+        <div class="calendar-widget-agenda">
+          <span class="calendar-widget-date">{{ selectedDateLabel }}</span>
+
+          @for (event of dayEvents; track event.id) {
+            <div class="event-row">
+              <span class="event-bar" [style.background]="event.color"></span>
+              <div class="event-info">
+                <div class="event-title-row">
+                  <span class="event-title">{{ event.title }}</span>
+                  <span class="event-time">{{ event.time || 'Journée' }}</span>
+                </div>
+                @if (event.location) {
+                  <span class="event-location">
+                    <ion-icon name="location-outline"></ion-icon>
+                    <span>{{ event.location }}</span>
+                  </span>
+                }
+                <span class="event-type-chip" [style.background]="event.color">{{ typeLabel(event.type) }}</span>
+              </div>
             </div>
+          } @empty {
+            <div class="empty-state">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>Aucun rendez-vous</span>
+            </div>
+          }
+
+          @if (hiddenEventsCount > 0) {
+            <span class="event-more">+ {{ hiddenEventsCount }} autre{{ hiddenEventsCount > 1 ? 's' : '' }}</span>
           }
         </div>
       </div>
@@ -102,8 +153,9 @@ interface MiniDayCell {
         }
       </div>
     } @else {
-      <div class="widget-card widget-empty">
-        <p class="text-sm text-gray-500">{{ emptyLabel }}</p>
+      <div class="empty-state">
+        <ion-icon [name]="emptyState.icon"></ion-icon>
+        <span>{{ emptyState.label }}</span>
       </div>
     }
   `,
@@ -117,8 +169,9 @@ interface MiniDayCell {
       transition: transform 0.15s ease;
     }
 
-    /* The press effect is driven by the .widget wrapper on the home page. */
-    :host-context(.widget:active) .widget-card {
+    /* The press effect is driven by the .widget wrapper on the home page - but not when
+       the press is on an inner control (day, week arrows), which doesn't navigate. */
+    :host-context(.widget:active) .widget-card:not(:has(button:active)) {
       transform: scale(0.98);
     }
 
@@ -175,18 +228,13 @@ interface MiniDayCell {
       }
     }
 
-    .widget-empty {
-      text-align: center;
-      padding: 24px 16px;
-
-      p {
-        margin: 0;
-      }
+    /* Mini week-calendar widget: week strip on top, selected day's agenda below */
+    .calendar-widget-card {
+      padding: 0;
     }
 
-    /* Mini week-calendar widget */
-    .calendar-widget-card {
-      padding: 14px 10px;
+    .calendar-widget-top {
+      padding: 14px 10px 0px;
     }
 
     .calendar-widget-nav {
@@ -238,10 +286,24 @@ interface MiniDayCell {
       align-items: center;
       gap: 3px;
       padding: 6px 0;
+      border: none;
       border-radius: 12px;
+      background: transparent;
+      font: inherit;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.15s ease;
+
+      &:active {
+        transform: scale(0.94);
+      }
 
       &.today {
+        box-shadow: 0 0 0 2px var(--tile-icon) inset;
+      }
+
+      &.selected {
         background: linear-gradient(145deg, var(--tile-icon-light), var(--tile-icon));
+        box-shadow: none;
 
         .calendar-widget-day-letter,
         .calendar-widget-day-number {
@@ -263,26 +325,126 @@ interface MiniDayCell {
       color: var(--ion-text-color);
     }
 
+    .calendar-widget-day-dots {
+      display: flex;
+      gap: 2px;
+      height: 4px;
+    }
+
     .calendar-widget-day-dot {
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: transparent;
+    }
 
-      &.visible {
-        background: var(--ion-color-danger);
+    .calendar-widget-agenda {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px 14px 14px;
+    }
+
+    .calendar-widget-date {
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--ion-text-color);
+      text-transform: capitalize;
+    }
+
+    .event-row {
+      display: flex;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--ion-color-light);
+    }
+
+    .event-bar {
+      align-self: stretch;
+      width: 4px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+
+    .event-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .event-title-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .event-title {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--ion-text-color);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .event-time {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ion-color-medium-shade);
+      flex-shrink: 0;
+    }
+
+    .event-location {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 12px;
+      color: var(--ion-color-medium-shade);
+      min-width: 0;
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
+
+      ion-icon {
+        font-size: 12px;
+        flex-shrink: 0;
+      }
+    }
+
+    .event-type-chip {
+      align-self: flex-start;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .event-more {
+      font-size: 12px;
+      color: var(--ion-color-medium-shade);
     }
   `]
 })
 export class HomeWidgetCardComponent implements OnInit, OnDestroy {
   @Input({ required: true }) type!: HomeWidgetType;
   /** Sample mode for the "add a widget" picker: fixed content, nothing interactive. */
+  @HostBinding('class.preview')
   @Input({ transform: booleanAttribute }) preview = false;
 
   rows: WidgetRow[] = [];
   weekDays: MiniDayCell[] = [];
   monthLabel = '';
+  selectedIso = toIsoDate(new Date());
+  selectedDateLabel = '';
+  dayEvents: AgendaEvent[] = [];
+  hiddenEventsCount = 0;
 
   private subscription?: Subscription;
   private weekStart: Date = getMonday(new Date());
@@ -293,17 +455,19 @@ export class HomeWidgetCardComponent implements OnInit, OnDestroy {
     private calendarService: CalendarService,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ checkmark, chevronBack, chevronForward });
+    addIcons({ cartOutline, checkmark, checkmarkDoneOutline, chevronBack, chevronForward, locationOutline, timeOutline });
   }
 
-  get emptyLabel(): string {
-    return EMPTY_LABELS[this.type];
+  get emptyState(): { icon: string; label: string } {
+    return EMPTY_STATES[this.type === 'shopping' ? 'shopping' : 'tasks'];
   }
 
   ngOnInit() {
     if (this.preview) {
       if (this.type === 'calendar') {
         this.buildWeek();
+        this.selectedDateLabel = this.formatDate(this.selectedIso);
+        this.dayEvents = PREVIEW_EVENTS;
       } else {
         this.rows = PREVIEW_ROWS[this.type];
       }
@@ -339,6 +503,7 @@ export class HomeWidgetCardComponent implements OnInit, OnDestroy {
       case 'calendar':
         this.subscription = this.calendarService.events$.subscribe(() => {
           this.buildWeek();
+          this.loadDayEvents();
           this.cdr.markForCheck();
         });
         break;
@@ -366,6 +531,40 @@ export class HomeWidgetCardComponent implements OnInit, OnDestroy {
     this.buildWeek();
   }
 
+  /** Picks a day inside the widget - it must not bubble up to the widget's "open the calendar" click. */
+  selectDay(iso: string, event: Event) {
+    event.stopPropagation();
+    if (this.preview) {
+      return;
+    }
+
+    this.selectedIso = iso;
+    this.loadDayEvents();
+  }
+
+  typeLabel(type: AgendaEvent['type']): string {
+    return EVENT_TYPES.find(option => option.value === type)?.label ?? '';
+  }
+
+  private loadDayEvents() {
+    // All-day events first, then by start time
+    const events = [...this.calendarService.getEventsForDate(this.selectedIso)]
+      .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+    this.selectedDateLabel = this.formatDate(this.selectedIso);
+    this.dayEvents = events.slice(0, MAX_ROWS);
+    this.hiddenEventsCount = Math.max(0, events.length - MAX_ROWS);
+  }
+
+  private formatDate(iso: string): string {
+    const [year, month, day] = iso.split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    });
+  }
+
   private buildWeek() {
     const todayIso = toIsoDate(new Date());
 
@@ -379,7 +578,7 @@ export class HomeWidgetCardComponent implements OnInit, OnDestroy {
         dayLetter: DAY_LETTERS[i],
         dayNumber: date.getDate(),
         isToday: iso === todayIso,
-        hasEvents: this.calendarService.getEventsForDate(iso).length > 0
+        eventColors: this.calendarService.getEventsForDate(iso).slice(0, 3).map(event => event.color)
       };
     });
 

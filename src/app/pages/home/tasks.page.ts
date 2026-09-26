@@ -6,7 +6,7 @@ import {
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
-import { add, checkmark, close } from 'ionicons/icons';
+import { add, checkmark, checkmarkDoneOutline, close, hourglassOutline } from 'ionicons/icons';
 import { TaskService } from '../../services/task.service';
 import { HouseholdService } from '../../services/household.service';
 import { AuthService } from '../../services/auth.service';
@@ -49,7 +49,7 @@ export class TasksPage implements OnInit, OnDestroy {
     private modalController: ModalController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, checkmark, close });
+    addIcons({ add, checkmark, checkmarkDoneOutline, close, hourglassOutline });
   }
 
   ngOnInit() {
