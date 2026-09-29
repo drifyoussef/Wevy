@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRe
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButtons, IonButton, ModalController, ToastController
+  IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButtons, IonButton, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { checkmarkDone, cart, restaurant, sparkles, home, addCircle, calendar, time, airplane, settings, add, close } from 'ionicons/icons';
@@ -19,7 +19,7 @@ interface AppTile {
   label: string;
   icon: string;
   route?: string;
-  action?: 'swipe' | 'comingSoon';
+  action?: 'swipe';
   badge?: number;
 }
 
@@ -56,7 +56,7 @@ export class HomePage implements OnInit, OnDestroy {
     { label: 'Ajouter une recette', icon: 'add-circle', route: '/tabs/add-recipe' },
     { label: 'Calendrier', icon: 'calendar', route: '/tabs/calendar' },
     { label: 'Horaires', icon: 'time', route: '/tabs/schedules' },
-    { label: 'Voyage', icon: 'airplane', action: 'comingSoon' },
+    { label: 'Voyage', icon: 'airplane', route: '/tabs/trips' },
     { label: 'Mon foyer', icon: 'home', route: '/tabs/settings/household' },
   ];
 
@@ -67,7 +67,6 @@ export class HomePage implements OnInit, OnDestroy {
     private router: Router,
     private authService: AuthService,
     private modalController: ModalController,
-    private toastController: ToastController,
     private cdr: ChangeDetectorRef
   ) {
     addIcons({ checkmarkDone, cart, restaurant, sparkles, home, addCircle, calendar, time, airplane, settings, add, close });
@@ -157,8 +156,6 @@ export class HomePage implements OnInit, OnDestroy {
   async goToTile(tile: AppTile) {
     if (tile.action === 'swipe') {
       await this.openSwipeMode();
-    } else if (tile.action === 'comingSoon') {
-      await this.presentComingSoon(tile.label);
     } else if (tile.route) {
       this.router.navigate([tile.route]);
     }
@@ -206,12 +203,4 @@ export class HomePage implements OnInit, OnDestroy {
     await modal.present();
   }
 
-  private async presentComingSoon(label: string) {
-    const toast = await this.toastController.create({
-      message: `${label} arrive bientôt !`,
-      duration: 1800,
-      position: 'bottom'
-    });
-    await toast.present();
-  }
 }

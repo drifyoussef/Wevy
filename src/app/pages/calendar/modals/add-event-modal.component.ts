@@ -7,10 +7,10 @@ import {
   IonInput, IonButtons, IonModal, IonDatetime, IonIcon, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { timeOutline, locationOutline } from 'ionicons/icons';
+import { timeOutline, locationOutline, close } from 'ionicons/icons';
 import { Subject, Subscription, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, map, catchError } from 'rxjs/operators';
-import { EVENT_TYPES, EventType } from '../../../models/calendar-event.model';
+import { CalendarEvent, EVENT_TYPES, EventType } from '../../../models/calendar-event.model';
 
 interface AddressFeature {
   properties: { label: string };
@@ -28,7 +28,7 @@ interface AddressFeature {
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-title>Nouvel événement</ion-title>
+        <ion-title>{{ event ? "Modifier l'événement" : 'Nouvel événement' }}</ion-title>
         <ion-buttons slot="end">
           <ion-button fill="clear" color="danger" (click)="dismiss()">Annuler</ion-button>
         </ion-buttons>
@@ -36,14 +36,23 @@ interface AddressFeature {
     </ion-header>
 
     <ion-content class="ion-padding">
-      <p class="event-date">{{ formattedDate }}</p>
+      @if (event) {
+        <!-- Editing: the date can move (postponing) -->
+        <div class="form-field">
+          <label class="field-label" for="event-date-input">Date</label>
+          <input id="event-date-input" class="date-input" type="date" [(ngModel)]="date" name="date" />
+        </div>
+      } @else {
+        <p class="event-date">{{ formattedDate }}</p>
+      }
 
       <div class="form-field">
-        <label class="field-label">Titre de l'événement</label>
+        <span class="field-label">Titre de l'événement</span>
         <ion-input
           #eventTitleInput
           [(ngModel)]="title"
           name="title"
+          aria-label="Titre de l'événement"
           placeholder="Ex: Anniversaire de Léa..."
           type="text"
           fill="outline"
@@ -52,21 +61,29 @@ interface AddressFeature {
       </div>
 
       <div class="form-field">
-        <label class="field-label">Heure (optionnel)</label>
-        <button id="open-time-picker" class="time-trigger">
-          <ion-icon name="time-outline"></ion-icon>
-          <span>{{ time || 'Choisir une heure' }}</span>
-        </button>
+        <span class="field-label">Heure (optionnel)</span>
+        <div class="time-row">
+          <button id="open-time-picker" class="time-trigger">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ time || 'Choisir une heure' }}</span>
+          </button>
+          @if (time) {
+            <button class="time-clear" (click)="clearTime()" aria-label="Retirer l'heure">
+              <ion-icon name="close"></ion-icon>
+            </button>
+          }
+        </div>
       </div>
 
       <div class="form-field location-field">
-        <label class="field-label">Lieu (optionnel)</label>
+        <span class="field-label">Lieu (optionnel)</span>
         <ion-input
           [(ngModel)]="location"
           (ionInput)="onLocationInput($event)"
           (ionBlur)="onLocationBlur()"
           (ionFocus)="onLocationFocus()"
           name="location"
+          aria-label="Lieu"
           placeholder="Ex: 24 rue du Palais, Paris..."
           type="text"
           fill="outline"
@@ -87,7 +104,7 @@ interface AddressFeature {
       </div>
 
       <div class="form-field">
-        <label class="field-label">Type d'événement</label>
+        <span class="field-label">Type d'événement</span>
         <div class="type-chips">
           @for (option of eventTypes; track option.value) {
             <button
@@ -106,10 +123,10 @@ interface AddressFeature {
       <ion-button
         expand="block"
         (click)="addEvent()"
-        [disabled]="!title.trim()"
+        [disabled]="!title.trim() || !date"
         class="mt-6"
       >
-        Ajouter l'événement
+        {{ event ? 'Enregistrer' : "Ajouter l'événement" }}
       </ion-button>
     </ion-content>
 
@@ -161,6 +178,43 @@ interface AddressFeature {
       &:active {
         background: var(--ion-color-light-shade, #eef0f4);
       }
+    }
+
+    .time-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .time-clear {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+      border: none;
+      border-radius: 12px;
+      background: rgba(var(--ion-color-danger-rgb), 0.1);
+      color: var(--ion-color-danger);
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+
+    .date-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      border: 2px solid var(--ion-color-primary);
+      border-radius: 12px;
+      background: var(--ion-color-light);
+      outline: none;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ion-text-color);
     }
 
     .location-field {
@@ -252,6 +306,8 @@ interface AddressFeature {
 export class AddEventModalComponent implements OnInit, OnDestroy {
   @Input() date: string = '';
   @Input() formattedDate: string = '';
+  /** Given when editing an existing event: the form starts from its values. */
+  @Input() event?: CalendarEvent;
 
   title = '';
   time = '';
@@ -270,10 +326,21 @@ export class AddEventModalComponent implements OnInit, OnDestroy {
     private modalController: ModalController,
     private http: HttpClient
   ) {
-    addIcons({ timeOutline, locationOutline });
+    addIcons({ timeOutline, locationOutline, close });
   }
 
   ngOnInit() {
+    if (this.event) {
+      this.title = this.event.title;
+      this.date = this.event.date;
+      this.time = this.event.time || '';
+      this.location = this.event.location || '';
+      this.selectedType = this.event.type;
+      if (this.event.time) {
+        this.timeIso = `${this.event.date}T${this.event.time}:00`;
+      }
+    }
+
     this.querySubscription = this.locationQuery$
       .pipe(
         debounceTime(300),
@@ -332,17 +399,21 @@ export class AddEventModalComponent implements OnInit, OnDestroy {
     }
   }
 
+  clearTime() {
+    this.time = '';
+  }
+
   dismiss() {
     this.modalController.dismiss();
   }
 
   addEvent() {
-    if (!this.title.trim()) return;
+    if (!this.title.trim() || !this.date) return;
 
     const type = this.eventTypes.find(t => t.value === this.selectedType) || this.eventTypes[0];
 
     this.modalController.dismiss({
-      added: true,
+      [this.event ? 'updated' : 'added']: true,
       event: {
         title: this.title.trim(),
         date: this.date,

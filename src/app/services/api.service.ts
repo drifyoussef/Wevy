@@ -83,6 +83,12 @@ export class ApiService {
     }).pipe(timeout(this.requestTimeout), catchError(this.handleError));
   }
 
+  patch<T>(endpoint: string, data: unknown): Observable<T> {
+    return this.http.patch<T>(`${this.baseUrl}/${endpoint}`, data, {
+      headers: this.getHeaders()
+    }).pipe(timeout(this.requestTimeout), catchError(this.handleError));
+  }
+
   delete<T>(endpoint: string): Observable<T> {
     return this.http.delete<T>(`${this.baseUrl}/${endpoint}`, {
       headers: this.getHeaders()
@@ -111,6 +117,15 @@ export class ApiService {
   putAsync<T>(endpoint: string, data: unknown): Promise<T> {
     return new Promise((resolve, reject) => {
       this.put<T>(endpoint, data).subscribe({
+        next: (data) => resolve(data),
+        error: (error) => reject(error)
+      });
+    });
+  }
+
+  patchAsync<T>(endpoint: string, data: unknown): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.patch<T>(endpoint, data).subscribe({
         next: (data) => resolve(data),
         error: (error) => reject(error)
       });

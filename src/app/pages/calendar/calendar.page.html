@@ -51,7 +51,16 @@
     @if (selectedDayEvents.length > 0) {
       <div class="tasks-list">
         @for (event of selectedDayEvents; track event.id) {
-          <div class="event-card" [class.removing]="removingIds.has(event.id)">
+          <div
+            class="event-card"
+            [class.removing]="removingIds.has(event.id)"
+            [class.editable]="isMine(event)"
+            (click)="editEvent(event)"
+            (keyup.enter)="editEvent(event)"
+            [attr.role]="isMine(event) ? 'button' : null"
+            [attr.tabindex]="isMine(event) ? 0 : null"
+            [attr.aria-label]="isMine(event) ? 'Modifier ' + event.title : null"
+          >
             <span class="event-bar" [style.background]="event.color"></span>
             <div class="event-info">
               <div class="event-title-row">
@@ -66,9 +75,22 @@
                   <span>{{ event.location }}</span>
                 </div>
               }
-              <span class="event-type-chip" [style.background]="event.color">{{ getTypeLabel(event.type) }}</span>
+              <div class="event-meta-row">
+                <span class="event-type-chip" [style.background]="event.color">{{ getTypeLabel(event.type) }}</span>
+                @if (authorName(event); as author) {
+                  <span class="event-author" [class.event-author--me]="isMine(event)">
+                    <span class="event-author-avatar" [style.background]="authorColor(event)">{{ authorInitial(event) }}</span>
+                    {{ isMine(event) ? 'Ajouté par vous' : 'Ajouté par ' + author }}
+                  </span>
+                }
+              </div>
             </div>
-            <button class="task-delete-badge" (click)="deleteEvent(event.id)" aria-label="Supprimer l'événement">
+            @if (isMine(event)) {
+              <span class="event-edit-hint" aria-hidden="true">
+                <ion-icon name="create-outline"></ion-icon>
+              </span>
+            }
+            <button class="task-delete-badge" (click)="deleteEvent(event.id, $event)" (keyup.enter)="$event.stopPropagation()" aria-label="Supprimer l'événement">
               <ion-icon name="close"></ion-icon>
             </button>
           </div>

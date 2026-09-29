@@ -1,0 +1,126 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Voyages</ion-title>
+    @if (state === 'ready') {
+      <ion-buttons slot="end">
+        <ion-button fill="clear" (click)="createTrip()" aria-label="Nouveau voyage">
+          <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  @switch (state) {
+    @case ('loading') {
+      <div class="trips-loading"><ion-spinner name="crescent"></ion-spinner></div>
+    }
+
+    @case ('error') {
+      <div class="empty-state trips-message">
+        <ion-icon name="cloud-offline-outline"></ion-icon>
+        <span>Impossible de charger les voyages. Vérifie ta connexion et réessaie.</span>
+      </div>
+      <div class="settings-card">
+        <button class="settings-row" (click)="load()">
+          <span class="settings-row-icon"><ion-icon name="refresh-outline"></ion-icon></span>
+          <span class="settings-row-label">Réessayer</span>
+          <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+        </button>
+      </div>
+    }
+
+    @case ('no-household') {
+      <div class="empty-state trips-message">
+        <ion-icon name="home-outline"></ion-icon>
+        <span>Rejoins ou crée un foyer pour préparer tes voyages avec tes proches.</span>
+      </div>
+      <div class="settings-card">
+        <button class="settings-row" routerLink="/tabs/settings/household">
+          <span class="settings-row-icon"><ion-icon name="home-outline"></ion-icon></span>
+          <span class="settings-row-label">Mon foyer</span>
+          <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+        </button>
+      </div>
+    }
+
+    @case ('ready') {
+      @if (upcoming.length === 0 && past.length === 0) {
+        <div class="empty-state trips-message">
+          <ion-icon name="airplane"></ion-icon>
+          <span>Aucun voyage prévu. Prépare le prochain : valise, programme et dépenses partagées.</span>
+        </div>
+      }
+
+      @if (upcoming.length > 0) {
+        <section class="settings-section">
+          <h2 class="settings-section-title">À venir</h2>
+          <div class="trip-list">
+            @for (trip of upcoming; track trip.id) {
+              <ng-container *ngTemplateOutlet="tripCard; context: { $implicit: trip }"></ng-container>
+            }
+          </div>
+        </section>
+      }
+
+      <button class="primary-btn" (click)="createTrip()">
+        <ion-icon name="add"></ion-icon>
+        <span>Nouveau voyage</span>
+      </button>
+
+      @if (past.length > 0) {
+        <section class="settings-section past-section">
+          <h2 class="settings-section-title">Souvenirs</h2>
+          <div class="trip-list">
+            @for (trip of past; track trip.id) {
+              <ng-container *ngTemplateOutlet="tripCard; context: { $implicit: trip }"></ng-container>
+            }
+          </div>
+        </section>
+      }
+    }
+  }
+
+  <ng-template #tripCard let-trip>
+    <button class="trip-card" [class.past]="isPast(trip)" (click)="openTrip(trip)">
+      <div class="trip-cover" [style.background]="coverGradient(trip.cover)">
+        <ion-icon [name]="trip.cover"></ion-icon>
+        <span class="trip-countdown" [class.ongoing]="isOngoing(trip)">{{ tripCountdown(trip) }}</span>
+      </div>
+
+      <div class="trip-body">
+        <span class="trip-name">{{ trip.name }}</span>
+        <span class="trip-meta">
+          <ion-icon name="calendar-outline"></ion-icon>
+          {{ formatDateRange(trip.startDate, trip.endDate) }}
+        </span>
+        @if (trip.destination) {
+          <span class="trip-meta">
+            <ion-icon name="location-outline"></ion-icon>
+            {{ trip.destination }}
+          </span>
+        }
+
+        <div class="trip-footer">
+          <div class="avatar-stack">
+            @for (member of participants(trip).slice(0, 4); track member.userId) {
+              <span class="avatar" [style.background]="color(member.displayName)" [attr.title]="member.displayName">
+                {{ initial(member.displayName) }}
+              </span>
+            }
+          </div>
+          @if (trip.packing.length > 0) {
+            <span class="trip-packing">
+              <ion-icon name="bag-handle-outline"></ion-icon>
+              {{ packedCount(trip) }}/{{ trip.packing.length }}
+            </span>
+          }
+        </div>
+      </div>
+    </button>
+  </ng-template>
+</ion-content>

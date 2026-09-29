@@ -173,6 +173,65 @@
   }
 }
 
+.event-card.editable {
+  cursor: pointer;
+
+  &:active:not(.removing) {
+    transform: scale(0.98);
+  }
+}
+
+/* Pencil on your own events: they can be edited */
+.event-edit-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tile-bg);
+  color: var(--tile-icon);
+
+  ion-icon {
+    font-size: 17px;
+  }
+}
+
+.event-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Who added the event: avatar in the member's color + name */
+.event-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ion-color-medium-shade);
+
+  &--me {
+    color: var(--tile-icon-dark);
+  }
+}
+
+.event-author-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+}
+
 .event-type-chip {
   display: inline-flex;
   align-self: flex-start;

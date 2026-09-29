@@ -20,6 +20,8 @@ app.use('/api/recipes', require('./routes/recipe.routes'));
 app.use('/api/swipe', require('./routes/swipe.routes'));
 app.use('/api/shopping', require('./routes/shopping.routes'));
 app.use('/api/schedules', require('./routes/schedule.routes'));
+app.use('/api/calendar', require('./routes/calendar.routes'));
+app.use('/api/trips', require('./routes/trip.routes'));
 
 // Health check
 app.get('/health', (req, res) => {

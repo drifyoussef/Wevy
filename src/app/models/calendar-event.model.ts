@@ -23,6 +23,10 @@ export interface CalendarEvent {
   type: EventType;
   color: string;
   householdId: string;
+  /** userId of the member who added it */
+  createdBy?: string;
+  /** Their name when they added it (fallback if they have left the household since) */
+  createdByName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,5 +38,4 @@ export interface CreateCalendarEventInput {
   location?: string;
   type: EventType;
   color: string;
-  householdId: string;
 }

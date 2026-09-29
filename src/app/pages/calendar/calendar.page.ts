@@ -5,9 +5,12 @@ import {
   IonButtons, IonBackButton, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, add, close, locationOutline, timeOutline } from 'ionicons/icons';
+import { chevronBack, chevronForward, add, close, locationOutline, timeOutline, createOutline } from 'ionicons/icons';
 import { CalendarService } from '../../services/calendar.service';
 import { HouseholdService } from '../../services/household.service';
+import { AuthService } from '../../services/auth.service';
+import { HouseholdMember } from '../../models/user.model';
+import { memberColor, memberInitial } from '../../utils/member.utils';
 import { ToastService } from '../../services/toast.service';
 import { CalendarEvent, EventType, EVENT_TYPES } from '../../models/calendar-event.model';
 import { Subscription } from 'rxjs';
@@ -43,28 +46,58 @@ export class CalendarPage implements OnInit, OnDestroy {
   removingIds = new Set<string>();
 
   private weekStart: Date = getMonday(new Date());
-  private eventsSubscription?: Subscription;
+  private subscriptions = new Subscription();
+  private currentUserId: string | null = null;
+  private members: HouseholdMember[] = [];
 
   constructor(
     private calendarService: CalendarService,
     private householdService: HouseholdService,
+    private authService: AuthService,
     private toastService: ToastService,
     private modalController: ModalController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ chevronBack, chevronForward, add, close, locationOutline, timeOutline });
+    addIcons({ chevronBack, chevronForward, add, close, locationOutline, timeOutline, createOutline });
   }
 
   ngOnInit() {
-    this.eventsSubscription = this.calendarService.events$.subscribe(() => {
+    this.subscriptions.add(this.calendarService.events$.subscribe(() => {
       this.buildWeek();
       this.cdr.markForCheck();
-    });
+    }));
+    // Current names of the members: an event shows who added it
+    this.subscriptions.add(this.householdService.currentHousehold$.subscribe(household => {
+      this.members = household?.members || [];
+      this.cdr.markForCheck();
+    }));
+    this.subscriptions.add(this.authService.currentUser$.subscribe(user => {
+      this.currentUserId = user?.id || null;
+      this.cdr.markForCheck();
+    }));
     this.buildWeek();
   }
 
   ngOnDestroy() {
-    this.eventsSubscription?.unsubscribe();
+    this.subscriptions.unsubscribe();
+  }
+
+  /** Current name of the member who added the event (their name at the time if they left since). */
+  authorName(event: CalendarEvent): string | null {
+    if (!event.createdBy) return null;
+    return this.members.find(m => m.userId === event.createdBy)?.displayName || event.createdByName || null;
+  }
+
+  isMine(event: CalendarEvent): boolean {
+    return Boolean(event.createdBy) && event.createdBy === this.currentUserId;
+  }
+
+  authorColor(event: CalendarEvent): string {
+    return memberColor(this.authorName(event));
+  }
+
+  authorInitial(event: CalendarEvent): string {
+    return memberInitial(this.authorName(event));
   }
 
   private buildWeek() {
@@ -144,15 +177,13 @@ export class CalendarPage implements OnInit, OnDestroy {
 
     if (data?.added && data?.event) {
       try {
-        const household = await this.householdService.getCurrentHousehold();
-        this.calendarService.createEvent({
+        await this.calendarService.createEvent({
           title: data.event.title,
           date: data.event.date,
           time: data.event.time,
           location: data.event.location,
           type: data.event.type,
-          color: data.event.color,
-          householdId: household?.id || 'household1'
+          color: data.event.color
         });
         this.toastService.success('Événement ajouté !');
       } catch (error) {
@@ -162,13 +193,56 @@ export class CalendarPage implements OnInit, OnDestroy {
     }
   }
 
-  deleteEvent(eventId: string) {
+  /** Your own events open in the form to be edited; the others' events aren't editable. */
+  async editEvent(event: CalendarEvent) {
+    if (!this.isMine(event)) return;
+
+    const modal = await this.modalController.create({
+      component: AddEventModalComponent,
+      componentProps: { event, date: event.date },
+      breakpoints: [0, 0.85, 0.95],
+      initialBreakpoint: 0.85,
+      cssClass: 'auto-height-modal'
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (!data?.updated || !data?.event) return;
+
+    try {
+      const updated = await this.calendarService.updateEvent(event.id, data.event);
+      // Follow the event if its date moved
+      if (updated.date !== event.date) {
+        const [year, month, day] = updated.date.split('-').map(Number);
+        this.selectedDate = new Date(year, month - 1, day);
+        this.weekStart = getMonday(this.selectedDate);
+        this.buildWeek();
+        this.cdr.markForCheck();
+      }
+      this.toastService.success('Événement modifié');
+    } catch (error) {
+      console.error('Error updating event:', error);
+      this.toastService.error((error as Error).message || "Impossible de modifier l'événement");
+    }
+  }
+
+  deleteEvent(eventId: string, clickEvent?: Event) {
+    // The card itself opens the edit form: the delete badge must not trigger it
+    clickEvent?.stopPropagation();
+
     this.removingIds.add(eventId);
     this.cdr.markForCheck();
 
-    setTimeout(() => {
-      this.calendarService.deleteEvent(eventId);
-      this.removingIds.delete(eventId);
+    setTimeout(async () => {
+      try {
+        await this.calendarService.deleteEvent(eventId);
+      } catch (error) {
+        console.error('Error deleting event:', error);
+        this.toastService.error("Impossible de supprimer l'événement");
+      } finally {
+        this.removingIds.delete(eventId);
+        this.cdr.markForCheck();
+      }
     }, 280);
   }
 }

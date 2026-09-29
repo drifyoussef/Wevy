@@ -9,6 +9,8 @@ import { ShoppingListService } from '../../../services/shopping-list.service';
 import { CalendarService } from '../../../services/calendar.service';
 import { DAY_LETTERS, MONTH_NAMES_FR, getMonday, toIsoDate } from '../../../utils/date.utils';
 import { CalendarEvent, EVENT_TYPES } from '../../../models/calendar-event.model';
+import { AuthService } from '../../../services/auth.service';
+import { memberColor, memberInitial } from '../../../utils/member.utils';
 
 export type HomeWidgetType = 'tasks' | 'shopping' | 'calendar';
 
@@ -43,10 +45,10 @@ const PREVIEW_ROWS: Record<'tasks' | 'shopping', WidgetRow[]> = {
 
 /** Sample appointment for the picker, same idea as PREVIEW_ROWS. */
 const PREVIEW_EVENTS: AgendaEvent[] = [
-  { id: 'preview-1', title: 'Dentiste', time: '14:30', location: 'Cabinet du centre', color: '#3B82F6', type: 'rendezvous' },
+  { id: 'preview-1', title: 'Dentiste', time: '14:30', location: 'Cabinet du centre', color: '#3B82F6', type: 'rendezvous', createdByName: 'Léa' },
 ];
 
-type AgendaEvent = Pick<CalendarEvent, 'id' | 'title' | 'time' | 'location' | 'color' | 'type'>;
+type AgendaEvent = Pick<CalendarEvent, 'id' | 'title' | 'time' | 'location' | 'color' | 'type' | 'createdBy' | 'createdByName'>;
 
 interface WidgetRow {
   id: string;
@@ -126,6 +128,14 @@ interface MiniDayCell {
                 }
                 <span class="event-type-chip" [style.background]="event.color">{{ typeLabel(event.type) }}</span>
               </div>
+              @if (event.createdByName) {
+                <span
+                  class="event-author-avatar"
+                  [style.background]="authorColor(event)"
+                  [attr.aria-label]="'Ajouté par ' + (isMine(event) ? 'vous' : event.createdByName)"
+                  [attr.title]="'Ajouté par ' + (isMine(event) ? 'vous' : event.createdByName)"
+                >{{ authorInitial(event) }}</span>
+              }
             </div>
           } @empty {
             <div class="empty-state">
@@ -417,6 +427,20 @@ interface MiniDayCell {
       }
     }
 
+    .event-author-avatar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: flex-start;
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
     .event-type-chip {
       align-self: flex-start;
       padding: 2px 8px;
@@ -453,6 +477,7 @@ export class HomeWidgetCardComponent implements OnInit, OnDestroy {
     private taskService: TaskService,
     private shoppingService: ShoppingListService,
     private calendarService: CalendarService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {
     addIcons({ cartOutline, checkmark, checkmarkDoneOutline, chevronBack, chevronForward, locationOutline, timeOutline });
@@ -540,6 +565,18 @@ export class HomeWidgetCardComponent implements OnInit, OnDestroy {
 
     this.selectedIso = iso;
     this.loadDayEvents();
+  }
+
+  isMine(event: AgendaEvent): boolean {
+    return Boolean(event.createdBy) && event.createdBy === this.authService.getCurrentUser()?.id;
+  }
+
+  authorColor(event: AgendaEvent): string {
+    return memberColor(event.createdByName);
+  }
+
+  authorInitial(event: AgendaEvent): string {
+    return memberInitial(event.createdByName);
   }
 
   typeLabel(type: AgendaEvent['type']): string {

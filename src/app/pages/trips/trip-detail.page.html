@@ -1,0 +1,399 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/trips" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ trip?.name || 'Voyage' }}</ion-title>
+    @if (trip) {
+      <ion-buttons slot="end">
+        <ion-button fill="clear" (click)="editTrip()" aria-label="Modifier le voyage">
+          <ion-icon slot="icon-only" name="create-outline" color="primary"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  @if (loading && !trip) {
+    <div class="trip-loading"><ion-spinner name="crescent"></ion-spinner></div>
+  } @else if (error) {
+    <div class="empty-state trip-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <span>{{ error }}</span>
+    </div>
+    <div class="settings-card">
+      <button class="settings-row" (click)="load()">
+        <span class="settings-row-icon"><ion-icon name="refresh-outline"></ion-icon></span>
+        <span class="settings-row-label">Réessayer</span>
+        <ion-icon class="settings-row-chevron" name="chevron-forward"></ion-icon>
+      </button>
+    </div>
+  } @else if (trip) {
+    <!-- ================= Couverture ================= -->
+    <section class="trip-hero" [style.background]="coverGradient(trip.cover)">
+      <ion-icon class="trip-hero-icon" [name]="trip.cover"></ion-icon>
+      <span class="trip-hero-countdown" [class.ongoing]="isOngoing">{{ countdown }}</span>
+      <h1>{{ trip.name }}</h1>
+      <div class="trip-hero-meta">
+        <span><ion-icon name="calendar-outline"></ion-icon>{{ formatDateRange(trip.startDate, trip.endDate) }}</span>
+        @if (trip.destination) {
+          <span><ion-icon name="location-outline"></ion-icon>{{ trip.destination }}</span>
+        }
+      </div>
+    </section>
+
+    <!-- ================= Onglets ================= -->
+    <nav class="tabs" aria-label="Sections du voyage">
+      <button class="tab" [class.active]="tab === 'overview'" (click)="tab = 'overview'">Aperçu</button>
+      <button class="tab" [class.active]="tab === 'packing'" (click)="tab = 'packing'">
+        Valise
+        @if (trip.packing.length > 0) {
+          <span class="tab-count">{{ packedCount }}/{{ trip.packing.length }}</span>
+        }
+      </button>
+      <button class="tab" [class.active]="tab === 'program'" (click)="tab = 'program'">Programme</button>
+      <button class="tab" [class.active]="tab === 'expenses'" (click)="tab = 'expenses'">Dépenses</button>
+    </nav>
+
+    @switch (tab) {
+      <!-- ================= Aperçu ================= -->
+      @case ('overview') {
+        <div class="stats">
+          <button class="stat" (click)="tab = 'program'">
+            <span class="settings-row-icon"><ion-icon name="calendar-outline"></ion-icon></span>
+            <span class="stat-value">{{ duration }} jour{{ duration > 1 ? 's' : '' }}</span>
+            <span class="stat-label">{{ trip.activities.length }} activité{{ trip.activities.length > 1 ? 's' : '' }}</span>
+          </button>
+          <button class="stat" (click)="tab = 'packing'">
+            <span class="settings-row-icon"><ion-icon name="bag-handle-outline"></ion-icon></span>
+            <span class="stat-value">{{ packedCount }}/{{ trip.packing.length }}</span>
+            <span class="stat-label">Valise prête</span>
+          </button>
+          <button class="stat" (click)="tab = 'expenses'">
+            <span class="settings-row-icon"><ion-icon name="wallet-outline"></ion-icon></span>
+            <span class="stat-value">{{ formatEuros(total) }}</span>
+            <span class="stat-label">Dépensé</span>
+          </button>
+        </div>
+
+        <section class="settings-section">
+          <h2 class="settings-section-title">Qui part</h2>
+          <div class="settings-card">
+            @for (userId of participants; track userId) {
+              <div class="settings-row">
+                <span class="person-avatar" [style.background]="colorOf(userId)">{{ initialOf(userId) }}</span>
+                <span class="settings-row-label">{{ nameOf(userId) }}</span>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h2 class="settings-section-title">Notes</h2>
+          @if (trip.notes) {
+            <div class="settings-card notes-card">{{ trip.notes }}</div>
+          } @else {
+            <div class="empty-state">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <span>Réservations, adresse du logement, idées : ajoute-les en modifiant le voyage (✎ en haut).</span>
+            </div>
+          }
+        </section>
+
+        <button class="settings-danger-btn" (click)="deleteTrip()">
+          <ion-icon name="trash-outline"></ion-icon>
+          <span>Supprimer le voyage</span>
+        </button>
+      }
+
+      <!-- ================= Valise ================= -->
+      @case ('packing') {
+        @if (trip.packing.length > 0) {
+          <div class="progress" role="progressbar" [attr.aria-valuenow]="packedCount" aria-valuemin="0" [attr.aria-valuemax]="trip.packing.length">
+            <span [style.width.%]="packedCount / trip.packing.length * 100"></span>
+          </div>
+        }
+
+        <div class="add-row">
+          <input
+            type="text"
+            [(ngModel)]="newItemLabel"
+            (keyup.enter)="addPackingItem()"
+            placeholder="Crème solaire, passeports..."
+            maxlength="100"
+            aria-label="Élément à emporter"
+          />
+          <button class="add-btn" (click)="addPackingItem()" [disabled]="!newItemLabel.trim() || saving" aria-label="Ajouter">
+            <ion-icon name="add"></ion-icon>
+          </button>
+        </div>
+
+        @if (participants.length > 1) {
+          <div class="assignee-picker">
+            <span>Qui s'en occupe ?</span>
+            <button class="mini-chip" [class.selected]="!newItemAssignee" (click)="newItemAssignee = ''">Personne</button>
+            @for (userId of participants; track userId) {
+              <button class="mini-chip" [class.selected]="newItemAssignee === userId" (click)="newItemAssignee = userId">
+                <span class="mini-avatar" [style.background]="colorOf(userId)">{{ initialOf(userId) }}</span>
+                {{ nameOf(userId) }}
+              </button>
+            }
+          </div>
+        }
+
+        @if (trip.packing.length === 0) {
+          <div class="empty-state">
+            <ion-icon name="bag-handle-outline"></ion-icon>
+            <span>La valise est vide. Ajoute ce qu'il ne faut pas oublier.</span>
+          </div>
+        }
+
+        <div class="packing-list">
+          @for (item of packingByState.todo.concat(packingByState.done); track item.id) {
+            <div
+              class="packing-item"
+              [class.done]="item.checked"
+              (click)="togglePackingItem(item)"
+              (keyup.enter)="togglePackingItem(item)"
+              role="checkbox"
+              [attr.aria-checked]="item.checked"
+              tabindex="0"
+            >
+              <span class="check" [class.filled]="item.checked">
+                @if (item.checked) {
+                  <ion-icon name="checkmark"></ion-icon>
+                }
+              </span>
+              <span class="packing-label">{{ item.label }}</span>
+              @if (item.assignedTo) {
+                <span class="mini-avatar" [style.background]="colorOf(item.assignedTo)" [attr.title]="nameOf(item.assignedTo)">{{ initialOf(item.assignedTo) }}</span>
+              }
+              <button class="row-remove" (click)="deletePackingItem(item, $event)" (keyup.enter)="$event.stopPropagation()" [attr.aria-label]="'Retirer ' + item.label">
+                <ion-icon name="close"></ion-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ================= Programme ================= -->
+      @case ('program') {
+        <div class="days">
+          @for (day of days; track day.iso) {
+            <section class="day">
+              <div class="day-header">
+                <span class="day-badge">J{{ day.index + 1 }}</span>
+                <span class="day-label">{{ day.label }}</span>
+                <button class="day-add" (click)="openActivity(day.iso)" [attr.aria-label]="'Ajouter une activité le ' + day.label">
+                  <ion-icon name="add"></ion-icon>
+                </button>
+              </div>
+
+              @for (activity of activitiesOf(day.iso); track activity.id) {
+                <button class="activity" (click)="openActivity(day.iso, activity)">
+                  <span class="activity-time">{{ activity.time || 'Journée' }}</span>
+                  <span class="activity-body">
+                    <span class="activity-title">{{ activity.title }}</span>
+                    @if (activity.location) {
+                      <span class="activity-location"><ion-icon name="location-outline"></ion-icon>{{ activity.location }}</span>
+                    }
+                  </span>
+                </button>
+              } @empty {
+                <p class="day-empty">Rien de prévu</p>
+              }
+            </section>
+          }
+        </div>
+      }
+
+      <!-- ================= Dépenses ================= -->
+      @case ('expenses') {
+        <section class="total-card">
+          <span class="total-label">Total dépensé</span>
+          <span class="total-value">{{ formatEuros(total) }}</span>
+          <button class="total-add" (click)="openExpense()">
+            <ion-icon name="add"></ion-icon>
+            Ajouter une dépense
+          </button>
+        </section>
+
+        @if (trip.expenses.length > 0) {
+          <section class="settings-section">
+            <h2 class="settings-section-title">Pour équilibrer</h2>
+            @if (settlements.length > 0) {
+              <div class="settings-card">
+                @for (settlement of settlements; track $index) {
+                  <div class="settings-row settlement">
+                    <span class="person-avatar" [style.background]="colorOf(settlement.from)">{{ initialOf(settlement.from) }}</span>
+                    <span class="settlement-text">
+                      <strong>{{ nameOf(settlement.from) }}</strong>
+                      {{ nameOf(settlement.from) === 'Vous' ? 'devez' : 'doit' }}
+                      <strong>{{ formatEuros(settlement.amount) }}</strong>
+                      à <strong>{{ nameOf(settlement.to) === 'Vous' ? 'vous' : nameOf(settlement.to) }}</strong>
+                    </span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-state">
+                <ion-icon name="checkmark"></ion-icon>
+                <span>Tout le monde est à l'équilibre.</span>
+              </div>
+            }
+          </section>
+
+          <section class="settings-section">
+            <h2 class="settings-section-title">Par personne</h2>
+            <div class="settings-card">
+              @for (person of balances; track person.userId) {
+                <div class="settings-row balance-row">
+                  <span class="person-avatar" [style.background]="colorOf(person.userId)">{{ initialOf(person.userId) }}</span>
+                  <span class="balance-body">
+                    <span class="balance-name">{{ nameOf(person.userId) }}</span>
+                    <span class="balance-detail">A payé {{ formatEuros(person.paid) }} · part {{ formatEuros(person.share) }}</span>
+                  </span>
+                  <span class="balance-amount" [class.positive]="person.balance > 0" [class.negative]="person.balance < 0">
+                    {{ person.balance > 0 ? '+' : '' }}{{ formatEuros(person.balance) }}
+                  </span>
+                </div>
+              }
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h2 class="settings-section-title">Dépenses</h2>
+            <div class="settings-card">
+              @for (expense of expensesByDate; track expense.id) {
+                <div class="settings-row expense-row">
+                  <span class="settings-row-icon"><ion-icon name="cash-outline"></ion-icon></span>
+                  <span class="expense-body">
+                    <span class="expense-label">{{ expense.label }}</span>
+                    <span class="expense-detail">
+                      {{ formatShortDate(expense.date) }} · payé par {{ nameOf(expense.paidBy) === 'Vous' ? 'vous' : nameOf(expense.paidBy) }}
+                      @if (expense.splitBetween.length !== participants.length) {
+                        · pour {{ expense.splitBetween.length }}
+                      }
+                    </span>
+                  </span>
+                  <span class="expense-amount">{{ formatEuros(expense.amount) }}</span>
+                  <button class="row-remove" (click)="deleteExpense(expense)" [attr.aria-label]="'Supprimer ' + expense.label">
+                    <ion-icon name="close"></ion-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <div class="empty-state">
+            <ion-icon name="wallet-outline"></ion-icon>
+            <span>Aucune dépense. Ajoute-les au fur et à mesure : Mesnia calcule qui doit combien à qui.</span>
+          </div>
+        }
+      }
+    }
+  }
+
+  <!-- ================= Feuille : activité ================= -->
+  <ion-modal [isOpen]="activityOpen" (didDismiss)="activityOpen = false" [initialBreakpoint]="0.8" [breakpoints]="[0, 0.8, 0.95]">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>{{ activityForm.id ? "Modifier l'activité" : 'Nouvelle activité' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" (click)="activityOpen = false" aria-label="Fermer">
+              <ion-icon slot="icon-only" name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <h3 class="form-title">Quoi</h3>
+        <input class="form-input" type="text" [(ngModel)]="activityForm.title" placeholder="Visite, restaurant, randonnée..." maxlength="120" aria-label="Activité" />
+
+        <h3 class="form-title">Quand</h3>
+        <div class="form-grid">
+          <select class="form-input" [(ngModel)]="activityForm.date" aria-label="Jour">
+            @for (day of days; track day.iso) {
+              <option [value]="day.iso">J{{ day.index + 1 }} · {{ day.label }}</option>
+            }
+          </select>
+          <input class="form-input" type="time" [(ngModel)]="activityForm.time" aria-label="Heure (optionnel)" />
+        </div>
+
+        <h3 class="form-title">Où</h3>
+        <input class="form-input" type="text" [(ngModel)]="activityForm.location" placeholder="Adresse ou lieu (optionnel)" maxlength="200" aria-label="Lieu" />
+
+        @if (activityError) {
+          <p class="form-error">{{ activityError }}</p>
+        }
+
+        <button class="primary-btn" (click)="saveActivity()" [disabled]="saving">
+          {{ activityForm.id ? 'Enregistrer' : "Ajouter l'activité" }}
+        </button>
+        @if (activityForm.id) {
+          <button class="text-danger-btn" (click)="deleteActivity()" [disabled]="saving">Supprimer l'activité</button>
+        }
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- ================= Feuille : dépense ================= -->
+  <ion-modal [isOpen]="expenseOpen" (didDismiss)="expenseOpen = false" [initialBreakpoint]="0.9" [breakpoints]="[0, 0.9]">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Nouvelle dépense</ion-title>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" (click)="expenseOpen = false" aria-label="Fermer">
+              <ion-icon slot="icon-only" name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <h3 class="form-title">Quoi</h3>
+        <div class="form-grid">
+          <input class="form-input" type="text" [(ngModel)]="expenseForm.label" placeholder="Restaurant, essence..." maxlength="100" aria-label="Dépense" />
+          <div class="amount-field">
+            <input class="form-input" type="text" inputmode="decimal" [(ngModel)]="expenseForm.amount" placeholder="0,00" aria-label="Montant en euros" />
+            <em>€</em>
+          </div>
+        </div>
+
+        <h3 class="form-title">Payé par</h3>
+        <div class="chips">
+          @for (userId of participants; track userId) {
+            <button class="mini-chip" [class.selected]="expenseForm.paidBy === userId" (click)="expenseForm.paidBy = userId">
+              <span class="mini-avatar" [style.background]="colorOf(userId)">{{ initialOf(userId) }}</span>
+              {{ nameOf(userId) }}
+            </button>
+          }
+        </div>
+
+        <h3 class="form-title">Pour qui</h3>
+        <div class="chips">
+          @for (userId of participants; track userId) {
+            <button class="mini-chip" [class.selected]="expenseForm.splitBetween.has(userId)" (click)="toggleSplit(userId)">
+              <span class="mini-avatar" [style.background]="colorOf(userId)">{{ initialOf(userId) }}</span>
+              {{ nameOf(userId) }}
+            </button>
+          }
+        </div>
+        @if (expensePerPerson) {
+          <p class="form-hint">Soit {{ expensePerPerson }} par personne</p>
+        }
+
+        <h3 class="form-title">Date</h3>
+        <input class="form-input" type="date" [(ngModel)]="expenseForm.date" [min]="trip?.startDate" [max]="trip?.endDate" aria-label="Date" />
+
+        @if (expenseError) {
+          <p class="form-error">{{ expenseError }}</p>
+        }
+
+        <button class="primary-btn" (click)="saveExpense()" [disabled]="saving">Ajouter la dépense</button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

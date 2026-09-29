@@ -55,6 +55,12 @@ const createIndexes = async (database) => {
 
     // Schedules: one document per member of a household
     await database.collection('schedules').createIndex({ householdId: 1, userId: 1 }, { unique: true });
+
+    // Shared household calendar
+    await database.collection('calendar_events').createIndex({ householdId: 1, date: 1 });
+
+    // Trips
+    await database.collection('trips').createIndex({ householdId: 1, startDate: 1 });
     
     console.log('✅ Database indexes created');
   } catch (error) {

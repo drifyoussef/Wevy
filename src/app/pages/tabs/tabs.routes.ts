@@ -46,6 +46,15 @@ export const routes: Routes = [
         loadComponent: () => import('../calendar/calendar.page').then(m => m.CalendarPage)
       },
       {
+        path: 'trips',
+        loadComponent: () => import('../trips/trips.page').then(m => m.TripsPage)
+      },
+      {
+        // Same tab stack as the list: back from a trip returns to it
+        path: 'trips/:id',
+        loadComponent: () => import('../trips/trip-detail.page').then(m => m.TripDetailPage)
+      },
+      {
         path: 'schedules',
         loadComponent: () => import('../schedules/schedules.page').then(m => m.SchedulesPage)
       },
