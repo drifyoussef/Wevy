@@ -1,6 +1,6 @@
-# Wevy Backend API
+# Mesnia Backend API
 
-Backend Node.js/Express pour l'application Wevy avec MongoDB Atlas.
+Backend Node.js/Express pour l'application Mesnia avec MongoDB Atlas.
 
 ## 🚀 Installation
 

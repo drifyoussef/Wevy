@@ -1,41 +1,50 @@
 <ion-content [fullscreen]="true" class="welcome-content">
   <div class="welcome-container">
-    <div class="brand-row">
-      <span class="brand-logo">🍽️</span>
-      <span class="brand-name">Wevy</span>
-    </div>
-
-    <!-- Image placeholder: swap this block for a real <img src="assets/..."> whenever a visual is ready -->
-    <div class="hero-image-placeholder">
-      <ion-icon name="images-outline"></ion-icon>
-      <p>Votre visuel ici</p>
+    <!-- Brand visual: the Mesnia symbol (same shapes as assets/brand/*.svg, without its square) -->
+    <div class="hero-brand">
+      <div class="hero-symbol">
+        <svg viewBox="8 12 104 92" aria-hidden="true">
+          <path d="M20 58 L60 24 L100 58" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="31" cy="88" r="11" fill="#FFFFFF" />
+          <circle cx="60" cy="82" r="13" fill="#FFFFFF" />
+          <circle cx="89" cy="88" r="11" fill="#FFFFFF" />
+        </svg>
+      </div>
+      <span class="hero-name">Mesnia</span>
     </div>
 
     <div class="hero-copy">
-      <h1 class="app-tagline">Décidez ensemble<br />quoi manger ce soir</h1>
-      <p class="app-subtitle">Wevy réunit tout le foyer autour d'un seul plat, sans prise de tête.</p>
+      <h1 class="app-tagline">Votre foyer,<br />enfin organisé ensemble</h1>
+      <p class="app-subtitle">Tâches, courses, recettes, agenda et horaires : tout le foyer au même endroit, sans prise de tête.</p>
     </div>
 
     <div class="features-row">
       <div class="feature-chip">
         <span class="feature-icon-clay">
-          <ion-icon name="people-outline"></ion-icon>
+          <ion-icon name="checkmark-done-outline"></ion-icon>
         </span>
-        <span class="feature-chip-label">En famille</span>
+        <span class="feature-chip-label">Tâches</span>
       </div>
 
       <div class="feature-chip">
         <span class="feature-icon-clay">
-          <ion-icon name="heart-outline"></ion-icon>
+          <ion-icon name="cart-outline"></ion-icon>
         </span>
-        <span class="feature-chip-label">Swipez</span>
+        <span class="feature-chip-label">Courses</span>
       </div>
 
       <div class="feature-chip">
         <span class="feature-icon-clay">
-          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <ion-icon name="sparkles-outline"></ion-icon>
         </span>
-        <span class="feature-chip-label">Match parfait</span>
+        <span class="feature-chip-label">Recettes IA</span>
+      </div>
+
+      <div class="feature-chip">
+        <span class="feature-icon-clay">
+          <ion-icon name="calendar-outline"></ion-icon>
+        </span>
+        <span class="feature-chip-label">Agenda</span>
       </div>
     </div>
 
@@ -43,20 +52,10 @@
       <ion-button
         expand="block"
         size="large"
-        (click)="goToRegister()"
+        (click)="goToLogin()"
         class="primary-button"
       >
         Commencer
-      </ion-button>
-
-      <ion-button
-        expand="block"
-        fill="clear"
-        size="large"
-        (click)="goToLogin()"
-        class="secondary-button"
-      >
-        J'ai déjà un compte
       </ion-button>
     </div>
   </div>

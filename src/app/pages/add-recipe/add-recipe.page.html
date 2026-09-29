@@ -4,6 +4,11 @@
       <ion-back-button defaultHref="/tabs/library" text=""></ion-back-button>
     </ion-buttons>
     <ion-title>{{ step === 'edit' ? (importMeta ? 'Vérifier la recette' : 'Nouvelle recette') : 'Ajouter une recette' }}</ion-title>
+    @if (step === 'edit') {
+      <ion-buttons slot="end">
+        <ion-button fill="clear" color="danger" (click)="discardRecipe()">Annuler</ion-button>
+      </ion-buttons>
+    }
   </ion-toolbar>
 </ion-header>
 
@@ -257,6 +262,10 @@
       @if (!canSave) {
         <p class="save-hint">Il faut au moins un titre et un ingrédient.</p>
       }
+
+      <button class="discard-btn" (click)="discardRecipe()">
+        {{ importMeta ? 'Ne pas garder cette recette' : 'Abandonner' }}
+      </button>
     }
   }
 </ion-content>

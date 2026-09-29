@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonIcon, IonSpinner,
-  NavController
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonButton, IonIcon, IonSpinner,
+  NavController, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -70,7 +70,7 @@ interface EditableRecipe {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonIcon, IonSpinner
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonButton, IonIcon, IonSpinner
   ]
 })
 export class AddRecipePage implements OnInit, OnDestroy {
@@ -95,7 +95,8 @@ export class AddRecipePage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private recipeService: RecipeService,
     private toastService: ToastService,
-    private navController: NavController
+    private navController: NavController,
+    private alertController: AlertController
   ) {
     addIcons({
       sparkles, logoTiktok, logoInstagram, logoFacebook, logoYoutube, globeOutline, clipboardOutline,
@@ -198,6 +199,25 @@ export class AddRecipePage implements OnInit, OnDestroy {
     this.importMeta = null;
     this.recipe = this.emptyRecipe();
     this.step = 'edit';
+  }
+
+  /** Drops the recipe being reviewed (imported or typed) and goes back to the link field. */
+  async discardRecipe() {
+    const alert = await this.alertController.create({
+      header: 'Abandonner cette recette ?',
+      message: this.importMeta
+        ? "Elle ne sera pas ajoutée à tes recettes. Tu pourras importer un autre lien."
+        : 'Ce que tu as saisi sera perdu.',
+      buttons: [
+        { text: 'Continuer', role: 'cancel' },
+        { text: 'Abandonner', role: 'destructive' }
+      ]
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'destructive') return;
+
+    this.resetPage();
   }
 
   backToStart() {

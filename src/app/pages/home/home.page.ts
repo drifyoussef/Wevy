@@ -5,7 +5,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButtons, IonButton, ModalController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, time, airplane, settings, add, close } from 'ionicons/icons';
+import { checkmarkDone, cart, restaurant, sparkles, home, addCircle, calendar, time, airplane, settings, add, close } from 'ionicons/icons';
 import { TaskService } from '../../services/task.service';
 import { ShoppingListService } from '../../services/shopping-list.service';
 import { CalendarService } from '../../services/calendar.service';
@@ -52,12 +52,12 @@ export class HomePage implements OnInit, OnDestroy {
     { label: 'Tâches', icon: 'checkmark-done', route: '/tabs/tasks' },
     { label: 'Courses', icon: 'cart', route: '/tabs/shopping' },
     { label: 'Recettes', icon: 'restaurant', route: '/tabs/library' },
-    { label: 'Découvrir', icon: 'sparkles', action: 'swipe' },
-    { label: 'Ajouter', icon: 'add-circle', route: '/tabs/add-recipe' },
+    { label: 'Découvrir une recette', icon: 'sparkles', action: 'swipe' },
+    { label: 'Ajouter une recette', icon: 'add-circle', route: '/tabs/add-recipe' },
     { label: 'Calendrier', icon: 'calendar', route: '/tabs/calendar' },
     { label: 'Horaires', icon: 'time', route: '/tabs/schedules' },
     { label: 'Voyage', icon: 'airplane', action: 'comingSoon' },
-    { label: 'Profil', icon: 'person', route: '/tabs/settings/household' },
+    { label: 'Mon foyer', icon: 'home', route: '/tabs/settings/household' },
   ];
 
   constructor(
@@ -70,7 +70,7 @@ export class HomePage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ checkmarkDone, cart, restaurant, sparkles, person, addCircle, calendar, time, airplane, settings, add, close });
+    addIcons({ checkmarkDone, cart, restaurant, sparkles, home, addCircle, calendar, time, airplane, settings, add, close });
     this.appTiles = HomePage.TILE_DEFS.map(tile => ({ ...tile }));
     this.todayLabel = this.formatToday();
     this.homeWidgets = this.loadHomeWidgets();

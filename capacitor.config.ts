@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.wevy.mobile',
-  appName: 'Wevy',
+  appId: 'app.mesnia.mobile',
+  appName: 'Mesnia',
   webDir: 'www',
   server: {
     androidScheme: 'https'
@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: '#6366f1',
+      backgroundColor: '#74B39D',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,

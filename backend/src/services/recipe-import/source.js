@@ -3,6 +3,7 @@
 
 const { safeFetch, readBodyLimited } = require('./safe-fetch');
 const { ImportError } = require('./errors');
+const { compressImage, toDataUri, MAX_INPUT_BYTES: MAX_IMAGE_BYTES } = require('./image');
 
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 // Instagram / Facebook serve their Open Graph tags (caption, image, sometimes the video) to link-preview crawlers
@@ -11,7 +12,6 @@ const PREVIEW_CRAWLER_UA = 'facebookexternalhit/1.1 (+http://www.facebook.com/ex
 const MAX_HTML_BYTES = 3 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 60 * 1024 * 1024;
 const MAX_VIDEO_SECONDS = 15 * 60;
-const MAX_INLINE_IMAGE_BYTES = 400 * 1024;
 const MAX_PAGE_TEXT_CHARS = 12000;
 
 function detectPlatform(url) {
@@ -128,7 +128,7 @@ async function downloadVideo(url, headers = {}) {
 
 /**
  * Social networks' image URLs are signed and expire after a few hours or days:
- * keep a copy of the cover as a data URI so the recipe keeps its picture.
+ * keep a copy of the cover as a (compressed) data URI so the recipe keeps its picture.
  */
 async function toDurableImage(imageUrl, platform) {
   if (!imageUrl) return undefined;
@@ -138,9 +138,11 @@ async function toDurableImage(imageUrl, platform) {
     const response = await safeFetch(imageUrl, { headers: { 'User-Agent': BROWSER_UA }, timeoutMs: 10000 });
     const mimeType = (response.headers.get('content-type') || '').split(';')[0];
     if (!response.ok || !mimeType.startsWith('image/')) return undefined;
-    const buffer = await readBodyLimited(response, MAX_INLINE_IMAGE_BYTES);
-    return buffer ? `data:${mimeType};base64,${buffer.toString('base64')}` : undefined;
-  } catch {
+    const buffer = await readBodyLimited(response, MAX_IMAGE_BYTES);
+    const image = buffer ? await compressImage(buffer, mimeType) : null;
+    return image ? toDataUri(image) : undefined;
+  } catch (error) {
+    console.warn('[recipe-import] Cover not kept:', error.message);
     return undefined;
   }
 }

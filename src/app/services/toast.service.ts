@@ -18,7 +18,7 @@ export class ToastService {
       position: 'bottom',
       color: 'success',
       icon: 'checkmark-circle-outline',
-      cssClass: 'wevy-toast'
+      cssClass: 'mesnia-toast'
     });
     await toast.present();
   }
@@ -30,7 +30,7 @@ export class ToastService {
       position: 'bottom',
       color: 'danger',
       icon: 'alert-circle-outline',
-      cssClass: 'wevy-toast'
+      cssClass: 'mesnia-toast'
     });
     await toast.present();
   }

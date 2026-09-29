@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { imagesOutline, peopleOutline, heartOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { checkmarkDoneOutline, cartOutline, sparklesOutline, calendarOutline } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -17,7 +17,7 @@ export class WelcomePage implements OnInit {
     private authService: AuthService,
     private router: Router
   ) {
-    addIcons({ imagesOutline, peopleOutline, heartOutline, checkmarkCircleOutline });
+    addIcons({ checkmarkDoneOutline, cartOutline, sparklesOutline, calendarOutline });
   }
 
   ngOnInit() {

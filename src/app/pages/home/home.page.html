@@ -1,8 +1,11 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <div class="header-content">
-      <ion-title class="text-3xl greeting-title">Bonjour {{ displayName }} 👋</ion-title>
-      <p class="date-label">{{ todayLabel }}</p>
+      <img class="header-logo" src="assets/brand/mesnia-symbole-blanc.svg" alt="Mesnia" />
+      <div class="header-text">
+        <ion-title class="text-2xl greeting-title">Bonjour {{ displayName }} 👋</ion-title>
+        <p class="date-label">{{ todayLabel }}</p>
+      </div>
     </div>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="goToSettings()" aria-label="Paramètres">

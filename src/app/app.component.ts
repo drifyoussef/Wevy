@@ -10,7 +10,7 @@ import { ShareIntakeService } from './services/share-intake.service';
 })
 export class AppComponent {
   constructor(shareIntake: ShareIntakeService) {
-    // Links shared to the app / wevy://import deep links open the recipe import
+    // Links shared to the app / mesnia://import deep links open the recipe import
     shareIntake.init();
   }
 }

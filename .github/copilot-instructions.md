@@ -1,7 +1,7 @@
-# Wevy MVP - Ionic Angular Capacitor Project
+# Mesnia MVP - Ionic Angular Capacitor Project
 
 ## Project Overview
-Wevy is a meal decision app for couples, roommates, and families. The MVP focuses on solving the daily question: "What are we eating tonight?"
+Mesnia is a meal decision app for couples, roommates, and families. The MVP focuses on solving the daily question: "What are we eating tonight?"
 
 ## Tech Stack
 - **Framework**: Ionic 7+ with Angular 17+

@@ -5,6 +5,7 @@ const { ObjectId } = require('mongodb');
 const { authenticateUser } = require('../middleware/auth.middleware');
 const { extractRecipeFromUrl } = require('../services/recipe-extractor');
 const { ImportError } = require('../services/recipe-import/errors');
+const { compressDataUri } = require('../services/recipe-import/image');
 
 // All routes require authentication
 router.use(authenticateUser);
@@ -20,6 +21,24 @@ function pickEditable(body) {
   const data = {};
   for (const field of EDITABLE_FIELDS) {
     if (body[field] !== undefined) data[field] = body[field];
+  }
+  return data;
+}
+
+/**
+ * Cover picture: a regular http(s) link is kept as is, an inline picture (data URI) is
+ * compressed so recipe documents stay light; anything else is dropped.
+ */
+async function prepareImage(data) {
+  if (data.imageUrl === undefined || data.imageUrl === null || data.imageUrl === '') return data;
+
+  if (typeof data.imageUrl === 'string' && /^https?:\/\//i.test(data.imageUrl)) return data;
+
+  const compressed = await compressDataUri(data.imageUrl);
+  if (typeof compressed === 'string' && compressed.startsWith('data:image/')) {
+    data.imageUrl = compressed;
+  } else {
+    delete data.imageUrl;
   }
   return data;
 }
@@ -112,7 +131,7 @@ router.post('/', async (req, res) => {
       return res.status(403).json({ error: 'Rejoins ou crée un foyer pour ajouter des recettes' });
     }
 
-    const data = pickEditable(req.body || {});
+    const data = await prepareImage(pickEditable(req.body || {}));
     if (!data.title || typeof data.title !== 'string') {
       return res.status(400).json({ error: 'Title is required' });
     }
@@ -191,7 +210,7 @@ router.put('/:id', async (req, res) => {
 
     const result = await getDB().collection('recipes').findOneAndUpdate(
       { _id: recipe._id },
-      { $set: { ...pickEditable(req.body || {}), updatedAt: new Date() } },
+      { $set: { ...(await prepareImage(pickEditable(req.body || {}))), updatedAt: new Date() } },
       { returnDocument: 'after' }
     );
 

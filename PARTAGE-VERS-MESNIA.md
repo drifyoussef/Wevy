@@ -1,18 +1,18 @@
-# Partager une recette vers Wevy (iOS + Android)
+# Partager une recette vers Mesnia (iOS + Android)
 
-Objectif : dans TikTok, Instagram, Facebook, Safari, Chrome… « Partager » → **Wevy** → l'app s'ouvre sur
+Objectif : dans TikTok, Instagram, Facebook, Safari, Chrome… « Partager » → **Mesnia** → l'app s'ouvre sur
 « Ajouter une recette » et l'IA importe la recette toute seule.
 
 ## Ce qui est déjà fait (côté app)
 
 `src/app/services/share-intake.service.ts` est le point d'entrée unique :
 
-- `wevy://import?url=<lien encodé>` (deep link) est déjà écouté via `@capacitor/app` ;
+- `mesnia://import?url=<lien encodé>` (deep link) est déjà écouté via `@capacitor/app` ;
 - `handleIncoming(texte)` accepte un lien ou le texte brut d'un partage
   (« Regarde ça ! https://vm.tiktok.com/xyz »), en extrait le lien et ouvre
   `/tabs/add-recipe?url=...`, qui lance l'import IA automatiquement.
 
-Il reste la partie native : faire apparaître Wevy dans la feuille de partage et transmettre ce qui est partagé
+Il reste la partie native : faire apparaître Mesnia dans la feuille de partage et transmettre ce qui est partagé
 à `handleIncoming()`.
 
 ## 1. Aligner Capacitor et créer les projets natifs
@@ -50,25 +50,25 @@ shareIntake.handleIncoming(received?.url || received?.description || received?.t
 Dans `android/app/src/main/AndroidManifest.xml`, sur l'activité principale :
 
 ```xml
-<!-- Wevy dans la feuille de partage (texte / liens) -->
+<!-- Mesnia dans la feuille de partage (texte / liens) -->
 <intent-filter>
   <action android:name="android.intent.action.SEND" />
   <category android:name="android.intent.category.DEFAULT" />
   <data android:mimeType="text/plain" />
 </intent-filter>
 
-<!-- Deep link wevy://import?url=... -->
+<!-- Deep link mesnia://import?url=... -->
 <intent-filter>
   <action android:name="android.intent.action.VIEW" />
   <category android:name="android.intent.category.DEFAULT" />
   <category android:name="android.intent.category.BROWSABLE" />
-  <data android:scheme="wevy" android:host="import" />
+  <data android:scheme="mesnia" android:host="import" />
 </intent-filter>
 ```
 
 ## 4. iOS (sur Mac, dans Xcode)
 
-1. **Deep link** : `Info.plist` → `URL types` → schéma `wevy`.
+1. **Deep link** : `Info.plist` → `URL types` → schéma `mesnia`.
 2. **Share Extension** : *File → New → Target → Share Extension*, puis dans son `Info.plist` :
    - `NSExtensionActivationSupportsWebURLWithMaxCount` = 1
    - `NSExtensionActivationSupportsText` = YES

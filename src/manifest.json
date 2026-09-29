@@ -1,15 +1,25 @@
 {
-  "short_name": "Wevy",
-  "name": "Wevy - Meal Decision App",
+  "short_name": "Mesnia",
+  "name": "Mesnia - Le foyer organisé ensemble",
   "icons": [
     {
+      "src": "assets/icon/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
       "src": "assets/icon/favicon.png",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "sizes": "64x64",
+      "type": "image/png"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#6366f1",
-  "background_color": "#ffffff"
+  "theme_color": "#74B39D",
+  "background_color": "#F6FAF8"
 }

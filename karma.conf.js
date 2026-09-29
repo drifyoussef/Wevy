@@ -17,7 +17,7 @@ module.exports = function (config) {
       suppressAll: true
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/wevy'),
+      dir: require('path').join(__dirname, './coverage/mesnia'),
       subdir: '.',
       reporters: [
         { type: 'html' },

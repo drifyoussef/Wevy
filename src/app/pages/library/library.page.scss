@@ -85,9 +85,13 @@ ion-content {
   align-items: center;
   justify-content: center;
   aspect-ratio: 1;
+  /* Without it a box with aspect-ratio grows to fit taller content (portrait TikTok covers) */
+  overflow: hidden;
   background: var(--tile-bg);
 
   img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;

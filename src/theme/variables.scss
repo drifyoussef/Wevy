@@ -1,12 +1,12 @@
 :root {
   /* ========================================
-     WEVY DESIGN SYSTEM - TYPOGRAPHY
+     MESNIA DESIGN SYSTEM - TYPOGRAPHY
      ======================================== */
 
   --ion-font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* ========================================
-     WEVY DESIGN SYSTEM - COLOR PALETTE
+     MESNIA DESIGN SYSTEM - COLOR PALETTE
      ======================================== */
   
   /** primary - Vert bleuté (CTA) **/
@@ -82,7 +82,7 @@
   --ion-color-light-tint: #F8FCFA;
 
   /* ========================================
-     WEVY DESIGN SYSTEM - SEMANTIC COLORS
+     MESNIA DESIGN SYSTEM - SEMANTIC COLORS
      ======================================== */
   
   /** Background - Blanc avec une pointe de vert bleuté primaire **/
@@ -109,7 +109,7 @@
   --ion-toolbar-border-color: #CDE6DC;
 
   /* ========================================
-     WEVY DESIGN SYSTEM - APP GRID TILE COLORS
+     MESNIA DESIGN SYSTEM - APP GRID TILE COLORS
      ======================================== */
 
   --tile-bg: #E5F2ED;
@@ -122,7 +122,7 @@
   --ion-tab-bar-border-color: #CDE6DC;
   
   /* ========================================
-     WEVY DESIGN SYSTEM - GRAYSCALE
+     MESNIA DESIGN SYSTEM - GRAYSCALE
      ======================================== */
   
   --gray-50: #F5F5F5;
@@ -135,7 +135,7 @@
   --gray-800: #1F2937;
   
   /* ========================================
-     WEVY DESIGN SYSTEM - BORDER RADIUS
+     MESNIA DESIGN SYSTEM - BORDER RADIUS
      ======================================== */
   
   --radius-xl: 12px;    /* Cartes, inputs, petits conteneurs */
@@ -147,7 +147,7 @@
   --ion-border-radius: 16px;
   
   /* ========================================
-     WEVY DESIGN SYSTEM - SPACING
+     MESNIA DESIGN SYSTEM - SPACING
      ======================================== */
   
   --spacing-2: 8px;
@@ -157,7 +157,7 @@
   --spacing-8: 32px;
   
   /* ========================================
-     WEVY DESIGN SYSTEM - TYPOGRAPHY
+     MESNIA DESIGN SYSTEM - TYPOGRAPHY
      ======================================== */
   
   --text-3xl: 30px;  /* Titres principaux (H1) */
@@ -169,7 +169,7 @@
   --text-xs: 12px;   /* Petits labels */
   
   /* ========================================
-     WEVY DESIGN SYSTEM - SHADOWS
+     MESNIA DESIGN SYSTEM - SHADOWS
      ======================================== */
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -178,7 +178,7 @@
   --shadow-xl: 0 20px 25px -5px rgba(116, 179, 157, 0.2), 0 8px 10px -6px rgba(116, 179, 157, 0.15);
 }
 
-/* Dark theme disabled - Wevy uses a warm, light color palette only */
+/* Dark theme disabled - Mesnia uses a warm, light color palette only */
 /*
 @media (prefers-color-scheme: dark) {
   :root {

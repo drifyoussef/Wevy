@@ -5,9 +5,9 @@ import { App } from '@capacitor/app';
 
 /**
  * Single entry point for recipes coming from outside the app:
- * - deep links: wevy://import?url=<encoded link>
- * - the phone's share sheet (TikTok / Instagram / Safari "Share" -> Wevy): the native share plugin
- *   only has to call handleIncoming() with what it received (see PARTAGE-VERS-WEVY.md).
+ * - deep links: mesnia://import?url=<encoded link> (old wevy:// links still work)
+ * - the phone's share sheet (TikTok / Instagram / Safari "Share" -> Mesnia): the native share plugin
+ *   only has to call handleIncoming() with what it received (see PARTAGE-VERS-MESNIA.md).
  * Either way the add-recipe page opens and starts the AI import on its own.
  */
 @Injectable({
@@ -40,7 +40,7 @@ export class ShareIntakeService {
   private extractRecipeLink(text: string): string | null {
     const trimmed = text.trim();
 
-    if (trimmed.toLowerCase().startsWith('wevy://')) {
+    if (/^(mesnia|wevy):\/\//i.test(trimmed)) {
       try {
         return new URL(trimmed).searchParams.get('url');
       } catch {

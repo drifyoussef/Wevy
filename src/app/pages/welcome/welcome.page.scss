@@ -42,50 +42,41 @@
   }
 }
 
-.brand-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  animation: fadeIn 0.5s ease-in;
-
-  .brand-logo {
-    font-size: 28px;
-  }
-
-  .brand-name {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-  }
-}
-
-/* Image placeholder: replace with a real <img> once a visual is ready */
-.hero-image-placeholder {
-  margin-top: 20px;
-  height: 220px;
-  border-radius: var(--radius-3xl);
-  background: rgba(255, 255, 255, 0.14);
-  border: 1.5px dashed rgba(255, 255, 255, 0.5);
+/* Brand visual: big white symbol in a soft halo */
+.hero-brand {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 14px;
+  margin-top: 48px;
+}
+
+.hero-symbol {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
-  animation: fadeIn 0.6s ease-in;
-  backdrop-filter: blur(2px);
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 0 0 14px rgba(255, 255, 255, 0.07),
+    0 18px 40px rgba(0, 0, 0, 0.12);
 
-  ion-icon {
-    font-size: 40px;
-    opacity: 0.85;
-  }
-
-  p {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 500;
-    opacity: 0.85;
+  svg {
+    width: 88px;
+    height: auto;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
   }
 }
+
+.hero-name {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #FFFFFF;
+}
+
 
 .hero-copy {
   text-align: center;
@@ -97,6 +88,8 @@
     font-weight: 800;
     line-height: 1.25;
     margin: 0 0 12px;
+    /* Global h1 styles are dark: force white on the green background */
+    color: #FFFFFF;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
 
@@ -114,7 +107,7 @@
 .features-row {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 12px;
   margin: 32px 0 8px;
   animation: fadeIn 1s ease-in;
 
@@ -124,7 +117,7 @@
     align-items: center;
     gap: 8px;
     flex: 1;
-    max-width: 100px;
+    max-width: 84px;
   }
 
   .feature-icon-clay {

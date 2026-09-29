@@ -17,9 +17,9 @@ const transporter = nodemailer.createTransport({
 
 async function sendResetEmail(to, code) {
   await transporter.sendMail({
-    from: `"Wevy" <${process.env.GMAIL_USER}>`,
+    from: `"Mesnia" <${process.env.GMAIL_USER}>`,
     to,
-    subject: 'Réinitialisation de votre mot de passe Wevy',
+    subject: 'Réinitialisation de votre mot de passe Mesnia',
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
         <h2>Réinitialisation du mot de passe</h2>

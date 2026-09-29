@@ -143,7 +143,7 @@ export class HouseholdService {
   }
 
   /**
-   * Rejoindre un foyer via lien d'invitation (wevy://join/CODE)
+   * Rejoindre un foyer via lien d'invitation (mesnia://join/CODE)
    */
   async joinHouseholdByLink(inviteLink: string, userId?: string, displayName?: string): Promise<Household | null> {
     const code = this.extractCodeFromLink(inviteLink);
@@ -273,13 +273,13 @@ export class HouseholdService {
   }
 
   private buildInviteLink(code: string): string {
-    return code ? `wevy://join/${code}` : '';
+    return code ? `mesnia://join/${code}` : '';
   }
 
   private extractCodeFromLink(link: string): string | null {
     if (!link) return null;
     const trimmed = link.trim();
-    // Accepte "wevy://join/CODE", ".../join/CODE" ou un code brut
+    // Accepte "mesnia://join/CODE" (ou l'ancien "wevy://join/CODE"), ".../join/CODE" ou un code brut
     const match = trimmed.match(/join\/([A-Za-z0-9]+)/);
     if (match) return match[1].toUpperCase();
     if (/^[A-Za-z0-9]+$/.test(trimmed)) return trimmed.toUpperCase();

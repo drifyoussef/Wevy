@@ -8,7 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  add, close, cloudOfflineOutline, refreshOutline, homeOutline, chevronForward, sunnyOutline, timeOutline, cafeOutline
+  add, close, cloudOfflineOutline, refreshOutline, homeOutline, chevronBack, chevronForward, sunnyOutline, timeOutline, cafeOutline
 } from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 import { HouseholdService } from '../../services/household.service';
@@ -17,7 +17,7 @@ import { ScheduleService } from '../../services/schedule.service';
 import { ToastService } from '../../services/toast.service';
 import { Household, HouseholdMember } from '../../models/user.model';
 import { MemberSchedule, ScheduleSlot, WeekDay } from '../../models/schedule.model';
-import { DAY_LETTERS } from '../../utils/date.utils';
+import { DAY_LETTERS, MONTH_NAMES_FR, getMonday, toIsoDate } from '../../utils/date.utils';
 
 const DAY_NAMES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const WEEK: WeekDay[] = [0, 1, 2, 3, 4, 5, 6];
@@ -26,6 +26,14 @@ const LABEL_SUGGESTIONS = ['Travail', 'École', 'Sport', 'Rendez-vous'];
 const AVATAR_COLORS = ['#74B39D', '#4F8A76', '#6FA8DC', '#9FB5AC', '#5C9EA6'];
 
 type PageState = 'loading' | 'ready' | 'error' | 'no-household';
+
+/** One day of the week strip: schedules repeat every week, the date is only shown for orientation. */
+interface WeekDate {
+  weekday: WeekDay;
+  date: Date;
+  dayNumber: number;
+  isToday: boolean;
+}
 
 interface MemberDay {
   member: HouseholdMember;
@@ -60,6 +68,11 @@ export class SchedulesPage implements OnInit, OnDestroy {
   /** 0 = lundi: JS getDay() starts the week on Sunday. */
   readonly today = ((new Date().getDay() + 6) % 7) as WeekDay;
   selectedDay: WeekDay = this.today;
+
+  // Week strip (same layout as the calendar)
+  weekDates: WeekDate[] = [];
+  monthLabel = '';
+  private weekStart = getMonday(new Date());
   memberDays: MemberDay[] = [];
 
   // Add sheet
@@ -77,10 +90,50 @@ export class SchedulesPage implements OnInit, OnDestroy {
     private toastService: ToastService,
     private alertController: AlertController
   ) {
-    addIcons({ add, close, cloudOfflineOutline, refreshOutline, homeOutline, chevronForward, sunnyOutline, timeOutline, cafeOutline });
+    addIcons({ add, close, cloudOfflineOutline, refreshOutline, homeOutline, chevronBack, chevronForward, sunnyOutline, timeOutline, cafeOutline });
+  }
+
+  get selectedDate(): Date | undefined {
+    return this.weekDates[this.selectedDay]?.date;
+  }
+
+  get selectedIsToday(): boolean {
+    return Boolean(this.weekDates[this.selectedDay]?.isToday);
+  }
+
+  /** "29 septembre" for the section title. */
+  get selectedDateLabel(): string {
+    return this.selectedDate?.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) ?? '';
+  }
+
+  previousWeek() {
+    this.shiftWeek(-7);
+  }
+
+  nextWeek() {
+    this.shiftWeek(7);
+  }
+
+  /** Keeps the same weekday selected: a schedule is the same every week. */
+  private shiftWeek(days: number) {
+    const next = new Date(this.weekStart);
+    next.setDate(next.getDate() + days);
+    this.weekStart = next;
+    this.buildWeek();
+  }
+
+  private buildWeek() {
+    const todayIso = toIsoDate(new Date());
+    this.weekDates = WEEK.map(weekday => {
+      const date = new Date(this.weekStart);
+      date.setDate(date.getDate() + weekday);
+      return { weekday, date, dayNumber: date.getDate(), isToday: toIsoDate(date) === todayIso };
+    });
+    this.monthLabel = `${MONTH_NAMES_FR[this.weekStart.getMonth()]} ${this.weekStart.getFullYear()}`;
   }
 
   ngOnInit() {
+    this.buildWeek();
     this.subscriptions.add(
       this.authService.currentUser$.subscribe(user => {
         this.currentUserId = user?.id || null;

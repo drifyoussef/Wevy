@@ -1,4 +1,4 @@
-# Wevy Design System
+# Mesnia Design System
 
 ## 🎨 Color Palette
 

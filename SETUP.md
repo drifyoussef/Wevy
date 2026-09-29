@@ -1,4 +1,4 @@
-# Wevy - Setup Guide
+# Mesnia - Setup Guide
 
 ## 🏗️ Architecture
 

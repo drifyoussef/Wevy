@@ -51,19 +51,31 @@
     }
 
     @case ('ready') {
+      <!-- Mois -->
+      <div class="month-nav">
+        <button class="month-nav-btn" (click)="previousWeek()" aria-label="Semaine précédente">
+          <ion-icon name="chevron-back"></ion-icon>
+        </button>
+        <span class="month-label">{{ monthLabel }}</span>
+        <button class="month-nav-btn" (click)="nextWeek()" aria-label="Semaine suivante">
+          <ion-icon name="chevron-forward"></ion-icon>
+        </button>
+      </div>
+
       <!-- Semaine -->
       <div class="week-strip">
-        @for (day of week; track day) {
+        @for (day of weekDates; track day.weekday) {
           <button
             class="day-cell"
-            [class.today]="day === today"
-            [class.selected]="day === selectedDay"
-            (click)="selectDay(day)"
-            [attr.aria-label]="dayNames[day]"
+            [class.today]="day.isToday"
+            [class.selected]="day.weekday === selectedDay"
+            (click)="selectDay(day.weekday)"
+            [attr.aria-label]="dayNames[day.weekday] + ' ' + day.dayNumber"
           >
-            <span class="day-letter">{{ dayLetters[day] }}</span>
+            <span class="day-letter">{{ dayLetters[day.weekday] }}</span>
+            <span class="day-number">{{ day.dayNumber }}</span>
             <span class="day-dots">
-              @for (color of busyColors(day); track $index) {
+              @for (color of busyColors(day.weekday); track $index) {
                 <span class="day-dot" [style.background]="color"></span>
               }
             </span>
@@ -73,7 +85,7 @@
 
       <!-- Membres ce jour-là -->
       <section class="settings-section">
-        <h2 class="settings-section-title">{{ dayNames[selectedDay] }}{{ selectedDay === today ? " · aujourd'hui" : '' }}</h2>
+        <h2 class="settings-section-title">{{ dayNames[selectedDay] }} {{ selectedDateLabel }}{{ selectedIsToday ? " · aujourd'hui" : '' }}</h2>
 
         <div class="settings-card">
           @for (entry of memberDays; track entry.member.userId) {

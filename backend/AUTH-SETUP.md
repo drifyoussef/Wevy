@@ -1,4 +1,4 @@
-# Wevy Backend - JWT Authentication
+# Mesnia Backend - JWT Authentication
 
 Backend refactoré pour utiliser JWT + bcrypt au lieu de Firebase.
 

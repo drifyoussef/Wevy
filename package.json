@@ -1,7 +1,7 @@
 {
-  "name": "wevy",
+  "name": "mesnia",
   "version": "0.0.1",
-  "author": "Wevy Team",
+  "author": "Mesnia Team",
   "homepage": "https://wevy.app/",
   "scripts": {
     "ng": "ng",
@@ -66,5 +66,5 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.9.0"
   },
-  "description": "Wevy - Meal decision app for couples, roommates, and families"
+  "description": "Mesnia - Household organizer: tasks, groceries, recipes, schedules"
 }

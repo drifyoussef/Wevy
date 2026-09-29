@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton,
   IonButtons, IonBackButton,
-  ModalController, AlertController, IonSegment, IonSegmentButton, IonInput, IonLabel, IonSpinner
+  ModalController, AlertController, IonSpinner
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import {
   homeOutline, home, cloudOfflineOutline, addOutline, keyOutline, chevronForward, close, copyOutline,
-  checkmark, linkOutline, shareSocialOutline, refreshOutline, personRemoveOutline, exitOutline
+  checkmark, linkOutline, shareSocialOutline, refreshOutline, personRemoveOutline, exitOutline, peopleOutline
 } from 'ionicons/icons';
 import { HouseholdService, HouseholdLoadState } from '../../services/household.service';
 import { AuthService } from '../../services/auth.service';
@@ -82,7 +82,9 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   async createHousehold() {
     const modal = await this.modalController.create({
-      component: CreateHouseholdModalComponent
+      component: CreateHouseholdModalComponent,
+      breakpoints: [0, 0.65, 0.95],
+      initialBreakpoint: 0.65
     });
 
     await modal.present();
@@ -109,7 +111,9 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   async joinHouseholdByCode() {
     const modal = await this.modalController.create({
-      component: JoinHouseholdModalComponent
+      component: JoinHouseholdModalComponent,
+      breakpoints: [0, 0.65, 0.95],
+      initialBreakpoint: 0.65
     });
 
     await modal.present();
@@ -196,7 +200,7 @@ export class ProfilePage implements OnInit, OnDestroy {
     }
 
     navigator.share({
-      title: 'Rejoins mon foyer sur Wevy',
+      title: 'Rejoins mon foyer sur Mesnia',
       text: `Rejoins mon foyer avec ce lien : ${this.inviteLink}`,
       url: this.inviteLink
     }).catch(err => console.log('Error sharing:', err));
@@ -300,24 +304,124 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 }
 
+/** Shared look of the two household sheets (same style as the app's other forms). */
+const HOUSEHOLD_SHEET_STYLES = `
+  .sheet-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0 24px;
+    text-align: center;
+  }
+
+  .sheet-hero-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, var(--tile-icon-light), var(--tile-icon));
+    box-shadow: 0 10px 24px rgba(116, 179, 157, 0.4);
+    color: #FFFFFF;
+  }
+
+  .sheet-hero-icon ion-icon {
+    font-size: 28px;
+  }
+
+  .sheet-hero p {
+    margin: 0;
+    max-width: 300px;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--ion-color-dark-tint);
+  }
+
+  .form-group-title {
+    margin: 0 0 10px 2px;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--ion-color-dark-tint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .form-input {
+    width: 100%;
+    height: 52px;
+    padding: 0 16px;
+    border: 1px solid var(--ion-border-color);
+    border-radius: 14px;
+    background: #FFFFFF;
+    outline: none;
+    font: inherit;
+    font-size: var(--text-base);
+    color: var(--ion-text-color);
+  }
+
+  .form-input:focus {
+    border-color: var(--tile-icon);
+  }
+
+  .form-input--code {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .form-hint {
+    margin: 8px 0 0 2px;
+    font-size: 12px;
+    color: var(--ion-color-medium-shade);
+  }
+
+  .primary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 54px;
+    margin-top: 36px;
+    padding: 16px;
+    border: none;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(145deg, var(--tile-icon-light), var(--tile-icon));
+    box-shadow: var(--shadow-base);
+    color: #FFFFFF;
+    font: inherit;
+    font-size: var(--text-base);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .primary-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .primary-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+`;
+
 /**
  * Modal pour créer un foyer
  */
 @Component({
   selector: 'app-create-household-modal',
   standalone: true,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon, IonInput
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon
   ],
   template: `
-    <ion-header [translucent]="true">
+    <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-title>Créer un foyer</ion-title>
         <ion-buttons slot="end">
-          <ion-button fill="clear" color="danger" (click)="dismiss()">
+          <ion-button fill="clear" (click)="dismiss()" aria-label="Fermer">
             <ion-icon slot="icon-only" name="close"></ion-icon>
           </ion-button>
         </ion-buttons>
@@ -325,29 +429,40 @@ export class ProfilePage implements OnInit, OnDestroy {
     </ion-header>
 
     <ion-content class="ion-padding">
-      <ion-input [(ngModel)]="householdName" label="Nom du foyer" labelPlacement="stacked" placeholder="ex: Notre maison" fill="outline" class="custom-input"></ion-input>
-
-      <div class="ion-padding-top">
-        <ion-button expand="block" color="primary" (click)="create()">
-          Créer le foyer
-        </ion-button>
-        <ion-button expand="block" fill="outline" color="danger" (click)="dismiss()">
-          Annuler
-        </ion-button>
+      <div class="sheet-hero">
+        <div class="sheet-hero-icon"><ion-icon name="home"></ion-icon></div>
+        <p>Tu pourras ensuite inviter tes proches avec un code ou un lien.</p>
       </div>
+
+      <h3 class="form-group-title">Nom du foyer</h3>
+      <input
+        class="form-input"
+        type="text"
+        [(ngModel)]="householdName"
+        (keyup.enter)="create()"
+        placeholder="Ex : Notre maison"
+        maxlength="50"
+        aria-label="Nom du foyer"
+      />
+
+      <button class="primary-btn" (click)="create()" [disabled]="!householdName.trim()">
+        Créer le foyer
+      </button>
     </ion-content>
-  `
+  `,
+  styles: [HOUSEHOLD_SHEET_STYLES]
 })
 export class CreateHouseholdModalComponent {
   householdName = '';
 
   constructor(private modalController: ModalController) {
-    addIcons({ close });
+    addIcons({ close, home });
   }
 
   create() {
-    if (this.householdName.trim()) {
-      this.modalController.dismiss({ householdName: this.householdName });
+    const householdName = this.householdName.trim();
+    if (householdName) {
+      this.modalController.dismiss({ householdName });
     }
   }
 
@@ -362,18 +477,17 @@ export class CreateHouseholdModalComponent {
 @Component({
   selector: 'app-join-household-modal',
   standalone: true,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon, IonInput, IonLabel, IonSegment, IonSegmentButton
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon
   ],
   template: `
-    <ion-header [translucent]="true">
+    <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-title>Rejoindre un foyer</ion-title>
         <ion-buttons slot="end">
-          <ion-button fill="clear" color="danger" (click)="dismiss()">
+          <ion-button fill="clear" (click)="dismiss()" aria-label="Fermer">
             <ion-icon slot="icon-only" name="close"></ion-icon>
           </ion-button>
         </ion-buttons>
@@ -381,49 +495,50 @@ export class CreateHouseholdModalComponent {
     </ion-header>
 
     <ion-content class="ion-padding">
-      <ion-segment [value]="joinMethod" (ionChange)="joinMethod = $any($event).detail.value">
-        <ion-segment-button value="code">
-          <ion-label>Code ami</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="link">
-          <ion-label>Lien</ion-label>
-        </ion-segment-button>
-      </ion-segment>
-
-      <div class="ion-padding-top">
-        @if (joinMethod === 'code') {
-          <ion-input [(ngModel)]="inviteCode" label="Code ami (8 caractères)" labelPlacement="stacked" placeholder="ex: ABC12345" fill="outline" class="custom-input"></ion-input>
-        } @else {
-          <ion-input [(ngModel)]="inviteLink" label="Lien d'invitation" labelPlacement="stacked" placeholder="wevy://join/..." fill="outline" class="custom-input"></ion-input>
-        }
+      <div class="sheet-hero">
+        <div class="sheet-hero-icon"><ion-icon name="people-outline"></ion-icon></div>
+        <p>Demande le code ami ou le lien d'invitation à un membre du foyer (dans « Mon foyer »).</p>
       </div>
 
-      <div class="ion-padding-top">
-        <ion-button expand="block" color="primary" (click)="join()">
-          Rejoindre
-        </ion-button>
-        <ion-button expand="block" fill="outline" color="danger" (click)="dismiss()">
-          Annuler
-        </ion-button>
-      </div>
+      <h3 class="form-group-title">Code ami ou lien</h3>
+      <input
+        class="form-input"
+        [class.form-input--code]="!value.includes('/')"
+        type="text"
+        [(ngModel)]="value"
+        (keyup.enter)="join()"
+        placeholder="Ex : MZ7W7X"
+        autocapitalize="characters"
+        aria-label="Code ami ou lien d'invitation"
+      />
+      <p class="form-hint">Tu peux coller le lien d'invitation en entier.</p>
+
+      <button class="primary-btn" (click)="join()" [disabled]="!inviteCode">
+        Rejoindre
+      </button>
     </ion-content>
-  `
+  `,
+  styles: [HOUSEHOLD_SHEET_STYLES]
 })
 export class JoinHouseholdModalComponent {
-  joinMethod = 'code';
-  inviteCode = '';
-  inviteLink = '';
+  value = '';
 
   constructor(private modalController: ModalController) {
-    addIcons({ close });
+    addIcons({ close, peopleOutline });
+  }
+
+  /** The code itself, whether a bare code or a whole invite link (mesnia://join/CODE, .../join/CODE) was typed. */
+  get inviteCode(): string {
+    const text = this.value.trim();
+    const fromLink = text.match(/join\/([A-Za-z0-9]+)/)?.[1];
+    const code = fromLink || (/^[A-Za-z0-9]+$/.test(text) ? text : '');
+    return code.toUpperCase();
   }
 
   join() {
-    const value = this.joinMethod === 'code' ? this.inviteCode : this.inviteLink;
-    if (value.trim()) {
-      this.modalController.dismiss({
-        [this.joinMethod === 'code' ? 'inviteCode' : 'inviteLink']: value
-      });
+    // The profile page only reads `inviteCode`: links are turned into their code here
+    if (this.inviteCode) {
+      this.modalController.dismiss({ inviteCode: this.inviteCode });
     }
   }
 

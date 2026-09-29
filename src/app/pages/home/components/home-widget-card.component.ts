@@ -130,7 +130,7 @@ interface MiniDayCell {
           } @empty {
             <div class="empty-state">
               <ion-icon name="time-outline"></ion-icon>
-              <span>Aucun rendez-vous</span>
+              <span>Aucun événement ce jour</span>
             </div>
           }
 

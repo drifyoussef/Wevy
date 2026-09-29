@@ -5,7 +5,22 @@ ion-header {
 }
 
 .header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 8px 20px 4px;
+}
+
+.header-logo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  box-shadow: var(--shadow-base);
+}
+
+.header-text {
+  min-width: 0;
 }
 
 .date-label {
@@ -54,6 +69,8 @@ ion-header {
   position: absolute;
   top: 12px;
   left: 12px;
+  /* Longer names ("Découvrir une recette") wrap instead of running to the edge */
+  right: 12px;
   z-index: 1;
   display: block;
   font-size: var(--text-sm);

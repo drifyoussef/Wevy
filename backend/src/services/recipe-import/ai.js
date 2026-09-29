@@ -48,7 +48,7 @@ const RECIPE_SCHEMA = {
   required: ['isRecipe', 'title', 'ingredients', 'instructions']
 };
 
-const INSTRUCTIONS = `Tu es l'assistant cuisine de l'application Wevy. Tu reçois une publication (vidéo et/ou texte) qui contient normalement une recette. Extrais-la en JSON, en français.
+const INSTRUCTIONS = `Tu es l'assistant cuisine de l'application Mesnia. Tu reçois une publication (vidéo et/ou texte) qui contient normalement une recette. Extrais-la en JSON, en français.
 
 Règles :
 - Utilise TOUTES les sources : ce qui est dit dans la vidéo (voix), ce qui est écrit à l'écran, ce qu'on voit cuisiner, la légende, la description, les données structurées et le texte de la page.
@@ -92,7 +92,7 @@ async function uploadVideoToGemini(video) {
       'X-Goog-Upload-Header-Content-Type': video.mimeType,
       'Content-Type': 'application/json'
     }),
-    body: JSON.stringify({ file: { display_name: 'wevy-recipe-video' } })
+    body: JSON.stringify({ file: { display_name: 'mesnia-recipe-video' } })
   });
   const uploadUrl = start.headers.get('x-goog-upload-url');
   if (!start.ok || !uploadUrl) {

@@ -1,6 +1,6 @@
-# Wevy - Meal Decision App
+# Mesnia - Meal Decision App
 
-Wevy est une application mobile qui aide les couples, colocataires et familles à décider ensemble quoi manger chaque jour.
+Mesnia est une application mobile qui aide les couples, colocataires et familles à décider ensemble quoi manger chaque jour.
 
 ## 🚀 Fonctionnalités MVP
 
@@ -149,4 +149,4 @@ L'application utilise le système de couleurs Ionic avec des personnalisations:
 
 ## 📄 License
 
-Copyright © 2026 Wevy. Tous droits réservés.
+Copyright © 2026 Mesnia. Tous droits réservés.
