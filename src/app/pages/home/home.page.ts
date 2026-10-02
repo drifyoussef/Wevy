@@ -173,9 +173,9 @@ export class HomePage implements OnInit, OnDestroy {
     const modal = await this.modalController.create({
       component: AddWidgetModalComponent,
       componentProps: { existingWidgets: this.homeWidgets },
-      breakpoints: [0, 0.75, 0.95],
-      initialBreakpoint: 0.75,
-      cssClass: 'auto-height-modal'
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+      cssClass: 'auto-sheet'
     });
 
     await modal.present();

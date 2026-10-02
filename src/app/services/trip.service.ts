@@ -60,6 +60,11 @@ export class TripService {
     return this.call('delete', `/${tripId}/activities/${activityId}`);
   }
 
+  // Budget (cents; null removes it)
+  setBudget(tripId: string, budget: number | null): Promise<Trip> {
+    return this.call('put', `/${tripId}/budget`, { budget });
+  }
+
   // Expenses
   addExpense(tripId: string, expense: Omit<TripExpense, 'id' | 'createdBy'>): Promise<Trip> {
     return this.call('post', `/${tripId}/expenses`, expense);

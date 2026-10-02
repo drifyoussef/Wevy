@@ -96,33 +96,21 @@
 
       @if (showPasswordForm) {
         <div class="settings-password">
-          <ion-input
-            type="password"
-            label="Mot de passe actuel"
-            labelPlacement="stacked"
-            [(ngModel)]="passwordForm.currentPassword"
-            fill="outline"
-            class="custom-input">
-          </ion-input>
+          <div class="form-field">
+            <label class="field-label" for="current-password">Mot de passe actuel</label>
+            <ion-input id="current-password" type="password" [(ngModel)]="passwordForm.currentPassword"></ion-input>
+          </div>
 
-          <ion-input
-            type="password"
-            label="Nouveau mot de passe"
-            labelPlacement="stacked"
-            helperText="6 caractères minimum"
-            [(ngModel)]="passwordForm.newPassword"
-            fill="outline"
-            class="custom-input">
-          </ion-input>
+          <div class="form-field">
+            <label class="field-label" for="new-password">Nouveau mot de passe</label>
+            <ion-input id="new-password" type="password" [(ngModel)]="passwordForm.newPassword"></ion-input>
+            <p class="settings-field-hint">6 caractères minimum</p>
+          </div>
 
-          <ion-input
-            type="password"
-            label="Confirmer le mot de passe"
-            labelPlacement="stacked"
-            [(ngModel)]="passwordForm.confirmPassword"
-            fill="outline"
-            class="custom-input">
-          </ion-input>
+          <div class="form-field">
+            <label class="field-label" for="confirm-password">Confirmer le mot de passe</label>
+            <ion-input id="confirm-password" type="password" [(ngModel)]="passwordForm.confirmPassword"></ion-input>
+          </div>
 
           @if (passwordError) {
             <p class="settings-error">{{ passwordError }}</p>

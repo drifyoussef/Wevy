@@ -114,8 +114,9 @@ export class TripsPage {
     const modal = await this.modalController.create({
       component: TripFormModalComponent,
       componentProps: { members: this.members },
-      breakpoints: [0, 0.92],
-      initialBreakpoint: 0.92
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+      cssClass: 'auto-sheet'
     });
     await modal.present();
     const { data } = await modal.onDidDismiss();

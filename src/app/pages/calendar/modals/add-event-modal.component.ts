@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
+  IonHeader, IonToolbar, IonTitle, IonButton,
   IonInput, IonButtons, IonModal, IonDatetime, IonIcon, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -22,11 +22,11 @@ interface AddressFeature {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
+    IonHeader, IonToolbar, IonTitle, IonButton,
     IonInput, IonButtons, IonModal, IonDatetime, IonIcon
   ],
   template: `
-    <ion-header>
+    <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-title>{{ event ? "Modifier l'événement" : 'Nouvel événement' }}</ion-title>
         <ion-buttons slot="end">
@@ -35,12 +35,12 @@ interface AddressFeature {
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <div class="sheet-body ion-content-scroll-host">
       @if (event) {
         <!-- Editing: the date can move (postponing) -->
         <div class="form-field">
           <label class="field-label" for="event-date-input">Date</label>
-          <input id="event-date-input" class="date-input" type="date" [(ngModel)]="date" name="date" />
+          <input id="event-date-input" class="form-input" type="date" [(ngModel)]="date" name="date" />
         </div>
       } @else {
         <p class="event-date">{{ formattedDate }}</p>
@@ -55,8 +55,6 @@ interface AddressFeature {
           aria-label="Titre de l'événement"
           placeholder="Ex: Anniversaire de Léa..."
           type="text"
-          fill="outline"
-          class="custom-input"
         ></ion-input>
       </div>
 
@@ -86,8 +84,6 @@ interface AddressFeature {
           aria-label="Lieu"
           placeholder="Ex: 24 rue du Palais, Paris..."
           type="text"
-          fill="outline"
-          class="custom-input"
           autocomplete="off"
         ></ion-input>
 
@@ -128,7 +124,7 @@ interface AddressFeature {
       >
         {{ event ? 'Enregistrer' : "Ajouter l'événement" }}
       </ion-button>
-    </ion-content>
+    </div>
 
     <ion-modal trigger="open-time-picker" class="time-picker-modal" #timeModalRef>
       <ng-template>
@@ -160,12 +156,12 @@ interface AddressFeature {
       width: 100%;
       height: 48px;
       padding: 0 16px;
-      border: 2px solid var(--ion-color-primary);
-      border-radius: 12px;
-      background: var(--ion-color-light);
+      border: none;
+      border-radius: var(--radius-xl);
+      background: #FFFFFF;
+      box-shadow: var(--shadow-base);
       color: var(--ion-text-color);
-      font-size: 16px;
-      font-weight: 600;
+      font-size: var(--text-base);
       cursor: pointer;
       text-align: left;
 
@@ -201,20 +197,6 @@ interface AddressFeature {
       ion-icon {
         font-size: 20px;
       }
-    }
-
-    .date-input {
-      width: 100%;
-      height: 48px;
-      padding: 0 16px;
-      border: 2px solid var(--ion-color-primary);
-      border-radius: 12px;
-      background: var(--ion-color-light);
-      outline: none;
-      font: inherit;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--ion-text-color);
     }
 
     .location-field {

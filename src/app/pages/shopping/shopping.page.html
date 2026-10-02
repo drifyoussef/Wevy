@@ -14,8 +14,7 @@
       [(ngModel)]="newItemName"
       (keyup.enter)="quickAdd()"
       placeholder="Ajouter un produit..."
-      fill="outline"
-      class="custom-input quick-add-input"
+      class="quick-add-input"
     ></ion-input>
     <button class="quick-add-btn" (click)="quickAdd()" [disabled]="!newItemName.trim() || adding" aria-label="Ajouter">
       <ion-icon name="add"></ion-icon>

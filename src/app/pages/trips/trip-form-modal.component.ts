@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon, ModalController
+  IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonIcon, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { close, airplane, sunny, snow, business, bonfire, car, boat, train, checkmark } from 'ionicons/icons';
@@ -15,7 +15,7 @@ import { toIsoDate } from '../../utils/date.utils';
 @Component({
   selector: 'app-trip-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon],
+  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonIcon],
   template: `
     <ion-header class="ion-no-border">
       <ion-toolbar>
@@ -28,7 +28,7 @@ import { toIsoDate } from '../../utils/date.utils';
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <div class="sheet-body ion-content-scroll-host">
       <section class="form-group">
         <h3 class="form-group-title">Voyage</h3>
         <input class="form-input" type="text" [(ngModel)]="name" placeholder="Ex : Vacances d'été" maxlength="80" aria-label="Nom du voyage" />
@@ -63,7 +63,7 @@ import { toIsoDate } from '../../utils/date.utils';
             >
               <ion-icon [name]="option.value"></ion-icon>
               @if (cover === option.value) {
-                <span class="cover-check"><ion-icon name="checkmark"></ion-icon></span>
+                <span class="cover-check" [style.background-color]="option.gradient[1]"><ion-icon name="checkmark"></ion-icon></span>
               }
             </button>
           }
@@ -86,7 +86,7 @@ import { toIsoDate } from '../../utils/date.utils';
 
       <section class="form-group">
         <h3 class="form-group-title">Notes</h3>
-        <textarea class="form-input form-textarea" rows="3" [(ngModel)]="notes" placeholder="Réservations, adresse du logement, idées..." maxlength="3000" aria-label="Notes"></textarea>
+        <textarea class="form-input" rows="3" [(ngModel)]="notes" placeholder="Réservations, adresse du logement, idées..." maxlength="3000" aria-label="Notes"></textarea>
       </section>
 
       @if (error) {
@@ -94,7 +94,7 @@ import { toIsoDate } from '../../utils/date.utils';
       }
 
       <button class="primary-btn" (click)="save()">{{ trip ? 'Enregistrer' : 'Créer le voyage' }}</button>
-    </ion-content>
+    </div>
   `,
   styles: [`
     .form-group { margin-bottom: 22px; }
@@ -108,28 +108,7 @@ import { toIsoDate } from '../../utils/date.utils';
       letter-spacing: 0.04em;
     }
 
-    .form-input {
-      width: 100%;
-      height: 50px;
-      padding: 0 16px;
-      border: 1px solid var(--ion-border-color);
-      border-radius: 14px;
-      background: #FFFFFF;
-      outline: none;
-      font: inherit;
-      font-size: var(--text-base);
-      color: var(--ion-text-color);
-    }
-
     .form-input + .form-input { margin-top: 10px; }
-    .form-input:focus { border-color: var(--tile-icon); }
-
-    .form-textarea {
-      height: auto;
-      padding: 12px 16px;
-      line-height: 1.45;
-      resize: vertical;
-    }
 
     .date-row {
       display: grid;
@@ -141,10 +120,10 @@ import { toIsoDate } from '../../utils/date.utils';
       display: flex;
       flex-direction: column;
       gap: 6px;
-      padding: 10px 14px;
-      border: 1px solid var(--ion-border-color);
-      border-radius: 14px;
+      padding: 10px 16px;
+      border-radius: var(--radius-xl);
       background: #FFFFFF;
+      box-shadow: var(--shadow-base);
     }
 
     .date-field span {
@@ -176,14 +155,19 @@ import { toIsoDate } from '../../utils/date.utils';
       align-items: center;
       justify-content: center;
       aspect-ratio: 1;
-      border: 3px solid transparent;
+      border: none;
       border-radius: 18px;
       color: #FFFFFF;
       cursor: pointer;
     }
 
     .cover > ion-icon { font-size: 26px; }
-    .cover.selected { border-color: var(--ion-text-color); }
+
+    /* Inset ring: drawn inside the tile, so it never grows past its rounded edge.
+       Translucent black over the gradient = a darker shade of the tile's own color. */
+    .cover.selected {
+      box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25);
+    }
 
     .cover-check {
       position: absolute;
@@ -196,7 +180,8 @@ import { toIsoDate } from '../../utils/date.utils';
       height: 20px;
       border: 2px solid #FFFFFF;
       border-radius: 50%;
-      background: var(--ion-text-color);
+      /* Over the tile's color (set inline): the same darkening as the selected ring */
+      background-image: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
     }
 
     .cover-check ion-icon { font-size: 12px; }

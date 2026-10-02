@@ -23,8 +23,6 @@
           id="login-email"
           type="email"
           placeholder="votre@email.com"
-          fill="outline"
-          class="custom-input"
         ></ion-input>
       </div>
 
@@ -36,8 +34,7 @@
             id="login-password"
             [type]="showPassword ? 'text' : 'password'"
             placeholder="••••••••"
-            fill="outline"
-            class="custom-input has-toggle"
+            class="has-toggle"
           ></ion-input>
           <ion-icon
             [name]="showPassword ? 'eye-off' : 'eye'"
@@ -104,8 +101,6 @@
             id="forgot-email"
             type="email"
             placeholder="votre@email.com"
-            fill="outline"
-            class="custom-input"
             [(ngModel)]="forgotPasswordForm.email"
             name="email"
           ></ion-input>
@@ -149,8 +144,6 @@
             id="reset-code"
             type="text"
             placeholder="000000"
-            fill="outline"
-            class="custom-input"
             [(ngModel)]="forgotPasswordForm.code"
             name="code"
           ></ion-input>
@@ -163,8 +156,7 @@
               id="new-password"
               [type]="showNewPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              fill="outline"
-              class="custom-input has-toggle"
+              class="has-toggle"
               [(ngModel)]="forgotPasswordForm.newPassword"
               name="newPassword"
             ></ion-input>
@@ -183,8 +175,7 @@
               id="confirm-password"
               [type]="showConfirmPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              fill="outline"
-              class="custom-input has-toggle"
+              class="has-toggle"
               [(ngModel)]="forgotPasswordForm.confirmPassword"
               name="confirmPassword"
             ></ion-input>
@@ -226,7 +217,6 @@
         <ion-button
           type="button"
           expand="block"
-          fill="outline"
           color="medium"
           (click)="forgotPasswordStep = 1; forgotPasswordForm.code = ''; forgotPasswordForm.newPassword = ''; forgotPasswordForm.confirmPassword = '';"
           class="back-button"

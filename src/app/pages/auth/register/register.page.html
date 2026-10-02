@@ -22,8 +22,6 @@
           id="register-name"
           type="text"
           placeholder="Votre prénom"
-          fill="outline"
-          class="custom-input"
         ></ion-input>
       </div>
 
@@ -34,8 +32,6 @@
           id="register-email"
           type="email"
           placeholder="votre@email.com"
-          fill="outline"
-          class="custom-input"
         ></ion-input>
       </div>
 
@@ -47,8 +43,7 @@
             id="register-password"
             [type]="showPassword ? 'text' : 'password'"
             placeholder="••••••••"
-            fill="outline"
-            class="custom-input has-toggle"
+            class="has-toggle"
           ></ion-input>
           <ion-icon
             [name]="showPassword ? 'eye-off' : 'eye'"
@@ -66,8 +61,7 @@
             id="register-confirm-password"
             [type]="showConfirmPassword ? 'text' : 'password'"
             placeholder="••••••••"
-            fill="outline"
-            class="custom-input has-toggle"
+            class="has-toggle"
           ></ion-input>
           <ion-icon
             [name]="showConfirmPassword ? 'eye-off' : 'eye'"

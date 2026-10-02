@@ -138,9 +138,9 @@
   <ion-modal
     [isOpen]="filtersOpen"
     (didDismiss)="filtersOpen = false"
-    [initialBreakpoint]="0.85"
-    [breakpoints]="[0, 0.85, 1]"
-    class="filters-sheet"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    class="filters-sheet auto-sheet"
   >
     <ng-template>
       <ion-header class="ion-no-border">
@@ -154,7 +154,7 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
+      <div class="sheet-body ion-content-scroll-host">
         <section class="filter-group">
           <h3 class="filter-group-title">Type</h3>
           <div class="filter-chips">
@@ -211,7 +211,7 @@
         <button class="filter-apply-btn" (click)="filtersOpen = false">
           Voir {{ filteredRecipes.length }} recette{{ filteredRecipes.length > 1 ? 's' : '' }}
         </button>
-      </ion-content>
+      </div>
     </ng-template>
   </ion-modal>
 </ion-content>

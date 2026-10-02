@@ -48,6 +48,8 @@ export interface Trip {
   cover: TripCover;
   participants: string[];
   notes: string;
+  /** In cents; absent when no budget was set */
+  budget?: number;
   packing: PackingItem[];
   activities: TripActivity[];
   expenses: TripExpense[];

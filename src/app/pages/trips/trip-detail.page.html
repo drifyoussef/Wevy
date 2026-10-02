@@ -53,7 +53,7 @@
         }
       </button>
       <button class="tab" [class.active]="tab === 'program'" (click)="tab = 'program'">Programme</button>
-      <button class="tab" [class.active]="tab === 'expenses'" (click)="tab = 'expenses'">Dépenses</button>
+      <button class="tab" [class.active]="tab === 'budget'" (click)="tab = 'budget'">Budget</button>
     </nav>
 
     @switch (tab) {
@@ -70,7 +70,7 @@
             <span class="stat-value">{{ packedCount }}/{{ trip.packing.length }}</span>
             <span class="stat-label">Valise prête</span>
           </button>
-          <button class="stat" (click)="tab = 'expenses'">
+          <button class="stat" (click)="tab = 'budget'">
             <span class="settings-row-icon"><ion-icon name="wallet-outline"></ion-icon></span>
             <span class="stat-value">{{ formatEuros(total) }}</span>
             <span class="stat-label">Dépensé</span>
@@ -117,6 +117,7 @@
 
         <div class="add-row">
           <input
+            class="form-input"
             type="text"
             [(ngModel)]="newItemLabel"
             (keyup.enter)="addPackingItem()"
@@ -208,8 +209,31 @@
         </div>
       }
 
-      <!-- ================= Dépenses ================= -->
-      @case ('expenses') {
+      <!-- ================= Budget ================= -->
+      @case ('budget') {
+        <section class="total-card budget-card">
+          <span class="total-label">Budget</span>
+          @if (trip.budget) {
+            <span class="total-value">{{ formatEuros(trip.budget) }}</span>
+            <div class="progress budget-progress" [class.over]="remaining < 0">
+              <span [style.width.%]="budgetPercent"></span>
+            </div>
+            <span class="budget-remaining" [class.over]="remaining < 0">
+              {{ remaining >= 0 ? 'Reste ' + formatEuros(remaining) : 'Dépassé de ' + formatEuros(-remaining) }}
+            </span>
+            <button class="budget-edit" (click)="openBudget()">
+              <ion-icon name="create-outline"></ion-icon>
+              Modifier le budget
+            </button>
+          } @else {
+            <span class="budget-empty">Fixe un budget pour suivre ce qu'il reste à dépenser.</span>
+            <button class="budget-edit" (click)="openBudget()">
+              <ion-icon name="add"></ion-icon>
+              Définir un budget
+            </button>
+          }
+        </section>
+
         <section class="total-card">
           <span class="total-label">Total dépensé</span>
           <span class="total-value">{{ formatEuros(total) }}</span>
@@ -288,7 +312,7 @@
         } @else {
           <div class="empty-state">
             <ion-icon name="wallet-outline"></ion-icon>
-            <span>Aucune dépense. Ajoute-les au fur et à mesure : Mesnia calcule qui doit combien à qui.</span>
+            <span>Aucune dépense. Ajoute-les au fur et à mesure.</span>
           </div>
         }
       }
@@ -296,7 +320,7 @@
   }
 
   <!-- ================= Feuille : activité ================= -->
-  <ion-modal [isOpen]="activityOpen" (didDismiss)="activityOpen = false" [initialBreakpoint]="0.8" [breakpoints]="[0, 0.8, 0.95]">
+  <ion-modal [isOpen]="activityOpen" (didDismiss)="activityOpen = false" [initialBreakpoint]="1" [breakpoints]="[0, 1]" class="auto-sheet">
     <ng-template>
       <ion-header class="ion-no-border">
         <ion-toolbar>
@@ -308,7 +332,7 @@
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
+      <div class="sheet-body ion-content-scroll-host">
         <h3 class="form-title">Quoi</h3>
         <input class="form-input" type="text" [(ngModel)]="activityForm.title" placeholder="Visite, restaurant, randonnée..." maxlength="120" aria-label="Activité" />
 
@@ -335,12 +359,58 @@
         @if (activityForm.id) {
           <button class="text-danger-btn" (click)="deleteActivity()" [disabled]="saving">Supprimer l'activité</button>
         }
-      </ion-content>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- ================= Feuille : budget ================= -->
+  <ion-modal [isOpen]="budgetOpen" (didDismiss)="budgetOpen = false" [initialBreakpoint]="1" [breakpoints]="[0, 1]" class="auto-sheet">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Budget du voyage</ion-title>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" (click)="budgetOpen = false" aria-label="Fermer">
+              <ion-icon slot="icon-only" name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <div class="sheet-body ion-content-scroll-host">
+        <div class="budget-stepper">
+          <button class="stepper-btn" (click)="stepBudget(-1)" [disabled]="budgetDraft <= 0" aria-label="Retirer 50 €">
+            <ion-icon name="remove"></ion-icon>
+          </button>
+          <label class="budget-amount">
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              [value]="budgetDraft || ''"
+              [style.width.ch]="(budgetDraft ? ('' + budgetDraft).length : 1) + 0.2"
+              (input)="onBudgetInput($event)"
+              (keyup.enter)="saveBudget()"
+              placeholder="0"
+              aria-label="Budget en euros"
+            />
+            <span>€</span>
+          </label>
+          <button class="stepper-btn" (click)="stepBudget(1)" aria-label="Ajouter 50 €">
+            <ion-icon name="add"></ion-icon>
+          </button>
+        </div>
+        <p class="budget-hint">Tape le montant ou ajuste de 50 € en 50 €.</p>
+
+        <button class="primary-btn" (click)="saveBudget()" [disabled]="saving || !budgetDraft">Enregistrer</button>
+        @if (trip?.budget) {
+          <button class="text-danger-btn" (click)="removeBudget()" [disabled]="saving">Retirer le budget</button>
+        }
+      </div>
     </ng-template>
   </ion-modal>
 
   <!-- ================= Feuille : dépense ================= -->
-  <ion-modal [isOpen]="expenseOpen" (didDismiss)="expenseOpen = false" [initialBreakpoint]="0.9" [breakpoints]="[0, 0.9]">
+  <ion-modal [isOpen]="expenseOpen" (didDismiss)="expenseOpen = false" [initialBreakpoint]="1" [breakpoints]="[0, 1]" class="auto-sheet">
     <ng-template>
       <ion-header class="ion-no-border">
         <ion-toolbar>
@@ -352,7 +422,7 @@
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
+      <div class="sheet-body ion-content-scroll-host">
         <h3 class="form-title">Quoi</h3>
         <div class="form-grid">
           <input class="form-input" type="text" [(ngModel)]="expenseForm.label" placeholder="Restaurant, essence..." maxlength="100" aria-label="Dépense" />
@@ -393,7 +463,7 @@
         }
 
         <button class="primary-btn" (click)="saveExpense()" [disabled]="saving">Ajouter la dépense</button>
-      </ion-content>
+      </div>
     </ng-template>
   </ion-modal>
 </ion-content>

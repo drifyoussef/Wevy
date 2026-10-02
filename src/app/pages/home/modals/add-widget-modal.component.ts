@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonButtons, ModalController
+  IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonButtons, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { close, add } from 'ionicons/icons';
@@ -22,7 +22,7 @@ const WIDGET_OPTIONS: WidgetOption[] = [
 @Component({
   selector: 'app-add-widget-modal',
   standalone: true,
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonButtons, HomeWidgetCardComponent],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonButtons, HomeWidgetCardComponent],
   template: `
     <ion-header class="ion-no-border">
       <ion-toolbar>
@@ -35,7 +35,7 @@ const WIDGET_OPTIONS: WidgetOption[] = [
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <div class="sheet-body ion-content-scroll-host">
       <p class="hint">Clique sur le widget pour l'ajouter</p>
 
       @for (option of availableOptions; track option.type) {
@@ -55,7 +55,7 @@ const WIDGET_OPTIONS: WidgetOption[] = [
       } @empty {
         <p class="all-added">Tous les widgets disponibles sont déjà sur ton accueil.</p>
       }
-    </ion-content>
+    </div>
   `,
   styles: [`
     .hint {

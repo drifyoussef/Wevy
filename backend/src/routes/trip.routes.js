@@ -8,6 +8,7 @@ const { authenticateUser } = require('../middleware/auth.middleware');
 // Household trips, shared by every member. One document per trip, with its packing list,
 // its day-by-day program and its expenses embedded:
 // { householdId, name, destination, startDate, endDate, cover, participants: [userId], notes,
+//   budget? (cents),
 //   packing: [{ id, label, checked, assignedTo? }],
 //   activities: [{ id, date, time?, title, location? }],
 //   expenses: [{ id, label, amount (cents), paidBy, splitBetween: [userId], date, createdBy }],
@@ -164,6 +165,23 @@ router.delete('/:householdId/:tripId', handle(async (req, res) => {
   const result = await getDB().collection('trips').deleteOne({ _id: new ObjectId(req.params.tripId), householdId: req.householdId });
   if (result.deletedCount === 0) return res.status(404).json({ error: 'Trip not found' });
   res.json({ message: 'Trip deleted' });
+}));
+
+// ---------- Budget ----------
+
+// Set apart from the trip form (PUT above) so editing the trip never touches it.
+// { budget: cents } sets it, { budget: null } (or 0) removes it.
+router.put('/:householdId/:tripId/budget', handle(async (req, res) => {
+  const value = req.body?.budget;
+  if (value === null || value === undefined || Number(value) === 0) {
+    return updateTrip(req, res, { $unset: { budget: '' } });
+  }
+
+  const budget = Math.round(Number(value));
+  if (!Number.isInteger(budget) || budget < 0 || budget > MAX_AMOUNT_CENTS) {
+    return res.status(400).json({ error: 'Budget invalide' });
+  }
+  await updateTrip(req, res, { $set: { budget } });
 }));
 
 // ---------- Packing list ----------

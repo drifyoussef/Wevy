@@ -10,7 +10,7 @@ import { addIcons } from 'ionicons';
 import {
   airplane, sunny, snow, business, bonfire, car, boat, train, createOutline, calendarOutline, locationOutline,
   timeOutline, bagHandleOutline, walletOutline, peopleOutline, documentTextOutline, checkmark, close, add,
-  trashOutline, arrowForward, alertCircleOutline, refreshOutline, chevronForward, mapOutline, cashOutline
+  trashOutline, arrowForward, alertCircleOutline, refreshOutline, chevronForward, mapOutline, cashOutline, remove
 } from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 import { TripService } from '../../services/trip.service';
@@ -26,7 +26,12 @@ import {
   coverGradient, formatDateRange, formatEuros, parseIsoDate, tripCountdown, tripDuration, tripStatus
 } from './trip.utils';
 
-type Tab = 'overview' | 'packing' | 'program' | 'expenses';
+type Tab = 'overview' | 'packing' | 'program' | 'budget';
+
+/** What the - / + buttons of the budget sheet add or remove, in euros */
+const BUDGET_STEP_EUROS = 50;
+/** Same cap as the backend (1 000 000 €) */
+const BUDGET_MAX_EUROS = 1000000;
 
 interface TripDay {
   iso: string;
@@ -75,6 +80,9 @@ export class TripDetailPage implements OnInit, OnDestroy {
 
   // Expenses
   expenseOpen = false;
+  budgetOpen = false;
+  /** Whole euros being typed in the budget sheet */
+  budgetDraft = 0;
   expenseForm = { label: '', amount: '', paidBy: '', splitBetween: new Set<string>(), date: '' };
   expenseError = '';
 
@@ -96,7 +104,7 @@ export class TripDetailPage implements OnInit, OnDestroy {
     addIcons({
       airplane, sunny, snow, business, bonfire, car, boat, train, createOutline, calendarOutline, locationOutline,
       timeOutline, bagHandleOutline, walletOutline, peopleOutline, documentTextOutline, checkmark, close, add,
-      trashOutline, arrowForward, alertCircleOutline, refreshOutline, chevronForward, mapOutline, cashOutline
+      trashOutline, arrowForward, alertCircleOutline, refreshOutline, chevronForward, mapOutline, cashOutline, remove
     });
   }
 
@@ -168,13 +176,25 @@ export class TripDetailPage implements OnInit, OnDestroy {
     return this.trip ? this.tripService.total(this.trip) : 0;
   }
 
+  /** Budget minus what was spent (cents); negative once over budget. */
+  get remaining(): number {
+    return (this.trip?.budget || 0) - this.total;
+  }
+
+  /** Share of the budget already spent, 0-100 (for the progress bar). */
+  get budgetPercent(): number {
+    const budget = this.trip?.budget;
+    return budget ? Math.min(100, Math.round((this.total / budget) * 100)) : 0;
+  }
+
   async editTrip() {
     if (!this.trip) return;
     const modal = await this.modalController.create({
       component: TripFormModalComponent,
       componentProps: { trip: this.trip, members: this.members },
-      breakpoints: [0, 0.92],
-      initialBreakpoint: 0.92
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+      cssClass: 'auto-sheet'
     });
     await modal.present();
     const { data } = await modal.onDidDismiss();
@@ -364,6 +384,36 @@ export class TripDetailPage implements OnInit, OnDestroy {
       date: form.date
     }), 'Dépense ajoutée', message => this.expenseError = message);
     if (ok) this.expenseOpen = false;
+  }
+
+  openBudget() {
+    if (!this.trip) return;
+    this.budgetDraft = this.trip.budget ? Math.round(this.trip.budget / 100) : 0;
+    this.budgetOpen = true;
+  }
+
+  /** Keeps digits only (whole euros): letters typed or pasted never reach the field. */
+  onBudgetInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+    this.budgetDraft = Math.min(BUDGET_MAX_EUROS, digits ? Number(digits) : 0);
+    input.value = this.budgetDraft ? String(this.budgetDraft) : '';
+  }
+
+  stepBudget(direction: 1 | -1) {
+    this.budgetDraft = Math.max(0, Math.min(BUDGET_MAX_EUROS, this.budgetDraft + direction * BUDGET_STEP_EUROS));
+  }
+
+  async saveBudget() {
+    if (!this.trip || !this.budgetDraft) return;
+    const ok = await this.run(() => this.tripService.setBudget(this.trip!.id, this.budgetDraft * 100), 'Budget enregistré');
+    if (ok) this.budgetOpen = false;
+  }
+
+  async removeBudget() {
+    if (!this.trip) return;
+    const ok = await this.run(() => this.tripService.setBudget(this.trip!.id, null), 'Budget retiré');
+    if (ok) this.budgetOpen = false;
   }
 
   async deleteExpense(expense: TripExpense) {

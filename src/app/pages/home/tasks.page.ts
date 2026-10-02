@@ -96,7 +96,10 @@ export class TasksPage implements OnInit, OnDestroy {
       component: AddTaskModalComponent,
       componentProps: {
         householdMembers: this.householdMembers
-      }
+      },
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+      cssClass: 'auto-sheet'
     });
 
     await modal.present();

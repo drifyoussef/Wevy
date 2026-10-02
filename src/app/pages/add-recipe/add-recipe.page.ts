@@ -10,7 +10,7 @@ import { addIcons } from 'ionicons';
 import {
   sparkles, logoTiktok, logoInstagram, logoFacebook, logoYoutube, globeOutline, clipboardOutline,
   createOutline, chevronForward, close, add, alertCircleOutline, refreshOutline, videocamOutline,
-  documentTextOutline, openOutline, restaurantOutline, trashOutline
+  documentTextOutline, openOutline, restaurantOutline, trashOutline, cameraOutline
 } from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 import { RecipeService, RecipeImportMeta } from '../../services/recipe.service';
@@ -31,6 +31,11 @@ const IMPORT_MESSAGES = [
   'Encore quelques secondes…'
 ];
 const IMPORT_MESSAGE_MS = 7000;
+
+// Phone photos are several MB: shrink them before sending (the API takes 2 MB of JSON at most).
+// The backend compresses them again for storage.
+const PHOTO_MAX_SIDE = 1200;
+const PHOTO_JPEG_QUALITY = 0.85;
 
 const DIFFICULTIES: { id: Difficulty; label: string }[] = [
   { id: 'easy', label: 'Facile' },
@@ -86,6 +91,7 @@ export class AddRecipePage implements OnInit, OnDestroy {
   recipe: EditableRecipe = this.emptyRecipe();
   newTag = '';
   saving = false;
+  loadingPhoto = false;
 
   private importId = 0;
   private messageTimer?: ReturnType<typeof setInterval>;
@@ -101,7 +107,7 @@ export class AddRecipePage implements OnInit, OnDestroy {
     addIcons({
       sparkles, logoTiktok, logoInstagram, logoFacebook, logoYoutube, globeOutline, clipboardOutline,
       createOutline, chevronForward, close, add, alertCircleOutline, refreshOutline, videocamOutline,
-      documentTextOutline, openOutline, restaurantOutline, trashOutline
+      documentTextOutline, openOutline, restaurantOutline, trashOutline, cameraOutline
     });
   }
 
@@ -276,6 +282,23 @@ export class AddRecipePage implements OnInit, OnDestroy {
     this.recipe.imageUrl = undefined;
   }
 
+  async onPhotoSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // picking the same file again must fire (change) again
+    if (!file) return;
+
+    this.loadingPhoto = true;
+    try {
+      this.recipe.imageUrl = await this.resizePhoto(file);
+    } catch (error) {
+      console.error('Error loading photo:', error);
+      this.toastService.error("Impossible de lire cette photo");
+    } finally {
+      this.loadingPhoto = false;
+    }
+  }
+
   async saveRecipe() {
     if (!this.canSave || this.saving) return;
 
@@ -333,6 +356,25 @@ export class AddRecipePage implements OnInit, OnDestroy {
   private positiveOrUndefined(value: number | null | undefined): number | undefined {
     const number = Number(value);
     return value !== null && value !== undefined && Number.isFinite(number) && number > 0 ? number : undefined;
+  }
+
+  /** Returns the photo as a JPEG data URI, at most PHOTO_MAX_SIDE px on its longest side. */
+  private async resizePhoto(file: File): Promise<string> {
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      const image = new Image();
+      image.src = objectUrl;
+      await image.decode(); // also applies the EXIF orientation
+
+      const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(image.naturalWidth * scale);
+      canvas.height = Math.round(image.naturalHeight * scale);
+      canvas.getContext('2d')!.drawImage(image, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', PHOTO_JPEG_QUALITY);
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
   }
 
   private startMessages() {

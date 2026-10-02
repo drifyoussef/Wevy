@@ -149,8 +149,9 @@
   <ion-modal
     [isOpen]="addOpen"
     (didDismiss)="addOpen = false"
-    [initialBreakpoint]="0.85"
-    [breakpoints]="[0, 0.85, 1]"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    class="auto-sheet"
   >
     <ng-template>
       <ion-header class="ion-no-border">
@@ -164,7 +165,7 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
+      <div class="sheet-body ion-content-scroll-host">
         <section class="form-group">
           <h3 class="form-group-title">Quoi</h3>
           <input
@@ -252,7 +253,7 @@
             Ajouter
           }
         </button>
-      </ion-content>
+      </div>
     </ng-template>
   </ion-modal>
 </ion-content>

@@ -117,11 +117,16 @@
       }
 
       <!-- Photo -->
+      <input #photoInput class="photo-input" type="file" accept="image/*" (change)="onPhotoSelected($event)" />
       @if (recipe.imageUrl) {
         <div class="edit-image">
           <img [src]="recipe.imageUrl" [alt]="recipe.title" />
           <button class="edit-image-remove" (click)="removeImage()" aria-label="Retirer la photo">
             <ion-icon name="close"></ion-icon>
+          </button>
+          <button class="edit-image-change" (click)="photoInput.click()" [disabled]="loadingPhoto">
+            <ion-icon name="camera-outline"></ion-icon>
+            Changer
           </button>
           @if (recipe.sourceUrl) {
             <a class="edit-image-source" [href]="recipe.sourceUrl" target="_blank" rel="noopener">
@@ -130,6 +135,15 @@
             </a>
           }
         </div>
+      } @else {
+        <button class="edit-image-add" (click)="photoInput.click()" [disabled]="loadingPhoto">
+          @if (loadingPhoto) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            <ion-icon name="camera-outline"></ion-icon>
+            <span>Ajouter une photo</span>
+          }
+        </button>
       }
 
       <!-- Essentiel -->
@@ -138,32 +152,32 @@
         <div class="edit-card">
           <label class="edit-field">
             <span>Titre</span>
-            <input type="text" [(ngModel)]="recipe.title" placeholder="Ex : Pâtes à la carbonara" maxlength="120" />
+            <input class="form-input" type="text" [(ngModel)]="recipe.title" placeholder="Ex : Pâtes à la carbonara" maxlength="120" />
           </label>
           <label class="edit-field">
             <span>Description</span>
-            <textarea rows="2" [(ngModel)]="recipe.description" placeholder="Quelques mots pour donner envie..." maxlength="600"></textarea>
+            <textarea class="form-input" rows="2" [(ngModel)]="recipe.description" placeholder="Quelques mots pour donner envie..." maxlength="600"></textarea>
           </label>
 
           <div class="edit-grid">
             <label class="edit-field">
               <span>Préparation</span>
               <div class="edit-suffix">
-                <input type="number" inputmode="numeric" min="0" [(ngModel)]="recipe.prepTime" placeholder="15" />
+                <input class="form-input" type="number" inputmode="numeric" min="0" [(ngModel)]="recipe.prepTime" placeholder="15" />
                 <em>min</em>
               </div>
             </label>
             <label class="edit-field">
               <span>Cuisson</span>
               <div class="edit-suffix">
-                <input type="number" inputmode="numeric" min="0" [(ngModel)]="recipe.cookTime" placeholder="20" />
+                <input class="form-input" type="number" inputmode="numeric" min="0" [(ngModel)]="recipe.cookTime" placeholder="20" />
                 <em>min</em>
               </div>
             </label>
             <label class="edit-field">
               <span>Portions</span>
               <div class="edit-suffix">
-                <input type="number" inputmode="numeric" min="1" [(ngModel)]="recipe.servings" placeholder="4" />
+                <input class="form-input" type="number" inputmode="numeric" min="1" [(ngModel)]="recipe.servings" placeholder="4" />
                 <em>pers.</em>
               </div>
             </label>
@@ -197,7 +211,7 @@
                 </button>
               }
               <input
-                class="tag-input"
+                class="form-input tag-input"
                 type="text"
                 [(ngModel)]="newTag"
                 (keyup.enter)="addTag()"
@@ -217,9 +231,9 @@
         <div class="edit-card edit-list">
           @for (ingredient of recipe.ingredients; track $index; let i = $index) {
             <div class="ingredient-edit">
-              <input class="ingredient-qty" type="number" inputmode="decimal" min="0" [(ngModel)]="ingredient.quantity" placeholder="Qté" aria-label="Quantité" />
-              <input class="ingredient-unit" type="text" [(ngModel)]="ingredient.unit" placeholder="Unité" aria-label="Unité" />
-              <input class="ingredient-name" type="text" [(ngModel)]="ingredient.name" placeholder="Ingrédient" aria-label="Ingrédient" />
+              <input class="form-input ingredient-qty" type="number" inputmode="decimal" min="0" [(ngModel)]="ingredient.quantity" placeholder="Qté" aria-label="Quantité" />
+              <input class="form-input ingredient-unit" type="text" [(ngModel)]="ingredient.unit" placeholder="Unité" aria-label="Unité" />
+              <input class="form-input ingredient-name" type="text" [(ngModel)]="ingredient.name" placeholder="Ingrédient" aria-label="Ingrédient" />
               <button class="row-remove" (click)="removeIngredient(i)" [attr.aria-label]="'Retirer ' + (ingredient.name || 'cet ingrédient')">
                 <ion-icon name="close"></ion-icon>
               </button>
@@ -239,7 +253,7 @@
           @for (instruction of recipe.instructions; track $index; let i = $index) {
             <div class="step-edit">
               <span class="step-number">{{ i + 1 }}</span>
-              <textarea rows="2" [(ngModel)]="recipe.instructions[i]" [placeholder]="'Étape ' + (i + 1)" [attr.aria-label]="'Étape ' + (i + 1)"></textarea>
+              <textarea class="form-input" rows="2" [(ngModel)]="recipe.instructions[i]" [placeholder]="'Étape ' + (i + 1)" [attr.aria-label]="'Étape ' + (i + 1)"></textarea>
               <button class="row-remove" (click)="removeStep(i)" [attr.aria-label]="'Retirer l\'étape ' + (i + 1)">
                 <ion-icon name="close"></ion-icon>
               </button>

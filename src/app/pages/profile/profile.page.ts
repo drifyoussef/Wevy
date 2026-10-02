@@ -83,8 +83,9 @@ export class ProfilePage implements OnInit, OnDestroy {
   async createHousehold() {
     const modal = await this.modalController.create({
       component: CreateHouseholdModalComponent,
-      breakpoints: [0, 0.65, 0.95],
-      initialBreakpoint: 0.65
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+      cssClass: 'auto-sheet'
     });
 
     await modal.present();
@@ -112,8 +113,9 @@ export class ProfilePage implements OnInit, OnDestroy {
   async joinHouseholdByCode() {
     const modal = await this.modalController.create({
       component: JoinHouseholdModalComponent,
-      breakpoints: [0, 0.65, 0.95],
-      initialBreakpoint: 0.65
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+      cssClass: 'auto-sheet'
     });
 
     await modal.present();
@@ -348,23 +350,6 @@ const HOUSEHOLD_SHEET_STYLES = `
     letter-spacing: 0.04em;
   }
 
-  .form-input {
-    width: 100%;
-    height: 52px;
-    padding: 0 16px;
-    border: 1px solid var(--ion-border-color);
-    border-radius: 14px;
-    background: #FFFFFF;
-    outline: none;
-    font: inherit;
-    font-size: var(--text-base);
-    color: var(--ion-text-color);
-  }
-
-  .form-input:focus {
-    border-color: var(--tile-icon);
-  }
-
   .form-input--code {
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -414,7 +399,7 @@ const HOUSEHOLD_SHEET_STYLES = `
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon
+    IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonIcon
   ],
   template: `
     <ion-header class="ion-no-border">
@@ -428,7 +413,7 @@ const HOUSEHOLD_SHEET_STYLES = `
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <div class="sheet-body ion-content-scroll-host">
       <div class="sheet-hero">
         <div class="sheet-hero-icon"><ion-icon name="home"></ion-icon></div>
         <p>Tu pourras ensuite inviter tes proches avec un code ou un lien.</p>
@@ -448,7 +433,7 @@ const HOUSEHOLD_SHEET_STYLES = `
       <button class="primary-btn" (click)="create()" [disabled]="!householdName.trim()">
         Créer le foyer
       </button>
-    </ion-content>
+    </div>
   `,
   styles: [HOUSEHOLD_SHEET_STYLES]
 })
@@ -480,7 +465,7 @@ export class CreateHouseholdModalComponent {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonIcon
+    IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonIcon
   ],
   template: `
     <ion-header class="ion-no-border">
@@ -494,7 +479,7 @@ export class CreateHouseholdModalComponent {
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <div class="sheet-body ion-content-scroll-host">
       <div class="sheet-hero">
         <div class="sheet-hero-icon"><ion-icon name="people-outline"></ion-icon></div>
         <p>Demande le code ami ou le lien d'invitation à un membre du foyer (dans « Mon foyer »).</p>
@@ -516,7 +501,7 @@ export class CreateHouseholdModalComponent {
       <button class="primary-btn" (click)="join()" [disabled]="!inviteCode">
         Rejoindre
       </button>
-    </ion-content>
+    </div>
   `,
   styles: [HOUSEHOLD_SHEET_STYLES]
 })

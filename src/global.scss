@@ -106,7 +106,69 @@ ion-button {
   }
 }
 
-ion-input, ion-textarea, ion-select {
+/* ========================================
+   MESNIA DESIGN SYSTEM - TEXT FIELDS
+   One look for every field, taken from the recipe search in the library:
+   white, borderless, rounded and lifted by a soft shadow.
+   ======================================== */
+
+.form-input {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-xl);
+  background: #FFFFFF;
+  box-shadow: var(--shadow-base);
+  outline: none;
+  font: inherit;
+  font-size: var(--text-base);
+  color: var(--ion-text-color);
+
+  &::placeholder {
+    color: var(--ion-color-medium);
+  }
+
+  &:focus {
+    box-shadow: var(--shadow-base), 0 0 0 2px var(--ion-color-primary);
+  }
+}
+
+textarea.form-input {
+  height: auto;
+  padding: 12px 16px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+/* [class] lifts these above Ionic's own .sc-ion-input-*-h defaults (--padding-start: 0...),
+   which a plain element selector loses to. Ionic always puts classes on the host. */
+ion-input[class], ion-textarea[class] {
+  --background: #FFFFFF;
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+  --placeholder-opacity: 1;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --highlight-height: 0;
+  --border-radius: var(--radius-xl);
+  min-height: 48px;
+  border-radius: var(--radius-xl);
+  background: #FFFFFF;
+  box-shadow: var(--shadow-base);
+  font-size: var(--text-base);
+
+  &.has-focus {
+    box-shadow: var(--shadow-base), 0 0 0 2px var(--ion-color-primary);
+  }
+
+  &.has-toggle {
+    --padding-end: 48px;
+  }
+}
+
+ion-select {
   --background: var(--ion-card-background);
   /* !important beats Ionic's own .input-fill-outline / .select-outline internal
      rules (--border-radius: 4px), which are more specific than a single class. */
@@ -141,31 +203,6 @@ ion-input, ion-textarea, ion-select {
     font-weight: 600;
     color: var(--ion-color-dark);
     margin: 0 0 8px 4px;
-  }
-}
-
-.custom-input {
-  --background: var(--ion-color-light);
-  --border-radius: 12px !important;
-  --border-color: var(--ion-color-primary) !important;
-  --border-width: 2px !important;
-  --highlight-color-focused: var(--ion-color-primary);
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-top: 14px;
-  --padding-bottom: 14px;
-  font-size: 16px;
-  margin-bottom: 0;
-  border: none;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
-
-  &.ion-focused {
-    --border-color: var(--ion-color-primary-shade) !important;
-    --background: var(--ion-color-light-shade, #eef0f4);
-  }
-
-  &.has-toggle {
-    --padding-end: 48px;
   }
 }
 
@@ -489,13 +526,48 @@ h3, .text-xl {
   }
 }
 
-/* Auto Height Modal */
-.auto-height-modal {
+/* ========================================
+   SHEET MODALS - as tall as their content
+   Open with breakpoints [0, 1], initialBreakpoint 1 and the "auto-sheet" class.
+   Inside, a <div class="sheet-body ion-content-scroll-host"> replaces ion-content
+   (which always fills the whole modal): it scrolls once the content is taller than
+   the cap, and the scroll-host class lets Ionic tell a scroll from a swipe-to-close.
+   ======================================== */
+ion-modal.auto-sheet {
+  --height: auto;
   --border-radius: 16px 16px 0 0;
 
-  ion-modal {
-    --border-radius: 16px 16px 0 0;
+  /* Direct child only: a modal nested inside (the event time picker) keeps its own layout */
+  > .ion-page {
+    position: relative;
+    contain: content;
+    max-height: 90vh;
+    max-height: 90dvh;
   }
+
+  .sheet-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--ion-padding, 16px);
+    padding-bottom: calc(var(--ion-padding, 16px) + var(--ion-safe-area-bottom, 0px));
+  }
+}
+
+/* No shadow or line under modal toolbars */
+ion-modal ion-header.header-md {
+  box-shadow: none;
+}
+
+ion-modal ion-header.header-ios ion-toolbar:last-of-type {
+  --border-width: 0;
+}
+
+/* Alerts: rounded, flat. ion-alert[class] outweighs Ionic's .alert-wrapper.sc-ion-alert-* rules. */
+ion-alert[class] .alert-wrapper {
+  border-radius: var(--radius-3xl);
+  box-shadow: none;
 }
 
 /* Toasts */

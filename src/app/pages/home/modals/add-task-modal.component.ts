@@ -2,7 +2,7 @@ import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA, Input } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
+  IonHeader, IonToolbar, IonTitle, IonButton,
   IonInput, IonButtons, ModalController
 } from '@ionic/angular/standalone';
 import { TaskService } from '../../../services/task.service';
@@ -17,11 +17,11 @@ import { HouseholdMember } from '../../../models/user.model';
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
+    IonHeader, IonToolbar, IonTitle, IonButton,
     IonInput, IonButtons
   ],
   template: `
-    <ion-header>
+    <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-title>Ajouter une tâche</ion-title>
         <ion-buttons slot="end">
@@ -30,7 +30,7 @@ import { HouseholdMember } from '../../../models/user.model';
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <div class="sheet-body ion-content-scroll-host">
       <div class="form-field">
         <label class="field-label">Titre de la tâche</label>
         <ion-input
@@ -39,8 +39,6 @@ import { HouseholdMember } from '../../../models/user.model';
           name="taskTitle"
           placeholder="Ex: Sortir les poubelles"
           type="text"
-          fill="outline"
-          class="custom-input"
         ></ion-input>
       </div>
 
@@ -70,7 +68,7 @@ import { HouseholdMember } from '../../../models/user.model';
       >
         Ajouter la tâche
       </ion-button>
-    </ion-content>
+    </div>
   `,
   styles: [`
     .member-picker {

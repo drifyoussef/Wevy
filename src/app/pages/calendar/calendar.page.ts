@@ -167,9 +167,9 @@ export class CalendarPage implements OnInit, OnDestroy {
         date: iso,
         formattedDate: this.formattedSelectedDate()
       },
-      breakpoints: [0, 0.75, 0.95],
-      initialBreakpoint: 0.75,
-      cssClass: 'auto-height-modal'
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+      cssClass: 'auto-sheet'
     });
 
     await modal.present();
@@ -200,9 +200,9 @@ export class CalendarPage implements OnInit, OnDestroy {
     const modal = await this.modalController.create({
       component: AddEventModalComponent,
       componentProps: { event, date: event.date },
-      breakpoints: [0, 0.85, 0.95],
-      initialBreakpoint: 0.85,
-      cssClass: 'auto-height-modal'
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+      cssClass: 'auto-sheet'
     });
 
     await modal.present();
