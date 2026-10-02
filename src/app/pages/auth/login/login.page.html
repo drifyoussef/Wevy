@@ -2,7 +2,10 @@
   <ion-toolbar>
     <ion-title>{{ showForgotPassword ? 'Réinitialiser le mot de passe' : 'Connexion' }}</ion-title>
     <ion-buttons slot="start" *ngIf="showForgotPassword">
-      <ion-back-button (click)="goBackToLogin()"></ion-back-button>
+      <!-- Not ion-back-button: it only shows when there is a previous page, and this form is on the same page -->
+      <ion-button fill="clear" class="toolbar-back" (click)="goBackToLogin()" aria-label="Retour à la connexion">
+        <ion-icon slot="icon-only" [name]="backIcon"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -87,8 +90,8 @@
   <!-- FORGOT PASSWORD FORM -->
   <div *ngIf="showForgotPassword" class="login-container">
     <div class="logo-section">
-      <h1>🔐</h1>
-      <p>Réinitialiser votre mot de passe</p>
+      <div class="reset-icon"><ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon></div>
+      <p class="text-reset">Réinitialiser votre mot de passe</p>
     </div>
 
     <form>
@@ -133,7 +136,7 @@
         <ion-card class="info-card">
           <ion-card-content>
             <p class="text-sm text-gray-600">
-              ℹ️ Un code a été envoyé à <strong>{{ forgotPasswordForm.email }}</strong>
+              Un code a été envoyé à <strong>{{ forgotPasswordForm.email }}</strong>
             </p>
           </ion-card-content>
         </ion-card>

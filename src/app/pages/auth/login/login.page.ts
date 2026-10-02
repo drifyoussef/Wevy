@@ -5,11 +5,22 @@ import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonInput, IonButton, IonText, IonSpinner, IonIcon,
-  IonButtons, IonBackButton, IonCard, IonCardContent
+  IonButtons, IonCard, IonCardContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { eye, eyeOff } from 'ionicons/icons';
+import { eye, eyeOff, lockClosedOutline, arrowBackSharp, chevronBack } from 'ionicons/icons';
 import { AuthService } from '../../../services/auth.service';
+
+/**
+ * The backend's own message ({ error: '...' }), which ApiService errors carry in `error.error`.
+ * Undefined when the request failed without one (network error, timeout...).
+ */
+function serverMessage(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null || !('error' in error)) return undefined;
+  const body = error.error;
+  if (typeof body !== 'object' || body === null || !('error' in body)) return undefined;
+  return typeof body.error === 'string' ? body.error : undefined;
+}
 
 interface ForgotPasswordForm {
   email: string;
@@ -29,7 +40,7 @@ interface ForgotPasswordForm {
     RouterModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonInput, IonButton, IonText, IonSpinner, IonIcon,
-    IonButtons, IonBackButton, IonCard, IonCardContent
+    IonButtons, IonCard, IonCardContent
   ]
 })
 export class LoginPage {
@@ -41,6 +52,8 @@ export class LoginPage {
 
   // Forgot password
   showForgotPassword = false;
+  /** Same icon as Ionic's own back buttons: chevron on iOS, arrow on Android/web */
+  readonly backIcon = document.documentElement.getAttribute('mode') === 'ios' ? 'chevron-back' : 'arrow-back-sharp';
   forgotPasswordStep = 1;
   forgotPasswordLoading = false;
   forgotPasswordError = '';
@@ -57,7 +70,7 @@ export class LoginPage {
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ 'eye': eye, 'eye-off': eyeOff });
+    addIcons({ 'eye': eye, 'eye-off': eyeOff, 'lock-closed-outline': lockClosedOutline, 'arrow-back-sharp': arrowBackSharp, 'chevron-back': chevronBack });
   }
 
   togglePasswordVisibility() {
@@ -122,10 +135,7 @@ export class LoginPage {
     } catch (error: unknown) {
       console.error('Request reset code error:', error);
       // Show generic message for security
-      const errorMsg = error instanceof Error && (error as any).error?.error
-        ? (error as any).error.error
-        : 'Erreur lors de l\'envoi du code';
-      this.forgotPasswordError = errorMsg;
+      this.forgotPasswordError = serverMessage(error) ?? 'Erreur lors de l\'envoi du code';
     } finally {
       this.forgotPasswordLoading = false;
       this.cdr.detectChanges();
@@ -188,16 +198,8 @@ export class LoginPage {
         message: error instanceof Error ? error.message : typeof error
       });
       
-      let errorMsg = 'Erreur lors de la réinitialisation';
-      
-      if (error instanceof Error) {
-        errorMsg = error.message;
-        if ((error as any).error?.error) {
-          errorMsg = (error as any).error.error;
-        }
-      }
-      
-      this.forgotPasswordError = errorMsg;
+      this.forgotPasswordError = serverMessage(error)
+        ?? (error instanceof Error ? error.message : 'Erreur lors de la réinitialisation');
     } finally {
       this.forgotPasswordLoading = false;
       this.cdr.detectChanges();
